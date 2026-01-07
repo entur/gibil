@@ -56,8 +56,10 @@ fun urlBuilder(airportCodeParam: String, timeFromParam: String = "0", timeToPara
 fun main() {
     val client = OkHttpClient()
 
+    val flyplass = readln()
+
     val exampleQueryAPI = urlBuilder(
-        airportCodeParam="OSL",
+        airportCodeParam=flyplass,
         directionParam="A",
         lastUpdateParam = "2026-01-01T09:30:00Z",
         serviceTypeParam="E"

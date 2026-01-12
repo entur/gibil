@@ -3,7 +3,7 @@ package org.example
 fun main() {
     val flyplass = readln()
 
-    val avinorApi = avinorApiHandling()
+    val avinorApi = AvinorApiHandling()
 
     val exampleQueryAPI = avinorApi.apiCall(
         airportCodeParam = flyplass,

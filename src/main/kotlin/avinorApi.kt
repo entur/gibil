@@ -1,13 +1,12 @@
 package org.example
 
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 
-class avinorApiHandling(){
+//import kotlinx.datetime.Instant
+//import kotlinx.datetime.Clock
+
+class AvinorApiHandling(){
     val client = OkHttpClient()
     var urlBuilderLink = ""
 

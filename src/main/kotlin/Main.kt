@@ -1,16 +1,19 @@
 package org.example
 
-
+import jakarta.xml.bind.JAXBContext
 import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Callback
 import okhttp3.Call
 import okhttp3.Response
+import org.example.netex.Airport
+import java.io.InputStream
+import java.io.StringReader
 import java.util.Date
 
 
-//imports date-handling, dosent work for now for some mysterious reasons, i gave up:D
+//imports date-handling, doesn't work for now for some mysterious reasons, i gave up:D
 //import kotlinx.datetime.LocalDate
 //import kotlinx.datetime.format.*
 
@@ -52,38 +55,61 @@ fun urlBuilder(airportCodeParam: String, timeFromParam: String = "0", timeToPara
     return url;
 }
 
+fun parseAndPrintFlights(xmlData: String) {
+    val context = JAXBContext.newInstance(Airport::class.java)
+    val unmarshaller = context.createUnmarshaller()
+
+    try {
+        val airportData: Airport = unmarshaller.unmarshal(StringReader(xmlData)) as Airport
+
+        println("Flyplass: ${airportData.name}")
+        println("Sist oppdatert: ${airportData.flightsContainer?.lastUpdate ?: "N/A"}")
+
+        airportData.flightsContainer?.flight?.forEach { flight ->
+            println("Fly: ${flight.flightId} to/from ${flight.airport} - Status: ${flight.status?.code ?: "N/A"}")
+        }
+    } catch (e: Exception) {
+        println("Something went wrong while parsing: ${e.message}")
+        e.printStackTrace()
+    }
+}
+
 
 fun main() {
+
     val client = OkHttpClient()
 
     val flyplass = readln()
 
     val exampleQueryAPI = urlBuilder(
-        airportCodeParam=flyplass,
-        directionParam="A",
-        lastUpdateParam = "2026-01-01T09:30:00Z",
-        serviceTypeParam="E"
+     airportCodeParam=flyplass,
+     directionParam="A",
+     lastUpdateParam = "2026-01-12T09:30:00Z",
+     serviceTypeParam="E"
     )
 
     val request = Request.Builder()
-        .url(exampleQueryAPI)
-        .build()
+     .url(exampleQueryAPI)
+     .build()
 
     client.newCall(request).enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            println("Request failed: ${e.message}")
-        }
+     override fun onFailure(call: Call, e: IOException) {
+         println("Request failed: ${e.message}")
+     }
 
-        override fun onResponse(call: Call, response: Response) {
-            response.use {
-                if (response.isSuccessful) {
-                    println("Response: ${response.body?.string()}")
-                } else {
-                    println("Error: ${response.code}")
-                }
-            }
-        }
+     override fun onResponse(call: Call, response: Response) {
+         response.use {
+             if (response.isSuccessful) {
+                 val xmlResponse = response.body?.string()
+                 if(xmlResponse != null) {
+                    parseAndPrintFlights(xmlResponse)
+                 }
+             } else {
+                 println("Error: ${response.code}")
+             }
+         }
+     }
     })
 
-    Thread.sleep(3000) // Wait for async response
+    Thread.sleep(3000) // Wait for async response */
 }

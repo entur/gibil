@@ -1,5 +1,6 @@
 package org.example
 
+import java.time.Instant
 import jakarta.xml.bind.JAXBContext
 import java.io.IOException
 import okhttp3.OkHttpClient
@@ -78,36 +79,27 @@ fun main() {
 
     val flyplass = readln()
 
-    val exampleQueryAPI = urlBuilder(
-     airportCodeParam=flyplass,
-     directionParam="A",
-     lastUpdateParam = "2026-01-12T09:30:00Z",
-     serviceTypeParam="E"
+    val avinorApi = AvinorApiHandling()
+
+    val specificTime = Instant.parse("2024-08-08T09:30:00Z")
+
+    val exampleQueryAPI = avinorApi.apiCall(
+        airportCodeParam = flyplass,
+        directionParam = "A",
+        lastUpdateParam = specificTime,
+        serviceTypeParam = "E",
+        timeToParam = 336,
+        timeFromParam = 24,
     )
 
-    val request = Request.Builder()
-     .url(exampleQueryAPI)
-     .build()
+    val xmlData = avinorApi.apiCall("OSL", directionParam = "D", lastUpdateParam = Instant.now())
+    if (xmlData != null) {
+        // Send to XML handling function
+    } else {
+        println("Failed to fetch XML data")
+    }
 
-    client.newCall(request).enqueue(object : Callback {
-     override fun onFailure(call: Call, e: IOException) {
-         println("Request failed: ${e.message}")
-     }
-
-     override fun onResponse(call: Call, response: Response) {
-         response.use {
-             if (response.isSuccessful) {
-                 val xmlResponse = response.body?.string()
-                 if(xmlResponse != null) {
-                     parseAndPrintFlights(AVXH.unmarshall(xmlResponse))
-                 }
-             } else {
-                 println("Error: ${response.code}")
-             }
-         }
-     }
-    })
-
+    println(exampleQueryAPI)
     Thread.sleep(3000) // Wait for async response */
 
 }

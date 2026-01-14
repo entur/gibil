@@ -2,13 +2,21 @@ package org.example
 
 import java.time.Instant
 import org.example.netex.Airport
+import java.time.Clock
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 //Temporary function to test JAXB objects fetched and made from Avinor api data
 fun parseAndPrintFlights(airportData: Airport) {
 
     try {
         println("Flyplass: ${airportData.name}")
-        println("Sist oppdatert: ${airportData.flightsContainer?.lastUpdate ?: "N/A"}")
+        val avinorApiHandling = AvinorApiHandling()
+        if (airportData.flightsContainer?.lastUpdate != null){
+            val lastUpdate : String = airportData.flightsContainer?.lastUpdate !! //forces not null
+            val userCorrectDate = avinorApiHandling.userCorrectDate(lastUpdate)
+            println("Sist oppdatert: $userCorrectDate")
+        }
 
         airportData.flightsContainer?.flight?.forEach { flight ->
             println("Fly: ${flight.flightId} to/from ${flight.airport} - Status: ${flight.status?.code ?: "N/A"}")
@@ -34,9 +42,10 @@ fun main() {
         serviceTypeParam = "E",
         timeToParam = 336,
         timeFromParam = 24,
+        codeshareParam = true
     )
-
-    val xmlData = avinorApi.avinorXmlFeedApiCall(chosenAirport, directionParam = "D", lastUpdateParam = Instant.now())
+    val clock = Clock.systemUTC();
+    val xmlData = avinorApi.avinorXmlFeedApiCall(chosenAirport, directionParam = "D", lastUpdateParam = Instant.now(clock), codeshareParam = true)
     if (xmlData != null && "Error" !in xmlData) {
         parseAndPrintFlights(AVXH.unmarshallAirportToXml(xmlData))
     } else {

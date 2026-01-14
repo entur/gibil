@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -17,13 +18,14 @@ class AvinorApiHandling(){
         timeToParam: Int? = 7,
         directionParam: String? = null,
         lastUpdateParam: Instant? = null,
-        serviceTypeParam: String? = null
+        serviceTypeParam: String? = null,
+        codeshareParam: Boolean? = null
     ): String? {
         /*
         Handles the apicall to the avinor api, urlBuilder creates the url that is then used by the http3 package to fetch xml dataa from the api, it returns the raw xml as a string or an error message
          */
 
-        val url = urlBuilder(airportCodeParam, timeFromParam, timeToParam, directionParam, lastUpdateParam, serviceTypeParam)
+        val url = urlBuilder(airportCodeParam, timeFromParam, timeToParam, directionParam, lastUpdateParam, serviceTypeParam, codeshareParam)
 
         //if the response from the urlBuilder isn't an error-message
         if ("Error" !in url){
@@ -56,7 +58,8 @@ class AvinorApiHandling(){
                    timeToParam: Int? = 7,
                    directionParam: String?,
                    lastUpdateParam: Instant? = null,
-                   serviceTypeParam: String? = null): String {
+                   serviceTypeParam: String? = null,
+                   codeshareParam: Boolean? = null ): String {
         /*
          Makes a complete url for the api to use based on the avinor api.
          Obligatory parameters: airport code, example: OSL
@@ -133,6 +136,13 @@ class AvinorApiHandling(){
             //do nothing, not obligatory parameter for api
         }
 
+        //adds the optional codeshare information
+        if (codeshareParam != null && codeshareParam) {
+            urlBuilderLink += "&codeshare=Y"
+        } else {
+            //do nothing, not obligatory parameter for api
+        }
+
         return urlBuilderLink
     }
 
@@ -159,7 +169,26 @@ class AvinorApiHandling(){
         } else {
             return false
         }
+    }
 
+    public fun userCorrectDate(Datetime: String): String{
+        /*
+        Takes an incoming instant datetime string, parses it, and then converts it into the correct utc for the user
+         */
+        try {
+            //makes string into time object
+            val datetimeOriginal = Instant.parse(Datetime)
 
+            //finds user's local timezone and applies to original datetime
+            val datetimeUserCorrect = datetimeOriginal.atZone(ZoneId.systemDefault())
+
+            //formats for output
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            val displayTime = datetimeUserCorrect.format(formatter)
+
+            return displayTime
+        } catch (e: Exception) {
+            return "Error: Date format invalid; ${e.localizedMessage}"
+        }
     }
 }

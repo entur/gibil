@@ -45,6 +45,18 @@ class Flight {
     @XmlElement(name = "delayed")
     var delayed: String? = null
 
+    @XmlElement(name = "codeshareAirlineDesignators")
+    var AirlineDesignators: String? = null
+
+    @XmlElement(name = "codeshareAirlineNames")
+    var AirlineNames: String? = null
+
+    @XmlElement(name = "codeshareFlightNumbers")
+    var FlightNumbers: String? = null
+
+    @XmlElement(name = "codeshareOperationalSuffixs")
+    var OperationalSuffixs: String? = null
+
     //JAXB needs an empty constructor to populate the fields with the xml data
     constructor()
 

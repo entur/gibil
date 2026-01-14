@@ -27,7 +27,7 @@ fun main() {
     val avinorApi = AvinorApiHandling()
     val specificTime = Instant.parse("2024-08-08T09:30:00Z")
 
-    val exampleQueryAPI = avinorApi.apiCall(
+    val exampleQueryAPI = avinorApi.avinorXmlFeedApiCall(
         airportCodeParam = chosenAirport,
         directionParam = "A",
         lastUpdateParam = specificTime,
@@ -36,11 +36,11 @@ fun main() {
         timeFromParam = 24,
     )
 
-    val xmlData = avinorApi.apiCall(chosenAirport, directionParam = "D", lastUpdateParam = Instant.now())
-    if (xmlData != null) {
+    val xmlData = avinorApi.avinorXmlFeedApiCall(chosenAirport, directionParam = "D", lastUpdateParam = Instant.now())
+    if (xmlData != null && "Error" !in xmlData) {
         parseAndPrintFlights(AVXH.unmarshall(xmlData))
     } else {
-        println("Failed to fetch XML data")
+        println("Failed to fetch XML data: ($xmlData)")
     }
 
     Thread.sleep(3000) // Wait for async response */

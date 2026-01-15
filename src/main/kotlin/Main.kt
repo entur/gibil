@@ -6,6 +6,7 @@ import java.io.File
 import siri.SiriETMapper
 import siri.SiriETPublisher
 import org.entur.siri.validator.SiriValidator
+import java.time.Clock
 
 //Temporary function to test JAXB objects fetched and made from Avinor api data
 fun parseAndPrintFlights(airportData: Airport) {
@@ -56,7 +57,7 @@ fun main() {
     Thread.sleep(3000) // Wait for async response */
 
     val airportCode = chosenAirport
-    val airport = AVXH.unmarshall(xmlData ?: "")
+    val airport = AVXH.unmarshallXmlToAirport(xmlData ?: "")
 
     // Convert to SIRI-ET format
     println("Converting to SIRI-ET format...")

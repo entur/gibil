@@ -3,8 +3,6 @@ package org.example
 import java.time.Instant
 import org.example.netex.Airport
 import java.time.Clock
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 //Temporary function to test JAXB objects fetched and made from Avinor api data
 fun parseAndPrintFlights(airportData: Airport) {
@@ -47,7 +45,7 @@ fun main() {
     val clock = Clock.systemUTC();
     val xmlData = avinorApi.avinorXmlFeedApiCall(chosenAirport, directionParam = "D", lastUpdateParam = Instant.now(clock), codeshareParam = true)
     if (xmlData != null && "Error" !in xmlData) {
-        parseAndPrintFlights(AVXH.unmarshallAirportToXml(xmlData))
+        parseAndPrintFlights(AVXH.unmarshallXmlToAirport(xmlData))
     } else {
         println("Failed to fetch XML data: ($xmlData)")
     }

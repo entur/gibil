@@ -17,7 +17,7 @@ class AvinorScheduleXmlHandlerTest {
     }
 
     @Test
-    fun `unmarshallAirportToXml should parse valid XML into Airport object`() {
+    fun `unmarshallXmlToAirport should parse valid XML into Airport object`() {
         val validXml = """
         <airport name="OSL">
             <flights lastUpdate="2026-01-07T09:24:27.016611Z">
@@ -37,30 +37,30 @@ class AvinorScheduleXmlHandlerTest {
         </airport>
         """.trimIndent()
 
-        val airport = handler.unmarshallAirportToXml(validXml)
+        val airport = handler.unmarshallXmlToAirport(validXml)
         assertNotNull(airport)
     }
 
     @Test
-    fun `unmarshallAirportToXml should throw exception for invalid XML`() {
+    fun `unmarshallXmlToAirport should throw exception for invalid XML`() {
         val invalidXml = """
         <airport name="OSL">
                 <>
         """.trimIndent()
 
         val exception = assertThrows<RuntimeException> {
-            handler.unmarshallAirportToXml(invalidXml)
+            handler.unmarshallXmlToAirport(invalidXml)
         }
 
         assertTrue(exception.message?.contains("Error parsing Airport") == true)
     }
 
     @Test
-    fun `unmarshallAirportToXml should throw exception for empty string`() {
+    fun `unmarshallXmlToAirport should throw exception for empty string`() {
         val invalidXml = ""
 
         val exception = assertThrows<RuntimeException> {
-            handler.unmarshallAirportToXml(invalidXml)
+            handler.unmarshallXmlToAirport(invalidXml)
         }
         assertTrue(exception.message?.contains("Error parsing Airport") == true)
     }

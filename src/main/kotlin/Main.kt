@@ -1,5 +1,6 @@
 package org.example
 
+import AirlineNameHandler
 import java.time.Instant
 import model.avinorApi.Airport
 import java.io.File
@@ -20,8 +21,9 @@ fun parseAndPrintFlights(airportData: Airport) {
             println("Sist oppdatert: $userCorrectDate")
         }
 
+        val cache = AirlineNameHandler()
         airportData.flightsContainer?.flight?.forEach { flight ->
-            println("Fly: ${flight.flightId} to/from ${flight.airport} - Status: ${flight.status?.code ?: "N/A"}")
+            println("Fly: ${if(flight.airline != null){cache.getName(flight.airline !!)}else{}} with id; ${flight.flightId} to/from ${flight.airport} - Status: ${flight.status?.code ?: "N/A"}")
         }
     } catch (e: Exception) {
         println("Something went wrong while parsing: ${e.message}")
@@ -53,6 +55,15 @@ fun main() {
     } else {
         println("Failed to fetch XML data: ($xmlData)")
     }
+
+    val cache = AirlineNameHandler()
+
+    // Update from API once in a while
+        //cache.update()
+
+    // Use it
+    println(cache.getName("AA"))  // American Airlines
+    println(cache.isValid("BA"))  // true
 
     Thread.sleep(3000) // Wait for async response */
 

@@ -41,7 +41,7 @@ class AvinorApiHandler(){
 
     }
 
-    private fun apiCall(url: String): String? {
+    public fun apiCall(url: String): String? {
         val request = Request.Builder()
             .url(url)
             .build()

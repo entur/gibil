@@ -3,11 +3,12 @@ package org.example
 import AirlineNameHandler
 import java.time.Instant
 import model.avinorApi.Airport
+import org.entur.siri.validator.SiriValidator
 import java.io.File
 import siri.SiriETMapper
 import siri.SiriETPublisher
-import org.entur.siri.validator.SiriValidator
 import java.time.Clock
+import siri.validator.XsdValidator
 
 //Temporary function to test JAXB objects fetched and made from Avinor api data
 fun parseAndPrintFlights(airportData: Airport) {
@@ -85,7 +86,9 @@ fun main() {
     println("SIRI-ET XML saved to: ${outputFile.absolutePath}")
     println()
 
-    SiriValidator.validate(siriXml, SiriValidator.Version.VERSION_2_1)
+    // Validate XML against SIRI-ET XSD
+    val result = XsdValidator().validateSirixml(siriXml, SiriValidator.Version.VERSION_2_1)
+    println(result.message)
 
     // Print sample of output
     println("=== SIRI-ET XML Output (first 2000 chars) ===")
@@ -93,5 +96,4 @@ fun main() {
     if (siriXml.length > 2000) {
         println("... (truncated, see ${outputFile.name} for full output)")
     }
-
 }

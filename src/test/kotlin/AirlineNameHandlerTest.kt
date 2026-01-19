@@ -1,6 +1,6 @@
 package org.example
 
-import AirlineNameHandler
+import handler.AirlineNameHandler
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File

@@ -1,4 +1,4 @@
-package org.example
+package util
 
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller

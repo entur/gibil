@@ -1,6 +1,6 @@
 package siri
 
-import org.example.SharedJaxbContext
+import util.SharedJaxbContext
 import uk.org.siri.siri21.Siri
 import java.io.StringWriter
 import java.io.File

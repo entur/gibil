@@ -1,5 +1,6 @@
 package org.example
 
+import handler.AvinorScheduleXmlHandler
 import model.avinorApi.Airport
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach

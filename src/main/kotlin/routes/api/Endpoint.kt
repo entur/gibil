@@ -1,21 +1,16 @@
 package routes.api
 
-import com.sun.net.httpserver.HttpServer
-import java.net.InetSocketAddress
+import SiriEtService
+import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
-class Endpoint() {
+@RestController
+class Endpoint(private val siriEtService: SiriEtService) {
 
-    fun siriEtEndpoint(siriXml: String) {
-        val server = HttpServer.create(InetSocketAddress(8080), 0)
-
-        server.createContext("/siri") { exchange ->
-
-            exchange.responseHeaders.add("Content-Type", "application/xml")
-            exchange.sendResponseHeaders(200, siriXml.toByteArray().size.toLong())
-            exchange.responseBody.use { it.write(siriXml.toByteArray()) }
-        }
-
-        server.start()
-        println("Server running on port 8080")
+    @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
+    fun siriEtEndpoint(@RequestParam(defaultValue = "OSL") airport: String): String {
+        return siriEtService.fetchAndConvert(airport)
     }
 }

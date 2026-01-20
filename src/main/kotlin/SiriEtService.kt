@@ -2,6 +2,7 @@ import config.App
 
 import java.time.Instant
 import org.entur.siri.validator.SiriValidator
+import org.springframework.stereotype.Service
 import siri.validator.ValidationResult
 
 /**
@@ -10,6 +11,7 @@ import siri.validator.ValidationResult
  * This siri data is validated before being sent to endpoint
  * @param components application components and dependencies
  */
+@Service
 class SiriEtService(private val components: App) {
 
     private val DEPATURE_CODE = "D" //Should be const and moved

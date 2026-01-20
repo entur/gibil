@@ -100,6 +100,11 @@
             <artifactId>siri-java-model</artifactId>
             <version>1.28</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.7.3</version>
+        </dependency>
     </dependencies>
 
 </project>

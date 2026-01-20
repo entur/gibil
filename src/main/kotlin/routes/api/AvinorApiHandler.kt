@@ -21,9 +21,8 @@ val clock: Clock = Clock.systemUTC()
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  *
  */
-class AvinorApiHandler{
+open class AvinorApiHandler{
     val client = OkHttpClient()
-    var urlBuilderLink = ""
     var timeFrom: Int = 2
     var timeTo: Int = 7
     var direction: String? = null
@@ -42,7 +41,7 @@ class AvinorApiHandler{
      * @param codeshareParam optional, choose to add codeshare information or not, consists of: codeshareAirlineDesignators, codeshareAirlineNames, codeshareFlightNumbers and codeshareOperationalSuffixs.
      * @return XML-result from XMLfeed api-call or an errormessage if failure occured
      */
-    fun avinorXmlFeedApiCall(
+    open fun avinorXmlFeedApiCall(
         airportCodeParam: String,
         timeFromParam: Int? = null,
         timeToParam: Int? = null,
@@ -86,8 +85,7 @@ class AvinorApiHandler{
             return if (response.isSuccessful) {
                 response.body?.string()  // Returns raw XML
             } else {
-                println("Error: ${response.code}")
-                null
+                throw IllegalArgumentException("Error: ${response.code}")
             }
         }
     }
@@ -101,18 +99,18 @@ class AvinorApiHandler{
     private fun urlBuilder(airportCodeParam: String): String {
         val baseurl = "https://asrv.avinor.no/XmlFeed/v1.0"
 
-        urlBuilderLink = baseurl
+        var localUrl = baseurl
 
         //checks if the airportcode is valid using the airportCodeCheckApi method
         if (airportCodeCheckApi(airportCodeParam)) {
-            urlBuilderLink += "?airport=${airportCodeParam.uppercase()}"
+            localUrl += "?airport=${airportCodeParam.uppercase()}"
         } else {
             throw IllegalArgumentException("Error: Airportcode not valid! XmlFeed api-call not made!")
         }
 
         //timeFromParam handling, minimum value is 1 and max is 36
         if (timeFrom <= TIMEFROMPARAM_MAX_NUM && timeFrom >= TIMEFROMPARAM_MIN_NUM) {
-            urlBuilderLink += "&TimeFrom=$timeFrom"
+            localUrl += "&TimeFrom=$timeFrom"
         } else if (timeFrom != 2) {
             throw IllegalArgumentException("TimeFrom parameter is outside of valid index, can only be between 1 and 36 hours, timeFrom set to default")
         } else {
@@ -121,7 +119,7 @@ class AvinorApiHandler{
 
         //timeToParam handling, minimum: 7 maximum 336
         if (timeTo <= TIMETOPARAM_MAX_NUM && timeTo >= TIMETOPARAM_MIN_NUM) {
-            urlBuilderLink += "&TimeTo=$timeTo"
+            localUrl += "&TimeTo=$timeTo"
         } else if (timeTo != 7) {
             throw IllegalArgumentException("TimeTo parameter is outside of valid index, can only be between 7 and 336 hours, timeTo set to default")
         } else {
@@ -130,7 +128,7 @@ class AvinorApiHandler{
 
         //adds the optional "E" service type if the option is specified
         if (includeHelicopter) {
-            urlBuilderLink += "&serviceType=E"
+            localUrl += "&serviceType=E"
         } else {
             //do nothing, not obligatory parameter for api
         }
@@ -138,11 +136,11 @@ class AvinorApiHandler{
         //formats last update parameter. Accepted format: yyyy-MM-ddTHH:mm:ssZ
         //set format correctly - ISO-8601
         val lastUpdateString = lastUpdate.toString()
-        urlBuilderLink += "&lastUpdate$lastUpdateString"
+        localUrl += "&lastUpdate=${lastUpdateString}"
 
         //formats direction-information if a valid direction is specified, else sets it to be nothing
         if (direction != null && (direction == "D" || direction == "A")) {
-            urlBuilderLink += "&Direction$direction"
+            localUrl += "&Direction=${direction}"
         } else if(direction != null) {
             throw IllegalArgumentException("Direction parameter invalid, input ignored")
         } else {
@@ -151,11 +149,11 @@ class AvinorApiHandler{
 
         //adds the optional codeshare information
         if (codeshare) {
-            urlBuilderLink += "&codeshare=Y"
+            localUrl += "&codeshare=Y"
         } else {
             //do nothing, not obligatory parameter for api
         }
-        return urlBuilderLink
+        return localUrl
     }
 
     /**

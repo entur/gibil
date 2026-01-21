@@ -18,6 +18,7 @@
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <start-class>org.example.MainKt</start-class>
+        <sonar.organization>enturas-github</sonar.organization>
     </properties>
 
     <repositories>
@@ -87,6 +88,11 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
             </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

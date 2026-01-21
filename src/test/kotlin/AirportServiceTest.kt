@@ -1,5 +1,6 @@
 package org.example
 
+import config.App
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
 import handler.AvinorScheduleXmlHandler
@@ -66,7 +67,8 @@ class AirportServiceTest {
         val spyApi = SpyAvinorApi()
         val spyParser = SpyXmlHandler()
 
-        val service = AirportService(api = spyApi, xmlHandler = spyParser)
+        val app = App(avinorApi = spyApi, avxh = spyParser)
+        val service = AirportService(app)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
@@ -89,13 +91,14 @@ class AirportServiceTest {
         spyApi.simulateError = true // We simulate that Avinor is down/returning errors
 
         val spyParser = SpyXmlHandler()
-        val service = AirportService(api = spyApi, xmlHandler = spyParser)
+
+        val app = App(avinorApi = spyApi, avxh = spyParser)
+        val service = AirportService(app)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
         // 1. API was called
         assertTrue(spyApi.capturedRequests.contains("BGO"))
-
         // 2. The parser should NOT have been called, because the API returned "Error"
         assertEquals(0, spyParser.capturedXmlData.size, "The parser should not run when the API fails")
     }

@@ -136,11 +136,11 @@ open class AvinorApiHandler{
         //formats last update parameter. Accepted format: yyyy-MM-ddTHH:mm:ssZ
         //set format correctly - ISO-8601
         val lastUpdateString = lastUpdate.toString()
-        localUrl += "&lastUpdate=${lastUpdateString}"
+        localUrl += "&lastUpdate${lastUpdateString}"
 
         //formats direction-information if a valid direction is specified, else sets it to be nothing
         if (direction != null && (direction == "D" || direction == "A")) {
-            localUrl += "&Direction=${direction}"
+            localUrl += "&Direction${direction}"
         } else if(direction != null) {
             throw IllegalArgumentException("Direction parameter invalid, input ignored")
         } else {

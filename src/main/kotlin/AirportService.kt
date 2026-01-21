@@ -1,11 +1,11 @@
 package org.example
 
+import config.App
 import model.avinorApi.Airport
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 import java.io.File
-import routes.api.AvinorApiHandler
-import handler.AvinorScheduleXmlHandler
+import org.springframework.stereotype.Service
 
 const val BATCH_SIZE = 5
 const val REQUEST_DELAY_MS = 50
@@ -13,10 +13,8 @@ const val REQUEST_DELAY_MS = 50
 /**
  * Service class to handle fetching and processing airport data from the Avinor API.
  */
-class AirportService(
-    private val api: AvinorApiHandler = AvinorApiHandler(),
-    private val xmlHandler: AvinorScheduleXmlHandler = AvinorScheduleXmlHandler()
-) {
+@Service
+class AirportService(private val components: App) {
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.
@@ -52,7 +50,7 @@ class AirportService(
             async(Dispatchers.IO) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                code to api.avinorXmlFeedApiCall(
+                code to components.avinorApi.avinorXmlFeedApiCall(
                     airportCodeParam = code,
                     timeFromParam = 2,
                     timeToParam = 7
@@ -65,7 +63,7 @@ class AirportService(
         results.forEach { (code, xmlData) ->
             if (xmlData != null && "Error" !in xmlData) {
                 try {
-                    val airportObject = xmlHandler.unmarshallXmlToAirport(xmlData)
+                    val airportObject = components.avxh.unmarshallXmlToAirport(xmlData)
                     printFlightDetails(airportObject)
                 } catch (e: Exception) {
                     println("Could not parse data for $code: ${e.message}")

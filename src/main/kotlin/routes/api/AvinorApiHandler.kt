@@ -8,6 +8,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.text.uppercase
+import java.time.ZonedDateTime
 
 const val TIMEFROMPARAM_MIN_NUM = 1
 const val TIMEFROMPARAM_MAX_NUM = 36
@@ -190,7 +191,12 @@ open class AvinorApiHandler{
     fun userCorrectDate(datetime: String): String{
         try {
             //makes string into time object
-            val datetimeOriginal = Instant.parse(datetime)
+            // Try parsing as ZonedDateTime first, fall back to Instant
+            val datetimeOriginal = try {
+                ZonedDateTime.parse(datetime).toInstant()
+            } catch (e: Exception) {
+                Instant.parse(datetime)
+            }
 
             //finds user's local timezone and applies to original datetime
             val datetimeUserCorrect = datetimeOriginal.atZone(ZoneId.systemDefault())
@@ -201,7 +207,7 @@ open class AvinorApiHandler{
 
             return displayTime
         } catch (e: Exception) {
-            return "Error: Date format invalid; ${e.localizedMessage}"
+            return "Error: Date format in '$datetime' invalid; ${e.localizedMessage}"
         }
     }
 }

@@ -3,7 +3,10 @@ package org.example
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
+import routes.api.clock
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class AvinorApiHandlerTest {
     val api = AvinorApiHandler()
@@ -51,7 +54,7 @@ class AvinorApiHandlerTest {
          */
         assertThrows(IllegalArgumentException::class.java) {
             val result = api.avinorXmlFeedApiCall(
-                airportCodeParam = "OS",
+                airportCodeParam = "OSL",
                 timeFromParam = 1,
                 timeToParam = 7,
                 directionParam = "f",
@@ -92,12 +95,35 @@ class AvinorApiHandlerTest {
     }
 
     @Test
-    fun `userCorrectDate with valid iso timestamp returns localized date string`(){
-        val datetime = "2024-08-08T09:30:00Z"
-        val result = api.userCorrectDate(datetime)
-        println(result)
-        assertTrue(result.contains("2024-08-08 11:30:00"))
+    fun `userCorrectDate with valid iso timestamp returns localized date string`() {
+        //current time
+        val timeNow: Instant = Instant.now(clock)
 
+        //Makes a time which is correct to the users default timezone
+        val datetimeUserCorrect = timeNow.atZone(ZoneId.systemDefault())
+
+        //makes a time which is of LA time, probably different but works for the test anyway
+        var datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("America/Los_Angeles"))
+
+        //if the users timezone is conicidentally america/LA, set something different
+        if (datetimeUserDifferentZone == datetimeUserCorrect){
+            datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("Europe/Paris"))
+        }
+
+        //format for output
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+        val displayTime = datetimeUserCorrect.format(formatter)
+        val displayTimeWrong = datetimeUserDifferentZone.format(formatter)
+
+        // Pass the Instant string, not the ZonedDateTime string
+        val result = api.userCorrectDate(datetimeUserDifferentZone.toString())
+
+        println("Result: $result")
+        println("Expected: $displayTime")
+        println("Wrong timezone example: $displayTimeWrong")
+
+        assertEquals(displayTime, result)
     }
 
     @Test
@@ -105,6 +131,6 @@ class AvinorApiHandlerTest {
         val datetime = "not a valid date format"
         val result = api.userCorrectDate(datetime)
         println(result)
-        assertTrue(result.contains("Error: Date format invalid;"))
+        assertTrue(result.contains("Error: Date format in"))
     }
 }

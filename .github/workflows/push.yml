@@ -50,7 +50,7 @@ jobs:
                   -Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.token=${SONAR_TOKEN}
   docker-build:
-    if: github.repository_owner == 'entur' && github.event_name == 'pull_request' && github.ref == 'refs/heads/jacoco-dependency'
+    if: github.repository_owner == 'entur' && github.event_name == 'pull_request' && github.main.ref == 'main'
     needs: [maven-verify]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:

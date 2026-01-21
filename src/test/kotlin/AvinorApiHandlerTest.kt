@@ -3,7 +3,10 @@ package org.example
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
+import routes.api.clock
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class AvinorApiHandlerTest {
     val api = AvinorApiHandler()
@@ -51,7 +54,7 @@ class AvinorApiHandlerTest {
          */
         assertThrows(IllegalArgumentException::class.java) {
             val result = api.avinorXmlFeedApiCall(
-                airportCodeParam = "OS",
+                airportCodeParam = "OSL",
                 timeFromParam = 1,
                 timeToParam = 7,
                 directionParam = "f",
@@ -93,10 +96,26 @@ class AvinorApiHandlerTest {
 
     @Test
     fun `userCorrectDate with valid iso timestamp returns localized date string`(){
-        val datetime = "2024-08-08T09:30:00Z"
-        val result = api.userCorrectDate(datetime)
+        var timeNow: Instant = Instant.now(clock)
+
+        val datetimeUserCorrect = timeNow.atZone(ZoneId.systemDefault())
+        val datetimeUserWrong = timeNow.atZone(ZoneId.of("America/Los_Angeles"))
+
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz")
+
+        val displayTime = datetimeUserCorrect.format(formatter)
+        val displayTimeWrong = datetimeUserWrong.format(formatter)
+
+        val result = api.userCorrectDate(datetimeUserWrong.toString())
+
         println(result)
-        assertTrue(result.contains("2024-08-08 11:30:00"))
+        println("ASODUIANSIDJANIDSANSIDJN")
+        println(datetimeUserWrong)
+        println(displayTimeWrong)
+        println(displayTime)
+
+        assertTrue(result.equals(displayTime))
 
     }
 

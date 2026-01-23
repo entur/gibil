@@ -1,0 +1,48 @@
+#
+# Shared Workflows - Helm Lint
+#
+# TODO: This file comes from entur/.github/workflows/helm-lint.yml
+#       Adopt to your needs, this file is yours now.
+#
+# Reusable Workflows used:
+# * Helm Lint
+#   * Readme <https://github.com/entur/gha-helm/blob/main/README-lint.md>
+#   * Owner: Team Plattform
+#   * Slack: #Talk-plattform
+#
+# Matrix tips:
+# By default it will apply the ./env/$env.yaml values file.
+# If you need the helm value files to be named differently from the environment, you can change the values in the matrix like this:
+#   strategy:
+#      matrix:
+#        env: [
+#            { environment: az-dev, helm_values: values-azure-dev.yaml },
+#            { environment: az-test, helm_values: values-azure-test.yaml },
+#            { environment: az-prod, helm_values: values-azure-prod.yaml }
+#        ]
+#   with:
+#      environment: ${{ matrix.env.environment }}
+#      values: ${{ matrix.env.helm_values }}
+
+
+name: Helm Lint
+
+on:
+  push: # on push to any branch
+    paths: # only run on changes to the following files
+      - 'helm/**'
+    branches-ignore: # ignore on default branch, as it is already checked in PR
+      - "main"
+  pull_request: # on pull request to any branch
+    paths:
+      - 'helm/**'
+
+jobs:
+  helm-lint:
+    name: Helm Lint
+    uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    strategy:
+      matrix:
+        environment: [dev, tst, prd]
+    with:
+      environment: ${{ matrix.environment }}

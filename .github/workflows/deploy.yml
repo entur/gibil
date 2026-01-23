@@ -1,0 +1,16 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - Helm-further-implementation
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  helm-deploy:
+    name: Helm Deploy
+    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
+    with:
+      environment: dev
+      image: amazing-app:latest

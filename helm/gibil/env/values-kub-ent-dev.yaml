@@ -1,0 +1,3 @@
+common:
+  env: dev
+  replicas: 1

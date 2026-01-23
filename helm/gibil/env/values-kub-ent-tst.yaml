@@ -1,0 +1,3 @@
+common:
+  env: tst
+  replicas: 1

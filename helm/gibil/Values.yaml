@@ -34,5 +34,5 @@ common:
       JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties
         -Dfile.encoding=UTF-8
       TZ: Europe/Oslo
-    enabled: true
-    toEnv: true
+    enabled: false
+    toEnv: false

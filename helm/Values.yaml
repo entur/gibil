@@ -17,8 +17,7 @@ common:
       readiness:
         path: /actuator/health/readiness
     prometheus:
-      enabled: true
-      path: /actuator/prometheus
+      enabled: false
     volumeMounts:
       - mountPath: /etc/application-config
         name: application-config

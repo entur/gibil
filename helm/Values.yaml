@@ -1,0 +1,39 @@
+common:
+  app: gibil
+  shortname: gibil
+  team: ror
+  ingress:
+    enabled: false
+  service:
+    internalPort: 8080
+  container:
+    image: <+artifacts.primary.image>
+    cpu: 1
+    memory: 800
+    memoryLimit: 1000
+    probes:
+      liveness:
+        path: /actuator/health/liveness
+      readiness:
+        path: /actuator/health/readiness
+    prometheus:
+      enabled: true
+      path: /actuator/prometheus
+    volumeMounts:
+      - mountPath: /etc/application-config
+        name: application-config
+        readOnly: true
+    volumes:
+      - configMap:
+          defaultMode: 420
+          name: gibil-application
+        name: application-config
+  postgres:
+    enabled: false
+  configmap:
+    data:
+      JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties
+        -Dfile.encoding=UTF-8
+      TZ: Europe/Oslo
+    enabled: true
+    toEnv: true

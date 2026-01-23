@@ -1,0 +1,142 @@
+{{- /* Rules */}}
+{{- $env := .Values.env | required ".Values.common.env is required." -}}
+{{- $app := .Values.app | required ".Values.common.app is required." -}}
+{{- $shortname := .Values.shortname | required ".Values.common.shortname is required." -}}
+{{- $team := .Values.team | required ".Values.common.team is required." -}}
+
+{{- $releaseName := include "name" . -}}
+{{- $containers := .Values.containers | default (list .Values.container) -}}
+{{- $configmap := .Values.configmap -}}
+{{- $postgres := .Values.postgres -}}
+{{- $secrets := .Values.secrets -}}
+{{- $internalPort := .Values.service.internalPort -}}
+{{- $grpc := .Values.grpc -}}
+{{- $labels := .Values.deployment.labels | default .Values.container.labels }}
+{{- $volumes := .Values.deployment.volumes | default .Values.container.volumes }}
+{{- $enabled := .Values.deployment.enabled | default .Values.container.enabled }}
+{{- $prometheus := .Values.deployment.prometheus | default .Values.container.prometheus }}
+{{- $prometheusPath := (.Values.deployment.prometheus).path | default .Values.container.prometheus.path }}
+{{- $replicas := .Values.deployment.replicas | default .Values.container.replicas }}
+{{- $forceReplicas := .Values.deployment.forceReplicas | default .Values.container.forceReplicas }}
+{{- $maxReplicas := .Values.deployment.maxReplicas | default .Values.container.maxReplicas }}
+{{- $terminationGracePeriodSeconds := .Values.deployment.terminationGracePeriodSeconds | default .Values.container.terminationGracePeriodSeconds }}
+{{- $maxSurge := .Values.deployment.maxSurge | default "25%" }}
+{{- $maxUnavailable := .Values.deployment.maxUnavailable | default "25%" }}
+{{- $hpa := .Values.hpa | default dict }}
+{{- if $enabled }}
+{{- /* YAML Spec */}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $releaseName }}
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  {{- if $forceReplicas }}
+  replicas: {{ $forceReplicas }}
+  {{- else if eq (include "hpa.enabled" (dict "env" $env "forceReplicas" $forceReplicas "maxReplicas" $maxReplicas "hpa" $hpa)) "true" }}
+  # intentionally skip replicas
+  {{- else }}
+  replicas: {{ $replicas }}
+  {{- end }}
+  strategy:
+    {{- if (eq (int $forceReplicas) 1) }}
+    type: Recreate
+    {{- else }}
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ $maxSurge }}
+      maxUnavailable: {{ $maxUnavailable }}
+    {{- end }}
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        {{- include "annotations" . |trim| nindent 8 }}
+        {{- if (($prometheus).enabled) }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "{{ $prometheusPath }}"
+        prometheus.io/port: "{{ $prometheus.port | default .Values.service.internalPort | required "Must set deployment.prometheus.port" }}"
+        {{- end }}
+      labels:
+        {{- include "labels" . |trim| nindent 8 }}
+        {{- if $labels }}
+        {{- toYaml $labels | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.deployment.serviceAccountName | default "application" }}
+
+      containers:
+      {{- if $postgres.enabled }}
+        {{- include "gcloud_sql_proxy" (dict "postgres" $postgres "app" $app) | indent 8 }}
+      {{- end }}
+      {{ range $containers }}
+        {{- $image := .image | required ".Values.common.container.image is required." -}}
+        {{- printf "\n        " -}}
+        - name: {{ .name | default $app }}
+          image: {{ $image }}
+          imagePullPolicy: Always
+          {{- if .command }}
+          command: {{ .command }}
+          {{- end }}
+          {{- if .args }}
+          args: {{ toYaml .args | nindent 10 }}
+          {{- end }}
+          {{- include "environment" (dict "releaseName" $releaseName "app" $app "envLabel" $env "env" .env "envFrom" .envFrom "configmap" $configmap "postgres" $postgres "secrets" $secrets) | nindent 10 -}}
+          ports:
+            {{- if .ports }}
+              {{- toYaml .ports | nindent 12 }}
+            {{- else }}
+            - containerPort: {{ $internalPort }}
+              protocol: TCP
+            {{- end }}
+          {{- include "resources" . | nindent 10 }}
+          {{- include "securitycontext" . | nindent 10 }}
+          {{- if or $grpc .grpc }}
+            {{- if .probes.liveness.grpc }}
+              {{- include "grpcprobes" (dict "internalPort" $internalPort "probes" .probes) | nindent 10 -}}
+            {{- else }}
+              {{- include "grpcexecprobes" (dict "internalPort" $internalPort) | nindent 10 -}}
+            {{- end }}
+          {{- else if (and (ne .probes.enabled false) .probes.spec) }}
+            {{ toYaml .probes.spec | nindent 10 }}
+          {{- else if ne .probes.enabled false }}
+            {{- include "probes" (dict "internalPort" $internalPort "probes" .probes) | nindent 10 -}}
+          {{ end }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+            {{- toYaml .volumeMounts | nindent 12 }}
+          {{- end }}
+          {{- if .lifecycle }}
+          lifecycle:
+            {{- toYaml .lifecycle | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+      {{ toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      {{- if $volumes }}
+      volumes:
+        {{- toYaml $volumes | nindent 8 }}
+      {{- end }}
+      {{- include "topologyspreadconstraints" . | indent 6 }}
+      {{- if $terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ $terminationGracePeriodSeconds }}
+      {{- end }}
+      restartPolicy: Always
+      securityContext:
+        runAsGroup: {{ .Values.container.uid }}
+        runAsNonRoot: true
+        runAsUser: {{ .Values.container.uid }}
+        fsGroup: {{ .Values.container.uid }}
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}

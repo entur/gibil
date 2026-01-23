@@ -1,0 +1,95 @@
+{{- /* Rules */}}
+{{- $env := .Values.env | required ".Values.common.env is required." -}}
+{{- $app := .Values.app | required ".Values.common.app is required." -}}
+{{- $shortname := .Values.shortname | required ".Values.common.shortname is required." -}}
+{{- $team := .Values.team | required ".Values.common.team is required." -}}
+
+{{- $releaseName := include "name" . -}}
+{{- $containers := .Values.containers | default (list .Values.container) -}}
+{{- $configmap := .Values.configmap -}}
+{{- $postgres := .Values.postgres -}}
+{{- $secrets := .Values.secrets -}}
+{{- $cronjob := .Values.cron -}}
+{{- if $cronjob.enabled -}}
+{{- /* YAML Spec */}}
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+spec:
+  concurrencyPolicy: {{ $cronjob.concurrencyPolicy | default "Forbid" }}
+  failedJobsHistoryLimit: {{ $cronjob.failedJobsHistoryLimit | default 1 }}
+  {{- $unused := required ".Values.common.cron.schedule is required." $cronjob.schedule }}
+  schedule: {{ printf "%s" $cronjob.schedule | quote }}
+  successfulJobsHistoryLimit: {{ $cronjob.successfulJobsHistoryLimit | default 1 }}
+  suspend: {{ $cronjob.suspend | default false }}
+  jobTemplate:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        {{- include "labels" . | indent 8 }}
+        {{- if $cronjob.labels }}
+        {{- toYaml $cronjob.labels | nindent 8 }}
+        {{- end }}
+    spec:
+      activeDeadlineSeconds: {{ $cronjob.activeDeadlineSeconds | default 86300 }} # default 24 hours (minus 100 seconds)
+      template:
+        metadata:
+          annotations:
+            {{- include "annotations" . | indent 12 }}
+          labels:
+            {{- include "labels" . | indent 12 }}
+            {{- if $cronjob.labels }}
+            {{- toYaml $cronjob.labels | nindent 12 }}
+            {{- end }}
+        spec:
+          serviceAccountName: {{ .Values.cron.serviceAccountName | default "application" }}
+          containers:
+          {{ range $containers }}
+            {{- $image := .image | required ".Values.common.container.image is required." -}}
+            {{- printf "\n            " -}}
+            - name: {{ .name | default $app }}
+              image: {{ $image }}
+              imagePullPolicy: Always
+              {{- if .command }}
+              command: {{ .command }}
+              {{- end }}
+              {{- if .args }}
+              args: {{ toYaml .args | nindent 14 }}
+              {{- end }}
+              {{- include "environment" (dict "releaseName" $releaseName "app" $app "envLabel" $env "env" .env "envFrom" .envFrom "configmap" $configmap "postgres" $postgres "secrets" $secrets) | nindent 14 -}}
+              {{- include "resources" . | nindent 14 }}
+              {{- include "securitycontext" . | nindent 14 }}
+              {{- if .volumeMounts }}
+              volumeMounts:
+                {{- toYaml .volumeMounts | nindent 16 }}
+              {{- end }}
+              {{- if .lifecycle }}
+              lifecycle:
+                {{- toYaml .lifecycle | nindent 16 }}
+              {{- end }}
+            {{- if $postgres.enabled }}
+              {{- include "gcloud_sql_proxy" (dict "postgres" $postgres "app" $app) | indent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if $cronjob.volumes }}
+          volumes:
+            {{- toYaml $cronjob.volumes | nindent 12 }}
+          {{- end }}
+          {{- if .Values.cron.terminationGracePeriodSeconds }}
+          terminationGracePeriodSeconds: {{ .Values.cron.terminationGracePeriodSeconds }}
+          {{- end }}
+          restartPolicy: {{ .Values.cron.restartPolicy | default "OnFailure" }}
+          securityContext:
+            runAsGroup: {{ .Values.container.uid }}
+            runAsNonRoot: true
+            runAsUser: {{ .Values.container.uid }}
+            fsGroup: {{ .Values.container.uid }}
+{{- end -}}

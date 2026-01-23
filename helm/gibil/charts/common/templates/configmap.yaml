@@ -1,0 +1,17 @@
+{{- if .Values.configmap.enabled }}
+  {{- /* Rules */}}
+  {{- $data := .Values.configmap.data | required ".Values.common.configmap.data is required." -}}
+  {{- $releaseName := include "name" . -}}
+{{- /* YAML Spec */}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+data:
+  {{- toYaml $data | nindent 2 }}
+{{- end }}

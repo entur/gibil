@@ -1,0 +1,49 @@
+{{- if or .Values.ingresses .Values.ingress.enabled }}
+  {{- /* Rules */}}
+  {{- $chart := . -}}
+  {{- $externalPort :=  .Values.service.externalPort  -}}
+  {{- $releaseName := include "name" . -}}
+  {{- $releaseNamespace := .Release.Namespace -}}
+  {{- $ingresses := .Values.ingresses | default (list .Values.ingress) -}}
+
+{{- /* YAML Spec */}}
+{{ range $ingresses }}
+{{- $checkTrafficType := .trafficType | required "ingress.trafficType is required." -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .name | default $releaseName }}
+  namespace: {{ $releaseNamespace }}
+  labels:
+    {{- include "labels" $chart |trim| nindent 4 }}
+    traffic-type: {{.trafficType }}
+  annotations:
+    {{- include "annotations" $chart |trim| nindent 4 }}
+    kubernetes.io/ingress.class: traefik
+    {{- if $.Values.ingress.annotations }}
+      {{- toYaml $.Values.ingress.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  rules:
+  {{- if .rules -}}
+  {{ toYaml .rules | nindent 4 }}
+  {{- else }}
+  - host: {{ .host | required ".Values.common.ingress.host is required." }}
+    {{- if gt (len .host) 63 }}
+    {{ fail "Hostname longer than 63 characters is not allowed." }}
+    {{- end }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ $releaseName }}
+            port:
+              number: {{ $externalPort }}
+        pathType: ImplementationSpecific
+  {{- end }}
+
+{{- /* Must manually print newlines for unittest, do not remove */ -}}
+{{ print "\n---\n" }}
+
+{{- end }}
+{{- end }}

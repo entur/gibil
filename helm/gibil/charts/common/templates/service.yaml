@@ -1,0 +1,33 @@
+{{- $releaseName := include "name" . -}}
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  name: {{ $releaseName }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+    {{- if (or (.Values.grpc) .Values.service.annotations) }}
+      {{- if .Values.grpc }}
+    traefik.ingress.kubernetes.io/service.serversscheme: h2c
+      {{- end }}
+      {{- if .Values.service.annotations }}
+        {{- toYaml .Values.service.annotations | nindent 4 }}
+      {{- end }}
+    {{- end }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  {{- if .Values.service.ports }}
+  {{- toYaml .Values.service.ports | nindent 4 }}
+  {{- else }}
+  - name: http
+    port: {{ .Values.service.externalPort }}
+    protocol: TCP
+    targetPort: {{ .Values.service.internalPort }}
+  {{- end }}
+  selector:
+    app: {{ $releaseName }}
+  type: ClusterIP
+{{- end }}

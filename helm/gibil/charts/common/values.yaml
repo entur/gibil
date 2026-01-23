@@ -1,0 +1,297 @@
+# -- Application name, typically on the form `the-application`
+app:
+# -- `id` for GCP 2.0, typically on the form `theapp`. Max 10 characters
+shortname:
+# -- Your team name, without a `team-` prefix
+team:
+# -- The current env, override in your `values-kub-ent-$env.yaml` files to `dev`, `tst` or `prd`
+env:
+# -- Override release name, useful for multiple deployments
+releaseName:
+
+# -- Specify additional labels for every resource
+# @default -- `{ app shortname team common:version environment }`
+labels: {}
+
+ingress:
+  # -- Enable or disable the ingress
+  enabled: true
+  # -- Set the host name, do this in your `values-kub-ent-$env.yaml` files
+  host:
+  # -- Set the traffic type (`api`,`public` or `http2` for gRPC)
+  trafficType:
+  # -- Optionally set annotations for the ingress
+  annotations: {}
+  # rules: # k8s spec for ingress rules
+
+# -- Specify a list of `ingress` specs
+ingresses: []
+
+# -- Enable gRPC which will add an annotation and use grpc probes
+grpc: false
+
+deployment:
+  # -- Enable or disable the deployment
+  enabled: true
+  # -- Add labels to your pods
+  labels: {}
+  # -- Configure volume, accepts kubernetes syntax
+  volumes: []
+  # -- Prometheus
+  #prometheus: same as container.prometheus stanza
+  # -- Set the target replica count
+  # @default -- container.replicas
+  replicas:
+  # -- Set the max replica count
+  # @default -- 10
+  maxReplicas:
+  # -- (int) Force replicas disables autoscaling and PDB, if set to 1 it will use Recreate strategy
+  forceReplicas:
+  # -- (int) Override pod terminationGracePeriodSeconds (default 30s).
+  terminationGracePeriodSeconds:
+  # -- (string) Set minimum available %
+  # @default -- 50%
+  minAvailable:
+  # -- Limit max surge for rolling updates (default 25%). Not in use when using forceReplicas.
+  # @default -- 25%
+  maxSurge:
+  # -- Limit max unavailable for rolling updates (default 25%). Not in use when using forceReplicas.
+  # @default -- 25%
+  maxUnavailable:
+  # -- Override pod serviceAccountName (default application).
+  # @default -- application
+  serviceAccountName:
+  # -- See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds
+  # @default -- 0
+  minReadySeconds: 0
+
+cron:
+  # -- Enable or disable the cron job
+  enabled: false
+  # -- Concurrency policy
+  # @default -- Forbid
+  concurrencyPolicy:
+  # -- (int) Failed jobs history limit
+  # @default -- 1
+  failedJobsHistoryLimit:
+  # -- Required crontab schedule `* * * * * *`
+  schedule:
+  # -- (int) Successful jobs history limit
+  # @default -- 1
+  successfulJobsHistoryLimit:
+  # -- Suspend flag
+  # @default -- false
+  suspend:
+  # -- Add labels to your pods
+  labels: {}
+  # -- Configure volume, accepts kubernetes syntax
+  volumes: []
+  # -- (int) Override pod terminationGracePeriodSeconds (default 30s).
+  # @default -- false
+  terminationGracePeriodSeconds:
+  # -- Override pod restartPolicy (default OnFailure).
+  # @default -- OnFailure
+  restartPolicy:
+  # -- Override pod serviceAccountName (default application).
+  # @default -- application
+  serviceAccountName:
+  # -- (int) Active deadline seconds for the job, default 24 hours (86300s)
+  activeDeadlineSeconds:
+hpa:
+  # -- Custom spec for HPA, inherits `scaleTargetRef` and min/max replicas.
+  # ps: Reason why we have set 100% cpu as default is because the java applications are resource hogs during startup.
+  #     If you have good startupProbe/readinessProbes in place you can lower the cpu average utilization to ie 50/60%.
+  #     - Or scale on other (custom) metrics.
+  spec:
+    {}
+    # Example for custom spec where cpu scaling is set to 60%:
+    # metrics:
+    #   - type: Resource
+    #     resource:
+    #       name: cpu
+    #       target:
+    #         type: Utilization
+    #         averageUtilization: 60
+    #   maxReplicas: 10
+    #   minReplicas: 2
+
+pdb:
+  # -- (string) Set minimum available %, this overrides pdb setting minAvailable in deployment/container
+  # @default -- 50%
+  minAvailable:
+
+service:
+  # -- Enable or disable the service
+  enabled: true
+  # -- Set the external port for your service
+  # @default -- 80
+  externalPort: 80
+  # -- Set the internal port for your service
+  # @default -- 8080
+  internalPort: 8080
+  # -- Optionally set annotations for the service
+  annotations: {}
+
+# -- Takes a list of `container` entries, you must add a `name` field for each entry
+containers: []
+
+container:
+  # -- Name of container
+  # @default -- .app
+  name:
+  # -- Add labels to your pods
+  labels: {}
+  # -- Optionally set the command that will run in the pod. If not set, the entrypoint for the container-image is used (recommended for most Java-apps).
+  command:
+  # -- Optionally set the arguments that will be passed to the command, e.g. ["arg1","arg2"].
+  args:
+  # -- Set CPU without any unit. 100m is 0.1
+  # @default -- 0.1
+  cpu: 0.1
+  # -- (float) Set CPU limit without any unit. 100m is 0.1
+  # @default -- `5 x cpu`
+  cpuLimit:
+  # -- Set memory without any unit, `Mi` is inferred
+  # @default -- 16
+  memory: 16
+  # -- Set memory limit without any unit, `Mi` is inferred
+  # @default -- `1.2 * memory`
+  memoryLimit:
+  # -- Set the uid that your user runs with
+  # @default -- 1000
+  uid: 1000
+  # -- (int) Set the target replica count, if equal to 1 the PDB minAvailable will be set to 100%
+  replicas:
+  # -- (int) Force replicas disables autoscaling and PDB, if set to 1 it will use Recreate strategy
+  forceReplicas:
+  # -- (string) Set the minimal available replicas, used by PDB
+  # @default -- 50%
+  minAvailable:
+  # -- (int) Set the maxReplicas for your HPA
+  maxReplicas:
+  # -- Attach secrets and configmaps to your `env`
+  envFrom:
+    []
+    # - secretRef:
+    #     name: app-psql-credentials
+  # -- Specify `env` entries for your container
+  env:
+    []
+    # - name: PORT
+    #   value: "{{ .Values.service.internalPort }}"
+  prometheus:
+    # -- Enable or disable Prometheus
+    enabled: false
+    # -- Set the path for scraping metrics
+    # @default -- /actuator/prometheus
+    path: "/actuator/prometheus"
+    # -- (int) Set the port for prometheus scraping
+    # @default -- service.internalPort
+    port:
+  probes:
+    # -- Enable or disable probes
+    enabled: true
+    # -- Override with k8s spec for custom probes
+    spec:
+      # livenessProbe:
+      #   successThreshold: 1
+      #   tcpSocket:
+      #     port: admin
+    liveness:
+      # -- Set the path for liveness probe
+      # @default -- /actuator/health/liveness
+      path: "/actuator/health/liveness"
+      # -- Set the initial delay for the probe
+      initialDelaySeconds: 0
+      # -- Set the success threshold
+      # @default -- 1
+      successThreshold: 1
+      # -- Set the failure threshold
+      # @default -- 6
+      failureThreshold: 6
+      # -- Set the period of checking
+      # @default -- 5
+      periodSeconds: 5
+      # -- Specify grpc probes for a port. Needs `port` child stanza
+      grpc:
+        # port: 8080
+    readiness:
+      # -- Set the path for liveness probe
+      # @default -- /actuator/health/readiness
+      path: "/actuator/health/readiness"
+      # -- Set the initial delay for the probe
+      initialDelaySeconds: 0
+      # -- Set the success threshold
+      # @default -- 1
+      successThreshold: 1
+      # -- Set the failure threshold
+      # @default -- 6
+      failureThreshold: 6
+      # -- Set the period of checking
+      # @default -- 5
+      periodSeconds: 5
+      # -- Specify grpc probes for a port. Needs `port` child stanza
+      grpc:
+        # port: 8080
+    startup:
+      # -- Set the failure threshold
+      # @default -- 300
+      failureThreshold: 300
+      # -- Set the period of checking
+      # @default -- 1
+      periodSeconds: 1
+      # -- Specify grpc probes for a port. Needs `port` child stanza
+      grpc:
+        # port: 8080
+  # -- Configure volume mounts, accepts kubernetes syntax
+  volumeMounts: []
+  # -- Configure volume, accepts kubernetes syntax
+  volumes: []
+  # -- (int) Override pod terminationGracePeriodSeconds (default 30s).
+  terminationGracePeriodSeconds:
+  # -- Set pod lifecycle handlers
+  lifecycle: {}
+
+# -- Takes a list of initContainers
+# -- See: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+initContainers: []
+
+postgres:
+  # -- Enable or disable the proxy
+  # @default -- false
+  enabled: false
+  # -- Configure cpu request for proxy
+  # @default -- 0.05
+  cpu: 0.05
+  # -- (float) Configure optional cpu limit for proxy
+  cpuLimit:
+  # -- Configure memory request for proxy without units, `Mi` inferred
+  # @default -- 16
+  memory: 16
+  # -- Configure memoryLimit for proxy without units, `Mi` inferred
+  # @default -- 16
+  memoryLimit: 16
+  # -- Override name for connection configmap. This must at least contain `INSTANCES`.
+  connectionConfig:
+  # -- Override name for credentials secret. This must at least contain `PGUSER` and `PGPASSWORD`.
+  credentialsSecret:
+
+configmap:
+  # -- Enable or disable the configmap
+  # @default -- false
+  enabled: false
+  # -- Set data for configmap
+  data:
+    {}
+    # MY_CONFIG: yes
+
+# -- Add externalSecret to sync secrets from secret manager
+secrets:
+  {}
+  # demo-secret:
+  #   - FIRST_SECRET
+  #   - SECOND_SECRET
+
+vpa:
+  # -- Enable Vertical Pod Autoscaler to get resource requirement and limit recommendations
+  enabled: true

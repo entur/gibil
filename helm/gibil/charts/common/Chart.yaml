@@ -1,0 +1,84 @@
+apiVersion: v2
+name: common
+description: >
+  A Helm chart for Entur's Kubernetes workloads
+
+
+  ## Highlighted features
+
+
+  * Defaults typically match a properly configured Spring Boot project
+
+  * Automatic HA with HPA and PDB in `prd`
+
+  * Enforces explicit setting of important aspecs such as traffic type
+
+  * Rule based safety net, a chart that breaks business rules will fail with a helpful message
+
+  * Convention based automatic limit configuration. Cpu is 5x request, and memory is +20%.
+
+
+  ## Take full control
+
+
+  * Most properties can be overriden to your specific needs.
+
+  * Read the values.yaml file to get template documentation.
+
+  ### Fully customize `container.probes.spec` and `hpa.spec` with literal Kubernetes configuration
+
+  <details>
+
+    <summary>Example container.probes.spec</summary>
+
+  ```yaml
+
+  common:
+    container:
+      probes:
+        enabled: true
+        spec:
+          startupProbe:
+            tcpSocket:
+              port: 3000
+            periodSeconds: 1
+            timeoutSeconds: 1
+            failureThreshold: 300
+          livenessProbe: ...
+          readinessProbe: ...
+  ```
+
+  </details>
+
+  <details>
+
+    <summary>Example hpa.spec</summary>
+
+  ```yaml
+
+  common:
+    hpa:
+      spec:
+        metrics:
+          - type: Resource
+            resource:
+              name: cpu
+              target:
+                type: Utilization
+                averageUtilization: 60
+        behavior:
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Pods
+                value: 1
+                periodSeconds: 60
+        maxReplicas: 7
+        minReplicas: 2
+
+  ```
+
+  </details>
+type: application
+version: 1.21.1
+appVersion: 0.0.1

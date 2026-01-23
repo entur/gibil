@@ -1,0 +1,45 @@
+{{- /* Rules */}}
+{{- $env := .Values.env | required ".Values.common.env is required." -}}
+{{- $releaseName := include "name" . -}}
+{{- $replicas := .Values.deployment.replicas | default .Values.container.replicas }}
+{{- $forceReplicas := .Values.deployment.forceReplicas | default .Values.container.forceReplicas }}
+{{- $maxReplicas := .Values.deployment.maxReplicas | default .Values.container.maxReplicas }}
+{{- $hpa := .Values.hpa | default dict }}
+{{- $cpuUtilization := .Values.cpuUtilization | default 100 }}
+
+{{- if eq (include "hpa.enabled" (dict "env" $env "forceReplicas" $forceReplicas "maxReplicas" $maxReplicas "hpa" $hpa)) "true"  }}
+  {{- /* Rules */}}
+  {{- if (eq 1 (int $maxReplicas)) }}
+    {{- required ".Values.common.container.maxReplicas must be more than 1." .Values.error -}}
+  {{- else }}
+
+{{- /* YAML Spec */}}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+spec:
+  {{- if ((.Values.hpa).spec) }}
+  {{ toYaml .Values.hpa.spec | nindent 2 }}
+  {{- else }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ $cpuUtilization }}
+  maxReplicas: {{ $maxReplicas | default 10 }}
+  minReplicas: {{ max 2 $replicas }}
+  {{- end }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $releaseName }}
+{{- end }}
+{{- end }}

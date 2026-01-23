@@ -1,0 +1,27 @@
+{{- /* Rules */}}
+{{- $releaseName := include "name" . -}}
+{{- $releaseNamespace := .Release.Namespace -}}
+{{- if .Values.vpa.enabled }}
+
+{{- /* YAML Spec */}}
+apiVersion: "autoscaling.k8s.io/v1"
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ $releaseNamespace }}
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: "Deployment"
+    name: {{ $releaseName }}
+  resourcePolicy:
+    containerPolicies:
+    - containerName: '*'
+      controlledResources: ["cpu", "memory"]
+  updatePolicy:
+    updateMode: "Off"
+{{- end }}

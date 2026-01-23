@@ -1,0 +1,35 @@
+{{- /* Rules */}}
+{{- $env := .Values.env | required ".Values.common.env is required." -}}
+{{- $releaseName := include "name" . -}}
+{{- $releaseNamespace := .Release.Namespace -}}
+{{- $forceReplicas := .Values.deployment.forceReplicas | default .Values.container.forceReplicas -}}
+{{- $minAvailable := .Values.deployment.minAvailable | default .Values.container.minAvailable -}}
+{{- $minAvailablePDB := .Values.pdb.minAvailable -}}
+{{- $replicas := .Values.deployment.replicas | default .Values.container.replicas -}}
+{{- $hpa := .Values.hpa | default dict -}}
+{{- $maxReplicas := .Values.deployment.maxReplicas | default .Values.container.maxReplicas -}}
+{{- /* YAML Spec */}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ $releaseNamespace }}
+  labels:
+    {{- include "labels" . |trim| nindent 4 }}
+  annotations:
+    {{- include "annotations" . |trim| nindent 4 }}
+spec:
+  {{- if (or (eq (int $replicas) 1) (eq "false" (include "hpa.enabled" (dict "env" $env "forceReplicas" $forceReplicas "maxReplicas" $maxReplicas "hpa" $hpa)))) }}
+  {{- /* We set PDB even if forceReplicas or replicas = 1 or if hpa is disabled */}}
+  {{- /* This is because helm is not able to delete unknown-previous config. */}}
+  {{- /* In this case we set the minAvailable to 0% so it behaves the same way as a PDB does not exist. */}}
+  minAvailable: 0%
+  {{- else if ($minAvailablePDB) }}
+  {{- /* PDB.minAvailable takes precedence over deployment/container.minAvailable */}}
+  minAvailable: {{ $minAvailablePDB }}
+  {{- else }}
+  minAvailable: {{ $minAvailable | default "50%" }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ $releaseName }}

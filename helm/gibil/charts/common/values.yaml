@@ -1,9 +1,9 @@
 # -- Application name, typically on the form `the-application`
-app:
+app:  gibil
 # -- `id` for GCP 2.0, typically on the form `theapp`. Max 10 characters
-shortname:
+shortname:  gibil
 # -- Your team name, without a `team-` prefix
-team:
+team: ror
 # -- The current env, override in your `values-kub-ent-$env.yaml` files to `dev`, `tst` or `prd`
 env:
 # -- Override release name, useful for multiple deployments

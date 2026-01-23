@@ -1,0 +1,38 @@
+common:
+  app: gibil
+  shortname: gibil
+  team: ror
+  ingress: 
+    enabled: false
+  service:
+    internalPort: 8080 # What TCP port the application listens on the pod, must match the port in the Dockerfile
+  container:
+    image: <+artifacts.primary.image> # The CD tool will replace this value with the actual image
+    cpu: 1 # Adjust this to your application needs
+    memory: 800 # Adjust this to your application needs, a java application might need more memory to start like 1024 or 2048 or +++
+    memoryLimit: 1000
+    probes:
+      liveness:
+        path: /actuator/health/liveness
+      readiness:
+        path: /actuator/health/readiness
+    prometheus:
+      enabled: false  # Set this to true only after you have setup a metrics endpoint
+    volumeMounts:
+      - mountPath: /etc/application-config
+        name: application-config
+        readOnly: true
+    volumes:
+      - configMap:
+          defaultMode: 420
+          name: gibil-application
+        name: application-config
+  postgres: # sets up a postgres proxy so you can connect to your postgresql instance via localhost on the pod
+    enabled: false
+  configmap:
+    data:
+      JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties
+        -Dfile.encoding=UTF-8
+      TZ: Europe/Oslo
+    enabled: true
+    toEnv: true

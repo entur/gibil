@@ -16,7 +16,7 @@ metadata:
   namespace: {{ $releaseNamespace }}
   labels:
     {{- include "labels" $chart |trim| nindent 4 }}
-    traffic-type: api
+    traffic-type: {{.trafficType }}
   annotations:
     {{- include "annotations" $chart |trim| nindent 4 }}
     kubernetes.io/ingress.class: traefik

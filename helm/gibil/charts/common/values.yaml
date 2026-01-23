@@ -15,11 +15,11 @@ labels: {}
 
 ingress:
   # -- Enable or disable the ingress
-  enabled: true
+  enabled: false
   # -- Set the host name, do this in your `values-kub-ent-$env.yaml` files
   host:
   # -- Set the traffic type (`api`,`public` or `http2` for gRPC)
-  trafficType:
+  trafficType: api
   # -- Optionally set annotations for the ingress
   annotations: {}
   # rules: # k8s spec for ingress rules

@@ -2,7 +2,7 @@ name: Build and push
 on:
   push:
     branches:
-      - main
+      - Helm-further-implementation
   pull_request:
     branches:
       - main

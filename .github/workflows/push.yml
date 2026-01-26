@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - '**'  # Temporary: test on all branches
   pull_request:
     branches:
       - main
@@ -50,7 +51,7 @@ jobs:
                   -Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.token=${SONAR_TOKEN}
   docker-build:
-    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.repository_owner == 'entur' && github.event_name == 'push'
     needs: [maven-verify]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:
@@ -59,3 +60,14 @@ jobs:
   docker-push:
     needs: [docker-build]
     uses: entur/gha-docker/.github/workflows/push.yml@v1
+  helm-lint:
+    needs: [maven-verify]
+    uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    with:
+      environment: kub-ent-dev
+  helm-deploy-dev:
+    needs: [docker-push, helm-lint]
+    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
+    with:
+      environment: kub-ent-dev
+      image: ${{ needs.docker-push.outputs.image }}

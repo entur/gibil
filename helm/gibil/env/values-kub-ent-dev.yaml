@@ -1,0 +1,6 @@
+common:
+  env: dev
+  replicas: 1
+  ingress:
+    enabled: true
+    host: gibil.dev.entur.io

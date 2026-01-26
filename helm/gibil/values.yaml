@@ -1,0 +1,25 @@
+common:
+  app: gibil
+  shortname: gibil
+  team: ror
+  ingress:
+    enabled: false
+  service:
+    internalPort: 8080
+  container:
+    cpu: 1
+    memory: 800
+    memoryLimit: 1000
+    probes:
+      liveness:
+        path: /actuator/health/liveness
+      readiness:
+        path: /actuator/health/readiness
+    prometheus:
+      enabled: false
+  configmap:
+    enabled: true
+    toEnv: true
+    data:
+      JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dfile.encoding=UTF-8
+      TZ: Europe/Oslo

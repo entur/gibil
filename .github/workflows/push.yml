@@ -64,10 +64,10 @@ jobs:
     needs: [maven-verify]
     uses: entur/gha-helm/.github/workflows/lint.yml@v1
     with:
-      environment: kub-ent-dev
+      environment: dev
   helm-deploy-dev:
     needs: [docker-push, helm-lint]
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
-      environment: kub-ent-dev
+      environment: dev
       image: ${{ needs.docker-push.outputs.image }}

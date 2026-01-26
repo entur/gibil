@@ -56,6 +56,13 @@ jobs:
     with:
       build_artifact_name: artifact
       build_artifact_path: target
+  docker-scan:
+    name: Scan Docker Image
+    needs: docker-build
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
+    with:
+      image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
   docker-push:
     needs: [docker-build]
     uses: entur/gha-docker/.github/workflows/push.yml@v1

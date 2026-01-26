@@ -66,4 +66,6 @@ jobs:
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
+      cloud_provider: 'gcp'
+      values:  .helm/gibil/env/values-kub-ent-dev.yaml
       image: gibil:latest

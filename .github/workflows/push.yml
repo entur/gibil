@@ -67,5 +67,5 @@ jobs:
     with:
       environment: dev
       cloud_provider: 'gcp'
-      values:  .helm/gibil/env/values-kub-ent-dev.yaml
+      values: values-kub-ent-dev.yaml
       image: gibil:latest

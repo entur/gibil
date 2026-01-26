@@ -1,18 +1,12 @@
 apiVersion: v2
-# template for application version, the actual version number is set at build time
-appVersion: "0.1.99.1"
+appVersion: "0.1.0"
 description: AVINOR flights real-time information importer
 name: gibil
 version: 0.1.0
-keywords:
-  - gibil
-sources:
-  - https://github.com/entur/gibil
 maintainers:
   - name: 'team-ror'
     email: team.rutedata@entur.org
-engine: gotpl
 dependencies:
   - name: common
-    version: 1.21.1
-    repository: "https://entur.github.io/helm-charts"
+    version: "0.x.x"
+    repository: "oci://europe-north1-docker.pkg.dev/entur-system-1287/helm"

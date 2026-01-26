@@ -59,3 +59,9 @@ jobs:
   docker-push:
     needs: [docker-build]
     uses: entur/gha-docker/.github/workflows/push.yml@v1
+  helm-deploy:
+    name: Helm Deploy
+    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
+    with:
+      environment: dev
+      image: gibil:latest

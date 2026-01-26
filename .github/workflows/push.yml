@@ -57,7 +57,7 @@ jobs:
       build_artifact_path: target
   docker-build:
     if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/Helm-further-implementation'
-    needs: [docker-lint]
+    needs: [maven-verify]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:
       build_artifact_name: artifact

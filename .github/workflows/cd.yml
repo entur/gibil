@@ -1,9 +1,9 @@
 name: Deploy
 on:
-  push:
-    branches:
-      - Helm-further-implementation
-  pull_request:
+  workflow_run:
+    workflows: ["Build and push"]
+    types:
+      - completed
     branches:
       - main
 

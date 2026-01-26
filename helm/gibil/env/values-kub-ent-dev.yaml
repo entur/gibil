@@ -1,0 +1,4 @@
+common:
+  env: dev
+  ingress:
+    host: gibil.dev.entur.io

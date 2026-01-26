@@ -1,0 +1,8 @@
+common:
+  env: tst
+  ingress:
+    host: gibil.staging.entur.io
+  configmap:
+    enabled: false
+    data:
+      LOG_LEVEL: warn

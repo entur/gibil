@@ -1,0 +1,4 @@
+common:
+  env: prd
+  ingress:
+    host: gibil.entur.io

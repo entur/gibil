@@ -3,6 +3,6 @@ common:
   shortname: gibil
   team: ror
   ingress:
-    trafficType: api
+    trafficType: public
   container:
     image: <+artifacts.primary.image>s

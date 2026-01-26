@@ -5,7 +5,7 @@ on:
     types:
       - completed
     branches:
-      - main
+      - Helm-further-implementation
 
 jobs:
   helm-deploy:

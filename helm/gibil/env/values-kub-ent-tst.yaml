@@ -3,6 +3,6 @@ common:
   ingress:
     host: gibil.staging.entur.io
   configmap:
-    enabled: false
+    enabled: true
     data:
       LOG_LEVEL: warn

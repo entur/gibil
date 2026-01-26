@@ -3,18 +3,6 @@ common:
   shortname: gibil
   team: ror
   ingress:
-    enabled: true
-    trafficType: api  # The ingress.host url is only available behind the Apigee API Gateway (https://api.entur.io/yourAPI)
-  service:
-    internalPort: 8080  # What TCP port the application listens on the pod, must match the port in the Dockerfile
-  deployment:
-    prometheus:
-      enabled: false  # Set this to true only after you have setup a metrics endpoint
+    trafficType: api
   container:
-    image: <+artifacts.primary.image>  # The CD tool will replace this value with the actual image
-    cpu: 0.3 # Adjust this to your application needs
-    memory: 512 # Adjust this to your application needs, a java application might need more memory to start like 1024 or 2048 or +++
-  postgres: # sets up a postgres proxy so you can connect to your postgresql instance via localhost on the pod
-    enabled: true
-    cpu: 0.1  # PostgreSQL Proxy setting, this usually is enough for most applications
-    memory: 32  # PostgreSQL Proxy setting, this usually is enough for most applications
+    image: <+artifacts.primary.image>s

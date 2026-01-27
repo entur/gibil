@@ -17,7 +17,7 @@ class SiriETMapper {
         private const val DATA_SOURCE = "AVINOR"
         // SIRI reference prefixes
         private const val OPERATOR_PREFIX = "AVINOR:Operator:"
-        private const val LINE_PREFIX = "AVINOR:Line:"
+        private const val LINE_PREFIX = "AVI:Line:"
         private const val VEHICLE_JOURNEY_PREFIX = "AVI:DatedVehicleJourneyRef:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
     }
@@ -73,8 +73,9 @@ class SiriETMapper {
 
         //Set lineRef
         val lineRef = LineRef()
-        //TODO! find out proper lineRef content (for now just use prefix + airline code)
-        lineRef.value = "$LINE_PREFIX$airline"
+        //TODO! routeCode has to use large airport ordering as in ExTime (though makeRouteCode needs to be ordered to allow hashRouteCodeId)
+        val routeCode = makeRouteCode(requestingAirportCode, flight)
+        lineRef.value = "$LINE_PREFIX$routeCode"
         estimatedVehicleJourney.lineRef = lineRef
 
         //Set directionRef
@@ -88,12 +89,12 @@ class SiriETMapper {
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
 
-        val routeCode = makeRouteCode(requestingAirportCode, flight).idHash(10)
+        val routeCodeId = routeCode.idHash(10)
 
         val flightOrder = calculateFlightOrder(flight)
 
-        //TODO! find out proper vehicleJourneyRef content (for now just use prefix + flightID + uniqueID) X is believed to be order
-        framedVehicleJourneyRef.datedVehicleJourneyRef = VEHICLE_JOURNEY_PREFIX + flight.flightId + "-0" + flightOrder + "-" + routeCode
+        //TODO! FlightOrder is hardcoded for testing needs to be made into correct "order"
+        framedVehicleJourneyRef.datedVehicleJourneyRef = VEHICLE_JOURNEY_PREFIX + flight.flightId + "-0" + flightOrder + "-" + routeCodeId
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE

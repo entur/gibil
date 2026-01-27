@@ -66,4 +66,8 @@ jobs:
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
-      image: gibil/helm-deploy.20260127-sha4765bc9
+      image: "gibil:${{ needs.build-push.outputs.image_tag || inputs.image_tag }}"
+      chart: helm/gibil
+      namespace: gibil
+      release_name: gibil
+    secrets: inherit

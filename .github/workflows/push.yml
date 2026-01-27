@@ -66,6 +66,4 @@ jobs:
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
-      cloud_provider: 'gcp'
-      values: values-kub-ent-dev.yaml
-      image: gibil:latest
+      image: ${{ needs.docker-push.outputs.image_artifact }}

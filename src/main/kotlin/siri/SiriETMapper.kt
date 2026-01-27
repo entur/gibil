@@ -7,6 +7,7 @@ import java.math.BigInteger
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import kotlin.math.abs
 
 
 class SiriETMapper {
@@ -17,8 +18,8 @@ class SiriETMapper {
         // SIRI reference prefixes
         private const val OPERATOR_PREFIX = "AVINOR:Operator:"
         private const val LINE_PREFIX = "AVINOR:Line:"
-        private const val VEHICLE_JOURNEY_PREFIX = "AVINOR:ServiceJourney:"
-        private const val STOP_PREFIX = "AVINOR:StopPlace:"
+        private const val VEHICLE_JOURNEY_PREFIX = "AVI:DatedVehicleJourneyRef:"
+        private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
     }
 
     //Create SIRI element, populate header and add EstimatedTimetableDelivery to SIRI response
@@ -38,6 +39,7 @@ class SiriETMapper {
         siri.serviceDelivery = serviceDelivery
         return siri
     }
+
     private fun createEstimatedTimetableDelivery(
         airport: Airport, requestingAirportCode: String): EstimatedTimetableDeliveryStructure {
         val delivery = EstimatedTimetableDeliveryStructure()
@@ -58,6 +60,7 @@ class SiriETMapper {
         delivery.estimatedJourneyVersionFrames.add(estimatedVersionFrame)
         return delivery
     }
+
     private fun mapFlightToEstimatedVehicleJourney(
         flight: Flight, requestingAirportCode: String): EstimatedVehicleJourney? {
 
@@ -84,8 +87,13 @@ class SiriETMapper {
         val dataFrameRef = DataFrameRefStructure()
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
-        //TODO! find out proper vehicleJourneyRef content (for now just use prefix + uniqueID)
-        framedVehicleJourneyRef.datedVehicleJourneyRef = VEHICLE_JOURNEY_PREFIX + flight.uniqueID
+
+        val routeCode = makeRouteCode(requestingAirportCode, flight).idHash(10)
+
+        val flightOrder = calculateFlightOrder(flight)
+
+        //TODO! find out proper vehicleJourneyRef content (for now just use prefix + flightID + uniqueID) X is believed to be order
+        framedVehicleJourneyRef.datedVehicleJourneyRef = VEHICLE_JOURNEY_PREFIX + flight.flightId + "-0" + flightOrder + "-" + routeCode
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE
@@ -100,6 +108,7 @@ class SiriETMapper {
         addEstimatedCalls(estimatedVehicleJourney, flight, requestingAirportCode, scheduleTime)
         return estimatedVehicleJourney
     }
+
     private fun addEstimatedCalls(estimatedVehicleJourney: EstimatedVehicleJourney, flight: Flight
     , requestingAirportCode: String, scheduleTime: ZonedDateTime) {
         val statusTime = parseTimestamp(flight.status?.time)
@@ -123,7 +132,7 @@ class SiriETMapper {
                 val destCall = EstimatedCall()
                 val destStopRef = StopPointRefStructure()
                 //TODO! find out proper stopPointRef content (for now just use prefix + dest airport code)
-                destStopRef.value = "$STOP_PREFIX$destAirport"
+                destStopRef.value = "$STOP_POINT_REF_PREFIX$destAirport"
                 destCall.stopPointRef = destStopRef
                 destCall.order = BigInteger.valueOf(2)
                 calls.add(destCall)
@@ -134,7 +143,7 @@ class SiriETMapper {
             if (originAirport != null) {
                 val originCall = EstimatedCall()
                 val originStopRef = StopPointRefStructure()
-                originStopRef.value = "$STOP_PREFIX$originAirport"
+                originStopRef.value = "$STOP_POINT_REF_PREFIX$originAirport"
                 originCall.stopPointRef = originStopRef
                 originCall.order = BigInteger.ONE
                 calls.add(originCall)
@@ -147,12 +156,13 @@ class SiriETMapper {
             calls.add(destCall)
         }
     }
+
     private fun createDepartureCall(airportCode: String, scheduleTime: ZonedDateTime,
                                     statusCode: String?, statusTime: ZonedDateTime?): EstimatedCall {
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
-        stopPointRef.value = "$STOP_PREFIX$airportCode"
+        stopPointRef.value = "$STOP_POINT_REF_PREFIX$airportCode"
         call.stopPointRef = stopPointRef
 
         call.order = BigInteger.ONE
@@ -178,6 +188,7 @@ class SiriETMapper {
         }
         return call
     }
+
     private fun createArrivalCall(
         airportCode: String,
         scheduleTime: ZonedDateTime,
@@ -189,7 +200,7 @@ class SiriETMapper {
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
-        stopPointRef.value = "$STOP_PREFIX$airportCode"
+        stopPointRef.value = "$STOP_POINT_REF_PREFIX$airportCode"
         call.stopPointRef = stopPointRef
 
         call.order = order
@@ -215,6 +226,7 @@ class SiriETMapper {
         }
         return call
     }
+
     private fun parseTimestamp(timestamp: String?): ZonedDateTime? {
         if (timestamp.isNullOrBlank()) return null
 
@@ -231,4 +243,33 @@ class SiriETMapper {
             }
         }
     }
+
+    private fun makeRouteCode(requestingAirportCode: String, flight: Flight): String {
+
+        val airline = flight.airline
+        val airportFrom = requestingAirportCode
+        val airportTo = flight.airport
+
+        val routeCode = airline + "_" + airportFrom + "-" + airportTo
+        return routeCode
+    }
+
+    private fun String.idHash(length: Int): String {
+        val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
+        return abs(hashcode).toString().take(length)
+    }
+
+    //TODO USE THIS FUNC IN MORE PLACES IN THE CODE
+    private fun calculateFlightOrder(flight: Flight): BigInteger {
+
+        if(flight.isDeparture()) {
+            val order = BigInteger.ONE
+            return order
+        } else {
+            val order = BigInteger.valueOf(2)
+            return order
+        }
+
+    }
+
 }

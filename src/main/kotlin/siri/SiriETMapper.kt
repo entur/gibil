@@ -93,8 +93,8 @@ class SiriETMapper {
 
         val flightOrder = calculateFlightOrder(flight)
 
-        //TODO! FlightOrder is hardcoded for testing needs to be made into correct "order"
-        framedVehicleJourneyRef.datedVehicleJourneyRef = VEHICLE_JOURNEY_PREFIX + flight.flightId + "-0" + flightOrder + "-" + routeCodeId
+        //TODO! FlightOrder is hardcoded for testing. "flightOrder" is more similar to timetable version in extime and needs to be implemented somehow
+        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX} ${flight.flightId}-0${flightOrder}-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE
@@ -195,7 +195,6 @@ class SiriETMapper {
         scheduleTime: ZonedDateTime,
         statusCode: String?,
         statusTime: ZonedDateTime?,
-        //TODO! Find out if bigInteger is necessary here
         order: BigInteger
     ): EstimatedCall {
         val call = EstimatedCall()

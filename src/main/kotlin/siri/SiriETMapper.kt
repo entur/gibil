@@ -92,7 +92,7 @@ class SiriETMapper {
         val routeCodeId = routeCode.idHash(10)
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
-        // A sequence comes from a hash map and is difficult to replicate
+        // The sequence comes from a hash map and is difficult to replicate
         framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX} ${flight.flightId}-01-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 

@@ -245,13 +245,19 @@ class SiriETMapper {
     }
 
     private fun makeRouteCode(requestingAirportCode: String, flight: Flight): String {
-
         val airline = flight.airline
-        val airportFrom = requestingAirportCode
-        val airportTo = flight.airport
+        val departureAirport: String?
+        val arrivalAirport: String?
 
-        val routeCode = airline + "_" + airportFrom + "-" + airportTo
-        return routeCode
+        if(flight.isDeparture()) {
+            departureAirport = requestingAirportCode
+            arrivalAirport = flight.airport
+        } else {
+            departureAirport = flight.airport
+            arrivalAirport = requestingAirportCode
+        }
+
+        return "${airline}_${departureAirport}-${arrivalAirport}"
     }
 
     private fun String.idHash(length: Int): String {

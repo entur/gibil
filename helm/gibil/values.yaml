@@ -9,29 +9,3 @@ common:
     imagePullPolicy: Always
     cpu: 2
     memory: 2560 # This is request mem. Limit is 20% higher.
-    probes:
-      enabled: true
-      spec:
-        startupProbe:
-          tcpSocket:
-            port: 2322
-          periodSeconds: 1
-          timeoutSeconds: 1
-          failureThreshold: 300
-        readinessProbe:
-          httpGet:
-            path: /api?q=test&limit=1
-            port: 2322
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          timeoutSeconds: 10
-          failureThreshold: 3
-          successThreshold: 1
-        livenessProbe:
-          httpGet:
-            path: /status
-            port: 2322
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3

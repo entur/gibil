@@ -51,7 +51,6 @@ jobs:
                   -Dsonar.token=${SONAR_TOKEN}
   docker-build:
     if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/helm-deploy'
-    needs: [maven-verify]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:
       build_artifact_name: artifact
@@ -66,4 +65,4 @@ jobs:
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
-      image: ${{ needs.docker-push.outputs.image_artifact }}
+      image: "gibil:${{ jobs.push.outputs.image_name }}:${{ jobs.push.outputs.image_tag }}"

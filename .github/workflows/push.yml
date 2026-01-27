@@ -60,19 +60,10 @@ jobs:
     needs: [docker-build]
     uses: entur/gha-docker/.github/workflows/push.yml@v1
 
-  debug-outputs:
-    needs: [ docker-push ]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Print all outputs
-        run: |
-          echo "All docker-push outputs:"
-          echo '${{ toJson(needs.docker-push.outputs) }}'  
-
   helm-deploy:
     name: Helm Deploy
     needs: [docker-push]
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
-      image: ${{ needs.docker-push.outputs.image }}
+      image: ${{ needs.docker-push.outputs.image_tag }}

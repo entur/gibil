@@ -91,10 +91,9 @@ class SiriETMapper {
 
         val routeCodeId = routeCode.idHash(10)
 
-        val flightOrder = calculateFlightOrder(flight)
-
-        //TODO! FlightOrder is hardcoded for testing. "flightOrder" is more similar to timetable version in extime and needs to be implemented somehow
-        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX} ${flight.flightId}-0${flightOrder}-${routeCodeId}"
+        //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
+        // A sequence comes from a hash map and is difficult to replicate
+        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX} ${flight.flightId}-01-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE
@@ -263,19 +262,6 @@ class SiriETMapper {
     private fun String.idHash(length: Int): String {
         val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
         return abs(hashcode).toString().take(length)
-    }
-
-    //TODO USE THIS FUNC IN MORE PLACES IN THE CODE
-    private fun calculateFlightOrder(flight: Flight): BigInteger {
-
-        if(flight.isDeparture()) {
-            val order = BigInteger.ONE
-            return order
-        } else {
-            val order = BigInteger.valueOf(2)
-            return order
-        }
-
     }
 
 }

@@ -66,4 +66,4 @@ jobs:
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
-      image: eu.gcr.io/entur-system-1287/${{ needs.docker-push.outputs.image_tag }}
+      image: eu.gcr.io/entur-system-1287/gibil/helm-deploy.20260127-SHA4765bc9

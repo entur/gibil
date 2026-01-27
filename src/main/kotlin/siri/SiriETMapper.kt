@@ -16,7 +16,7 @@ class SiriETMapper {
         private const val PRODUCER_REF = "AVINOR"
         private const val DATA_SOURCE = "AVINOR"
         // SIRI reference prefixes
-        private const val OPERATOR_PREFIX = "AVINOR:Operator:"
+        private const val OPERATOR_PREFIX = "AVI:Operator:"
         private const val LINE_PREFIX = "AVI:Line:"
         private const val VEHICLE_JOURNEY_PREFIX = "AVI:DatedVehicleJourneyRef:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"

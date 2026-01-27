@@ -20,7 +20,7 @@ common:
           failureThreshold: 300
         readinessProbe:
           httpGet:
-            path: /api?q=test&limit=1
+            path: /actuator/health/readiness
             port: 8080
           initialDelaySeconds: 45
           periodSeconds: 10
@@ -29,7 +29,7 @@ common:
           successThreshold: 1
         livenessProbe:
           httpGet:
-            path: /status
+            path: /actuator/health/liveness
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10

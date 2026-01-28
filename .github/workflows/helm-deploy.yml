@@ -14,7 +14,7 @@ jobs:
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev
-      image: "gibil:${{ needs.docker-push.outputs.image_tag }}"
+      image: "gibil:${{ github.event.workflow_run.head_sha }}"
       chart: helm/gibil
       namespace: gibil
       release_name: gibil

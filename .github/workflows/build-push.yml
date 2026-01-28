@@ -70,3 +70,4 @@ jobs:
   docker-push:
     needs: [Docker-Scan]
     uses: entur/gha-docker/.github/workflows/push.yml@v1
+    secrets: inherit  # Required for central allowlist access

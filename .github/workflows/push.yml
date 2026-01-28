@@ -2,7 +2,7 @@ name: Build and push
 on:
   push:
     branches:
-      - helm-deploy
+      - main
   pull_request:
     branches:
       - main
@@ -50,7 +50,7 @@ jobs:
                   -Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.token=${SONAR_TOKEN}
   docker-build:
-    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/helm-deploy'
+    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [maven-verify]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:

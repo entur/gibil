@@ -10,7 +10,7 @@ on:
 jobs:
   helm-deploy:
     name: Helm Deploy
-    needs: [ docker-push ]
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: entur/gha-helm/.github/workflows/deploy.yml@v1
     with:
       environment: dev

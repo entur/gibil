@@ -15,6 +15,7 @@ common:
         startupProbe:
           tcpSocket:
             port: 8080
+          initialDelaySeconds: 10
           periodSeconds: 1
           timeoutSeconds: 1
           failureThreshold: 300

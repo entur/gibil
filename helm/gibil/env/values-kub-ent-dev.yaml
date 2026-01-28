@@ -1,0 +1,8 @@
+common:
+  env: dev
+  ingress:
+    host: gibil.dev.entur.io
+  configmap:
+    enabled: true
+    data:
+      LOG_LEVEL: warn

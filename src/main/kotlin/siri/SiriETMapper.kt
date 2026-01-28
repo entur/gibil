@@ -93,7 +93,7 @@ class SiriETMapper {
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
-        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX} ${flight.flightId}-01-${routeCodeId}"
+        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-01-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE

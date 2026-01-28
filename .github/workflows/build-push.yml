@@ -66,7 +66,7 @@ jobs:
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
     secrets: inherit  # Required for central allowlist access
     with:
-      image_artifact: ${{ needs.docker-push.outputs.image_artifact }} # The name of the image artifact to scan
+      image_artifact: ${{ needs.docker-build.outputs.image_artifact }} # The name of the image artifact to scan
   docker-push:
     needs: [Docker-Scan]
     uses: entur/gha-docker/.github/workflows/push.yml@v1

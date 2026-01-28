@@ -2,7 +2,7 @@ name: Build and push
 on:
   push:
     branches:
-      - main
+      - workflows-changes-refactor-and-docker-additions
   pull_request:
     branches:
       - main
@@ -49,25 +49,25 @@ jobs:
                   -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                   -Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.token=${SONAR_TOKEN}
+  docker-lint:
+    name: Docker-Lint
+    uses: entur/gha-docker/.github/workflows/lint.yml@v1
+
   docker-build:
-    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [maven-verify]
+    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/workflows-changes-refactor-and-docker-additions'
+    needs: [maven-verify, Docker-Lint]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:
       build_artifact_name: artifact
       build_artifact_path: target
+  docker-scan:
+    name: Docker Scan
+    needs: [docker-build]
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit  # Required for central allowlist access
+    with:
+      image_artifact: artifact # The name of the image artifact to scan
+
   docker-push:
     needs: [docker-build]
     uses: entur/gha-docker/.github/workflows/push.yml@v1
-
-  helm-deploy:
-    name: Helm Deploy
-    needs: [docker-push]
-    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
-    with:
-      environment: dev
-      image: "gibil:${{ needs.docker-push.outputs.image_tag }}"
-      chart: helm/gibil
-      namespace: gibil
-      release_name: gibil
-    secrets: inherit

@@ -7,9 +7,6 @@ import kotlin.system.measureTimeMillis
 import java.io.File
 import org.springframework.stereotype.Service
 
-const val BATCH_SIZE = 5
-const val REQUEST_DELAY_MS = 50
-
 /**
  * Service class to handle fetching and processing airport data from the Avinor API.
  */

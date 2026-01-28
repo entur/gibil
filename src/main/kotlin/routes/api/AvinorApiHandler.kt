@@ -10,13 +10,13 @@ import java.time.format.DateTimeFormatter
 import kotlin.text.uppercase
 import java.time.ZonedDateTime
 
-const val TIMEFROMPARAM_MIN_NUM = 1
-const val TIMEFROMPARAM_MAX_NUM = 36
+import org.example.TIMEFROMPARAM_MAX_NUM
+import org.example.TIMEFROMPARAM_MIN_NUM
+import org.example.TIMETOPARAM_MAX_NUM
+import org.example.TIMETOPARAM_MIN_NUM
+import org.example.clock
 
-const val TIMETOPARAM_MIN_NUM = 7
-const val TIMETOPARAM_MAX_NUM = 336
 
-val clock: Clock = Clock.systemUTC()
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.

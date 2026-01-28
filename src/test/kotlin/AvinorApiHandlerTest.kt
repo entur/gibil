@@ -3,7 +3,7 @@ package org.example
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
-import routes.api.clock
+import org.example.clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

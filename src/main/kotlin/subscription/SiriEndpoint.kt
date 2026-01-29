@@ -58,10 +58,10 @@ class SiriEndpoint(
     @PostMapping(value = ["/service"], produces = ["application/xml"], consumes = ["application/xml"])
     fun handleServiceRequest(@RequestBody siriRequest: Siri): Siri {
         val serviceRequest = siriRequest.serviceRequest
-        val estimatedTimetableRequests = serviceRequest.estimatedTimetableRequests
+        serviceRequest.estimatedTimetableRequests
 
         // Use non-nullable collection
-        val siriEtElements: Collection<EstimatedVehicleJourney> = siriETRepository?.all ?: emptyList()
+        val siriEtElements: Collection<EstimatedVehicleJourney> = siriETRepository.all
         return SiriHelper.createSiriEtServiceDelivery(siriEtElements)
     }
 }

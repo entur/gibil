@@ -28,7 +28,16 @@ class SubscriptionManager(
                     try {
                         runBlocking { httpHelper.postData(subscription.address, SiriXml.toXml(siri)) }
                     } catch (e: Exception) {
-                        // Ignore
+                        val subscriptionId = subscription.subscriptionId
+                        val failures = subscriptionFailCounter.getOrDefault(subscriptionId, 0) + 1
+                        subscriptionFailCounter[subscriptionId] = failures
+                        LOG.warn(
+                            "Failed to push SIRI data to subscription {} at address {} (failure count: {})",
+                            subscriptionId,
+                            subscription.address,
+                            failures,
+                            e
+                        )
                     }
                 }
             }
@@ -42,15 +51,11 @@ class SubscriptionManager(
 
         val initialDelivery: Siri? = when (subscription.subscriptionType) {
             SiriDataType.ESTIMATED_TIMETABLE -> SiriHelper.createSiriEtServiceDelivery(siriETRepository.all)
-            else -> {
-                LOG.warn("Unknown subscription type: {}", subscription.subscriptionType)
-                return
-            }
         }
 
         try {
             runBlocking { httpHelper.postData(subscription.address, SiriXml.toXml(initialDelivery)) }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             LOG.warn("Initial delivery failed to address {}", subscription.address)
         }
         LOG.info("Added subscription: {}, now have {} subscriptions", subscription, subscriptions.size)

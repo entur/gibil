@@ -42,7 +42,7 @@ object SiriHelper {
     fun createHeartbeatNotification(requestorRef: String?): Siri {
         val siri = createSiriObject()
         val heartbeat = HeartbeatNotificationStructure()
-        heartbeat.setStatus(true)
+        heartbeat.isStatus = true
         heartbeat.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()))
         heartbeat.setRequestTimestamp(ZonedDateTime.now())
         heartbeat.setProducerRef(createRequestorRef(requestorRef))
@@ -65,7 +65,7 @@ object SiriHelper {
     fun resolveSubscriptionId(subscriptionRequest: SubscriptionRequest): String? {
         if (!subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty()) {
             val estimatedTimetableSubscriptionStructure =
-                subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0)
+                subscriptionRequest.getEstimatedTimetableSubscriptionRequests()[0]
 
             return estimatedTimetableSubscriptionStructure.getSubscriptionIdentifier().getValue()
         }
@@ -93,7 +93,7 @@ object SiriHelper {
         responseStatus.setRequestMessageRef(createMessageRef())
         responseStatus.setSubscriptionRef(createSubscriptionRef(subscriptionRef))
 
-        responseStatus.setStatus(true)
+        responseStatus.isStatus = true
 
         response.getResponseStatuses().add(responseStatus)
 
@@ -109,10 +109,10 @@ object SiriHelper {
         status.setResponseTimestamp(ZonedDateTime.now())
         status.setSubscriptionRef(
             createSubscriptionRef(
-                terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue()
+                terminateSubscriptionRequest.getSubscriptionReves()[0].getValue()
             )
         )
-        status.setStatus(true)
+        status.isStatus = true
 
         response.getTerminationResponseStatuses().add(status)
         siri.setTerminateSubscriptionResponse(response)

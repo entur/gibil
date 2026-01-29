@@ -15,10 +15,10 @@ object AirportSizeClassification {
         val requestingAirportCodeSize = getSizePriority(requestingAirportCode)
         val flightSize = getSizePriority(flight)
 
-        if(requestingAirportCodeSize >= flightSize) {
-            return requestingAirportCode to flight
+        return if(requestingAirportCodeSize >= flightSize) {
+            requestingAirportCode to flight
         } else {
-            return flight to requestingAirportCode
+            flight to requestingAirportCode
         }
     }
 }

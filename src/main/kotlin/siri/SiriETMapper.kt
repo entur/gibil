@@ -132,7 +132,7 @@ class SiriETMapper {
             if (destAirport != null) {
                 val destCall = EstimatedCall()
                 val destStopRef = StopPointRefStructure()
-                //TODO! find out proper stopPointRef content (for now just use prefix + dest airport code)
+                //TODO! Will have to be changed when airport quays are expanded. (for now just use prefix + dest airport code)
                 destStopRef.value = "$STOP_POINT_REF_PREFIX$destAirport"
                 destCall.stopPointRef = destStopRef
                 destCall.order = BigInteger.valueOf(2)

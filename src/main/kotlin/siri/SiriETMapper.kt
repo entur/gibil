@@ -1,6 +1,6 @@
 package siri
 
-import AirportSizeClassification.orderAirportBySize
+import util.AirportSizeClassification.orderAirportBySize
 import model.avinorApi.Airport
 import model.avinorApi.Flight
 import uk.org.siri.siri21.*

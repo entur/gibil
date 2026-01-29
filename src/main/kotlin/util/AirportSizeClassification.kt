@@ -1,3 +1,5 @@
+package util
+
 object AirportSizeClassification {
     //Might serve better to declare these somewhere else?
     private val LARGE_AIRPORTS = setOf("OSL")

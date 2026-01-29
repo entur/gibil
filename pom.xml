@@ -19,6 +19,7 @@
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <start-class>org.example.MainKt</start-class>
         <sonar.organization>enturas-github</sonar.organization>
+        <ktor.version>2.3.7</ktor.version>
     </properties>
 
     <repositories>
@@ -83,6 +84,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-core-jvm</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-cio-jvm</artifactId>
+            <version>${ktor.version}</version>
         </dependency>
     </dependencies>
     <build>

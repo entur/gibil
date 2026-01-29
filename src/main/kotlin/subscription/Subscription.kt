@@ -28,27 +28,27 @@ data class Subscription(
         requestorRef.value
     )
 
-    fun getRequestTimestamp(): ZonedDateTime? {
+    fun getRequestTimestamp(): ZonedDateTime {
         return requestTimestamp
     }
 
-    fun getSubscriptionType(): SiriDataType? {
+    fun getSubscriptionType(): SiriDataType {
         return subscriptionType
     }
 
-    fun getAddress(): String? {
+    fun getAddress(): String {
         return address
     }
 
-    fun getSubscriptionId(): String? {
+    fun getSubscriptionId(): String {
         return subscriptionId
     }
 
-    fun getHeartbeatInterval(): Duration? {
+    fun getHeartbeatInterval(): Duration {
         return heartbeatInterval
     }
 
-    fun getRequestorRef(): String? {
+    fun getRequestorRef(): String {
         return requestorRef
     }
 

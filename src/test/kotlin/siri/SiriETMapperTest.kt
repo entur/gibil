@@ -39,8 +39,8 @@ class SiriETMapperTest {
 
     @ParameterizedTest
     @CsvSource(
-        "true,outbound,AVINOR:StopPlace:OSL,AVINOR:StopPlace:BGO",
-        "false,inbound,AVINOR:StopPlace:BGO,AVINOR:StopPlace:OSL"
+        "true,outbound,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
+        "false,inbound,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
     )
     fun `should create correct journey structure`(
         isDeparture: Boolean,
@@ -65,7 +65,7 @@ class SiriETMapperTest {
         val airport = createAirport(flights = listOf(createFlight(airline = "SK")))
         val result = mapper.mapToSiri(airport, "OSL")
 
-        assertEquals("AVINOR:Operator:SK", getJourneys(result)[0].operatorRef.value)
+        assertEquals("AVI:Operator:SK", getJourneys(result)[0].operatorRef.value)
     }
 
     @Test

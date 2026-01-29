@@ -244,6 +244,16 @@ class SiriETMapper {
         }
     }
 
+    /**
+     * Function that builds the routes used for LineRef and DatedVehicleJourneyRef
+     * Can be ordered by size priority or not depending on usecase
+     *
+     * @param requestingAirportCode String. The airport code used in the API call
+     * @param flight Flight. The specified flight that is routed to. Provides airline and depature/arriving airport
+     * @param wantOrdered Boolean. Specifies if you want the route ordered by size priority, default value false
+     * @return String. Route code, "airline_firstAirport-SecondAirport" either ordered by largest first or requestingAirportCode first depends on param choice.
+     *
+     */
      private fun routeBuilder(requestingAirportCode: String, flight: Flight, wantOrdered: Boolean = false): String {
         val airline = flight.airline
 
@@ -256,6 +266,14 @@ class SiriETMapper {
         return "${airline}_${firstAirport}-${secondAirport}"
     }
 
+    /**
+     * Extension function that generates a deterministic numeric ID hash from string.
+     * Makes hash code using a variant of DJB2 algorithim also found in the EnTur repo ExTime.
+     *
+     * @param length Int. The max number of digits wanted in the returned hash string.
+     * @return a numeric string of up to [length] digits dervied from hashing String.
+     *
+     */
     private fun String.idHash(length: Int): String {
         val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
         return abs(hashcode).toString().take(length)

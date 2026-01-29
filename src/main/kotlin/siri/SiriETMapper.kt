@@ -1,5 +1,6 @@
 package siri
 
+import AirportSizeClassification.orderAirportBySize
 import model.avinorApi.Airport
 import model.avinorApi.Flight
 import uk.org.siri.siri21.*
@@ -73,9 +74,8 @@ class SiriETMapper {
 
         //Set lineRef
         val lineRef = LineRef()
-        //TODO! routeCode has to use large airport ordering as in ExTime (though makeRouteCode needs to be ordered to allow hashRouteCodeId)
-        val routeCode = makeRouteCode(requestingAirportCode, flight)
-        lineRef.value = "$LINE_PREFIX$routeCode"
+        val route = routeBuilder(requestingAirportCode, flight)
+        lineRef.value = "$LINE_PREFIX$route"
         estimatedVehicleJourney.lineRef = lineRef
 
         //Set directionRef
@@ -89,7 +89,8 @@ class SiriETMapper {
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
 
-        val routeCodeId = routeCode.idHash(10)
+        val orderedRoute = routeBuilder(requestingAirportCode, flight, true)
+        val routeCodeId = orderedRoute.idHash(10)
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
@@ -243,20 +244,16 @@ class SiriETMapper {
         }
     }
 
-    private fun makeRouteCode(requestingAirportCode: String, flight: Flight): String {
+     private fun routeBuilder(requestingAirportCode: String, flight: Flight, wantOrdered: Boolean = false): String {
         val airline = flight.airline
-        val departureAirport: String?
-        val arrivalAirport: String?
 
-        if(flight.isDeparture()) {
-            departureAirport = requestingAirportCode
-            arrivalAirport = flight.airport
+        val(firstAirport, secondAirport) = if(wantOrdered) {
+            orderAirportBySize(requestingAirportCode, flight.airport.toString())
         } else {
-            departureAirport = flight.airport
-            arrivalAirport = requestingAirportCode
+            requestingAirportCode to flight.airport.toString()
         }
 
-        return "${airline}_${departureAirport}-${arrivalAirport}"
+        return "${airline}_${firstAirport}-${secondAirport}"
     }
 
     private fun String.idHash(length: Int): String {

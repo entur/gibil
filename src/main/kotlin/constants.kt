@@ -1,7 +1,5 @@
 package org.example
 
-import java.time.Clock
-
 /**
  * Project-wide constants.
  * You can define top-level constants using `const val` or group them in an object.
@@ -16,10 +14,6 @@ const val TIMEFROMPARAM_MIN_NUM = 1
 const val TIMEFROMPARAM_MAX_NUM = 36
 const val TIMETOPARAM_MIN_NUM = 7
 const val TIMETOPARAM_MAX_NUM = 336
-
-val clock: Clock = Clock.systemUTC()
-
-
 
 object Constants {
 }

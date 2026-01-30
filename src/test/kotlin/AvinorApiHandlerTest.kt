@@ -3,12 +3,16 @@ package org.example
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
-import org.example.clock
+import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+
 class AvinorApiHandlerTest {
+
+    private val clock = Clock.systemUTC()
+
     val api = AvinorApiHandler(clock)
 
     @Test

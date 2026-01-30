@@ -9,7 +9,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class AvinorApiHandlerTest {
-    val api = AvinorApiHandler()
+    val api = AvinorApiHandler(clock)
 
     @Test
     fun `avinorXmlFeedApiCall with all valid parameters returns XML with airport data`() {

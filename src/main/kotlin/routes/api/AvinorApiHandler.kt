@@ -2,8 +2,8 @@ package routes.api
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.springframework.stereotype.Component
 import java.time.Clock
-
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -14,7 +14,7 @@ import org.example.TIMEFROMPARAM_MAX_NUM
 import org.example.TIMEFROMPARAM_MIN_NUM
 import org.example.TIMETOPARAM_MAX_NUM
 import org.example.TIMETOPARAM_MIN_NUM
-import org.example.clock
+// import org.example.clock
 
 
 
@@ -22,7 +22,8 @@ import org.example.clock
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  *
  */
-open class AvinorApiHandler{
+@Component
+open class AvinorApiHandler(private val clock: Clock) {
     val client = OkHttpClient()
     var timeFrom: Int = 2
     var timeTo: Int = 7

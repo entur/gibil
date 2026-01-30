@@ -7,13 +7,13 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import org.slf4j.LoggerFactory
 import uk.org.siri.siri21.Siri
-import util.SharedJaxbContext
-import java.io.StringWriter
+import siri.SiriETPublisher
 
 class HttpHelper(
     private val verbose: Boolean = true
 ) {
     private val logger = LoggerFactory.getLogger(HttpHelper::class.java)
+    val publisher = SiriETPublisher()
 
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout) {
@@ -25,7 +25,7 @@ class HttpHelper(
 
     suspend fun postHeartbeat(address: String, requestorRef: String): Int {
         val siri = SiriHelper.createHeartbeatNotification(requestorRef)
-        return postData(address, toXml(siri))
+        return postData(address, convertToXml(siri))
     }
 
     suspend fun postData(url: String, xmlData: String?): Int {
@@ -48,11 +48,8 @@ class HttpHelper(
         }
     }
 
-    private fun toXml(siri: Siri): String {
-        val marshaller = SharedJaxbContext.createMarshaller(true)
-        val writer = StringWriter()
-        marshaller.marshal(siri, writer)
-        return writer.toString()
+    private fun convertToXml(siri: Siri): String {
+        return publisher.toXml(siri, formatOutput = true)
     }
 
     fun close() {

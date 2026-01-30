@@ -3,7 +3,7 @@ package org.example
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication(scanBasePackages = ["org.example", "routes.api", "config"])
+@SpringBootApplication(scanBasePackages = ["org.example", "routes.api", "config", "siri", "handler", "service"])
 class Application
 
 fun main(args: Array<String>) {

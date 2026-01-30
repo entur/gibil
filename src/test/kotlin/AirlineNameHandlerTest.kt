@@ -4,9 +4,13 @@ import handler.AirlineNameHandler
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
+import routes.api.AvinorApiHandler
+import java.time.Clock
 
 class AirlineNameHandlerTest {
-    val airlineNameHandler = AirlineNameHandler()
+    private val clock = Clock.systemUTC()
+    private val avinorApiHandler = AvinorApiHandler(clock)
+    val airlineNameHandler = AirlineNameHandler(avinorApiHandler)
 
     @Test
     fun `GetName get a valid airline-code gets a full airline name`() {
@@ -38,7 +42,7 @@ class AirlineNameHandlerTest {
     fun `Update creates airlines-json file and can run getName function`() {
         val testFile = "test-airlines.json"
 
-        val cache = AirlineNameHandler(testFile)  // Use test file
+        val cache = AirlineNameHandler(avinorApiHandler, testFile)  // Use test file
         cache.update()
 
         assertEquals("American Airlines", cache.getName("AA"))
@@ -47,3 +51,4 @@ class AirlineNameHandlerTest {
         File(testFile).delete()
     }
 }
+

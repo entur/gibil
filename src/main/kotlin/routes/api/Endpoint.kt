@@ -1,10 +1,10 @@
 package routes.api
 
-import SiriEtService
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import service.SiriEtService
 
 @RestController
 class Endpoint(private val siriEtService: SiriEtService) {

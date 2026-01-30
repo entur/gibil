@@ -1,13 +1,20 @@
 package handler
 
 import routes.api.AvinorApiHandler
+import org.springframework.stereotype.Service
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import java.io.File
 
 /**
  * Is the handler for finding, fetching, validating, and saving airlinenames. Saves matching sets of airlinename-codes and airlinenames both to a mutable map and to a local json file.
  * @param cacheFile is the filename where the local json storage of the airlines mutablemap information is supposed to be saves/fetched. Standard is airlines.json, other param is mostly only for testing
  */
-class AirlineNameHandler(private val cacheFile: String = "airlines.json") {
+@Service
+class AirlineNameHandler @Autowired constructor(
+    private val avinorApiHandler: AvinorApiHandler,
+    @Value("\${airline.cache.file:airlines.json}") private val cacheFile: String = "airlines.json"
+) {
     private val airlines = mutableMapOf<String, String>()
 
     init {
@@ -20,7 +27,6 @@ class AirlineNameHandler(private val cacheFile: String = "airlines.json") {
     private fun fetchAirlineXml(): String {
         val url = "https://asrv.avinor.no/airlineNames/v1.0"
 
-        val avinorApiHandler = AvinorApiHandler()
         val result = avinorApiHandler.apiCall(url)
         if (result != null) { //if there's a result
             return result
@@ -32,7 +38,7 @@ class AirlineNameHandler(private val cacheFile: String = "airlines.json") {
     Gets XML data from fetchairlinexml and then uses regex to extract the information, then places the value in the index of the matching airlinename code then puts this in the airlines map
      saveCache() is then run to save to local json file
      */
-    public fun update() {
+    fun update() {
         val xmlData = fetchAirlineXml()
 
         airlines.clear()
@@ -53,7 +59,7 @@ class AirlineNameHandler(private val cacheFile: String = "airlines.json") {
      * @param code airlineNameCode, looks for matching airlineName in airlines
      * @return returns name of airlinenamecode, example; AA returns American Airlines. returns an error code if not found
      */
-    public fun getName(code: String): String?{
+    fun getName(code: String): String?{
         if(airlines[code] != null){
             return airlines[code]
         } else {

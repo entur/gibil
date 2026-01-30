@@ -1,9 +1,11 @@
 package siri.validator
 
 import org.entur.siri.validator.SiriValidator
+import org.springframework.stereotype.Component
 
 data class ValidationResult(val isValid: Boolean, val message: String)
 
+@Component
 class XsdValidator {
 
     fun validateSirixml(xmlData: String, version: SiriValidator.Version): ValidationResult {

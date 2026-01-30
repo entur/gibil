@@ -3,6 +3,7 @@ package siri
 import util.AirportSizeClassification.orderAirportBySize
 import model.avinorApi.Airport
 import model.avinorApi.Flight
+import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
 import java.math.BigInteger
 import java.time.ZonedDateTime
@@ -11,6 +12,7 @@ import java.time.format.DateTimeParseException
 import kotlin.math.abs
 
 
+@Component
 class SiriETMapper {
     companion object {
         // Constants for SIRI mapping

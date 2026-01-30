@@ -2,7 +2,7 @@ package routes.api
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okio.IOException
+import java.io.IOException
 import java.time.Clock
 
 import java.time.Instant
@@ -25,8 +25,6 @@ object AvinorApiConfig {
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
 
 }
-val clock: Clock = Clock.systemUTC()
-
 
 data class AvinorXmlFeedParams(
     val airportCode: String,
@@ -41,10 +39,13 @@ data class AvinorXmlFeedParams(
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  *
  */
-open class AvinorApiHandler{
-    val client = OkHttpClient()
+open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
 
-    fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
+    companion object {
+        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    }
+
+    open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
         append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
 
 
@@ -54,23 +55,23 @@ open class AvinorApiHandler{
         append("?airport=${params.airportCode.uppercase()}")
         if(timeParamValidation(params)) {
             append("&TimeFrom=${params.timeFrom}")
-            append("TimeTo=${params.timeTo}")
+            append("&TimeTo=${params.timeTo}")
         }
-
+/*
         if(params.lastUpdate != null) {
             val lastUpdateString = params.lastUpdate.toString()
-            append("&lastUpdate${lastUpdateString}")
+            append("&lastUpdate=${lastUpdateString}")
         }
-
+*/
         if(params.direction != null) {
-            append("&Direction${params.direction}")
+            append("&direction=${params.direction}")
         }
 
         //TODO FIND OUT IF WE HAVE USE FOR CODESHARE DATA
         if(params.codeshare) {
             append("&codeshare=Y")
         }
-    }
+    }.also { println("DEBUG URL: $it") }
 
     private fun timeParamValidation(params: AvinorXmlFeedParams): Boolean {
         if(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM) {
@@ -87,7 +88,7 @@ open class AvinorApiHandler{
      * Works only on open(public) level api's
      * @param url the complete url which the api-call is based on
      */
-    fun apiCall(url: String): String? {
+    open fun apiCall(url: String): String? {
         val request = Request.Builder()
             .url(url)
             .build()
@@ -146,11 +147,7 @@ open class AvinorApiHandler{
             //finds user's local timezone and applies to original datetime
             val datetimeUserCorrect = datetimeOriginal.atZone(ZoneId.systemDefault())
 
-            //formats for output
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            val displayTime = datetimeUserCorrect.format(formatter)
-
-            return displayTime
+            return datetimeUserCorrect.format(DATE_TIME_FORMATTER)
         } catch (e: Exception) {
             return "Error: Date format in '$datetime' invalid; ${e.localizedMessage}"
         }

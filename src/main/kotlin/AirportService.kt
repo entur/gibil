@@ -1,6 +1,7 @@
 package org.example
 
 import config.App
+import routes.api.AvinorXmlFeedParams
 import model.avinorApi.Airport
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
@@ -13,7 +14,7 @@ const val REQUEST_DELAY_MS = 50
 /**
  * Service class to handle fetching and processing airport data from the Avinor API.
  */
-@Service
+
 class AirportService(private val components: App) {
 
     /**
@@ -50,11 +51,14 @@ class AirportService(private val components: App) {
             async(Dispatchers.IO) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                code to components.avinorApi.avinorXmlFeedUrlBuilder(
-                    airportCodeParam = code,
-                    timeFromParam = 2,
-                    timeToParam = 7
+                val url = components.avinorApi.avinorXmlFeedUrlBuilder(
+                    AvinorXmlFeedParams(
+                        airportCode = code,
+                        timeFrom = 2,
+                        timeTo = 7
+                    )
                 )
+                code to components.avinorApi.apiCall(url)
             }
         }
 

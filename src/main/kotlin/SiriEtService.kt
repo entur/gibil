@@ -1,4 +1,5 @@
 import config.App
+import routes.api.AvinorXmlFeedParams
 
 import java.time.Instant
 import org.entur.siri.validator.SiriValidator
@@ -24,12 +25,14 @@ class SiriEtService(private val components: App) {
      */
     // Should be switched with iterating through all aiports
     fun fetchAndConvert(airportCode: String): String {
-        val xmlData = components.avinorApi.avinorXmlFeedUrlBuilder(
-            airportCode,
-            directionParam = DEPATURE_CODE,
-            lastUpdateParam = Instant.now(components.clock),
-            codeshareParam = true
+        val url = components.avinorApi.avinorXmlFeedUrlBuilder(
+            AvinorXmlFeedParams(
+                airportCode = airportCode,
+                direction = DEPATURE_CODE,
+                lastUpdate = Instant.now(components.clock)
+            )
         )
+        val xmlData = components.avinorApi.apiCall(url)
 
         val airport = components.avxh.unmarshallXmlToAirport(xmlData ?: "")
         val siri = components.siriMapper.mapToSiri(airport, airportCode)

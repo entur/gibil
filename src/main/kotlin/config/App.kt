@@ -2,7 +2,6 @@ package config
 
 import SiriEtService
 import handler.AvinorScheduleXmlHandler
-import org.example.AirportService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import routes.api.AvinorApiHandler
@@ -24,9 +23,11 @@ class App (
     fun siriEtService(): SiriEtService {
         return SiriEtService(this)
     }
-
+/*
     @Bean
     fun AirportService(): AirportService {
         return AirportService(this)
     }
+
+ */
 }

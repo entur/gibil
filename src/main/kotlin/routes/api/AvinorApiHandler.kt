@@ -10,12 +10,20 @@ import java.time.format.DateTimeFormatter
 import kotlin.text.uppercase
 import java.time.ZonedDateTime
 
-const val TIMEFROMPARAM_MIN_NUM = 1
-const val TIMEFROMPARAM_MAX_NUM = 36
+object AvinorApiConfig {
 
-const val TIMETOPARAM_MIN_NUM = 7
-const val TIMETOPARAM_MAX_NUM = 336
+    const val TIME_FROM_MIN_NUM = 1
+    const val TIME_FROM_MAX_NUM = 36
+    const val TIME_FROM_DEFAULT = 2
 
+
+    const val TIME_TO_MIN_NUM = 7
+    const val TIME_TO_MAX_NUM = 336
+    const val TIME_TO_DEFAULT = 7
+
+    const val BASE_AVINOR_XMLFEED_URL = "https://asrv.avinor.no/XmlFeed/v1.0"
+
+}
 val clock: Clock = Clock.systemUTC()
 
 /**
@@ -24,12 +32,7 @@ val clock: Clock = Clock.systemUTC()
  */
 open class AvinorApiHandler{
     val client = OkHttpClient()
-    var timeFrom: Int = 2
-    var timeTo: Int = 7
-    var direction: String? = null
-    var lastUpdate: Instant = Instant.now(clock)
-    var includeHelicopter: Boolean = false
-    var codeshare: Boolean = false
+
     /**
      * Handles the apicall to the avinor api, urlBuilder creates the url that is then used by the http3 package to fetch XML dataa from the api, it returns the raw XML as a string or an error message
      *
@@ -51,15 +54,15 @@ open class AvinorApiHandler{
         includeHelicopterParam: Boolean? = null,
         codeshareParam: Boolean? = null
     ): String? {
-        //sets the fields to be the parameters, if the parameters are set. this is done since these parameters are optional
-        timeFromParam?.let { timeFrom = it }
-        timeToParam?.let { timeTo = it }
-        directionParam?.let { direction = directionParam.uppercase() }
-        lastUpdateParam?.let { lastUpdate = it }
-        includeHelicopterParam?.let { includeHelicopter = includeHelicopterParam }
-        codeshareParam?.let { codeshare = it }
+        // Use local variables with defaults - avoids race conditions in concurrent requests
+        val timeFrom = timeFromParam ?: 2
+        val timeTo = timeToParam ?: 7
+        val direction = directionParam?.uppercase()
+        val lastUpdate = lastUpdateParam ?: Instant.now(clock)
+        val includeHelicopter = includeHelicopterParam ?: false
+        val codeshare = codeshareParam ?: false
 
-        val url = urlBuilder(airportCodeParam)
+        val url = urlBuilder(airportCodeParam, timeFrom, timeTo, direction, lastUpdate, includeHelicopter, codeshare)
 
         //if the response from the urlBuilder isn't an error-message
         if ("Error" !in url){
@@ -95,9 +98,23 @@ open class AvinorApiHandler{
      * Makes a complete url for the api to use based on the avinor api.
      * Only adds option to url string if the option is chosen or if the option is obligatory
      * @param airportCodeParam the code of the airport which the api-information is going to fetch information from
+     * @param timeFrom amount of hours worth of flight data before last updated time
+     * @param timeTo amount of hours worth of flight data after last updated time
+     * @param direction fetch "A" or "D", or null for both
+     * @param lastUpdate date of when flight data range is gathered from
+     * @param includeHelicopter add helicopter flight information
+     * @param codeshare add codeshare information
      * @return returns a string which is the complete url for the xmlfeed api call
      */
-    private fun urlBuilder(airportCodeParam: String): String {
+    private fun urlBuilder(
+        airportCodeParam: String,
+        timeFrom: Int,
+        timeTo: Int,
+        direction: String?,
+        lastUpdate: Instant,
+        includeHelicopter: Boolean,
+        codeshare: Boolean
+    ): String {
         val baseurl = "https://asrv.avinor.no/XmlFeed/v1.0"
 
         var localUrl = baseurl
@@ -110,18 +127,18 @@ open class AvinorApiHandler{
         }
 
         //timeFromParam handling, minimum value is 1 and max is 36
-        if (timeFrom <= TIMEFROMPARAM_MAX_NUM && timeFrom >= TIMEFROMPARAM_MIN_NUM) {
+        if (timeFrom <= AvinorApiConfig.TIME_FROM_MAX_NUM && timeFrom >= AvinorApiConfig.TIME_FROM_MIN_NUM) {
             localUrl += "&TimeFrom=$timeFrom"
-        } else if (timeFrom != 2) {
+        } else if (timeFrom != AvinorApiConfig.TIME_FROM_DEFAULT) {
             throw IllegalArgumentException("TimeFrom parameter is outside of valid index, can only be between 1 and 36 hours, timeFrom set to default")
         } else {
             //do nothing, not obligatory parameter for api
         }
 
         //timeToParam handling, minimum: 7 maximum 336
-        if (timeTo <= TIMETOPARAM_MAX_NUM && timeTo >= TIMETOPARAM_MIN_NUM) {
+        if (timeTo <= AvinorApiConfig.TIME_TO_MAX_NUM && timeTo >= AvinorApiConfig.TIME_TO_MIN_NUM) {
             localUrl += "&TimeTo=$timeTo"
-        } else if (timeTo != 7) {
+        } else if (timeTo != AvinorApiConfig.TIME_TO_DEFAULT) {
             throw IllegalArgumentException("TimeTo parameter is outside of valid index, can only be between 7 and 336 hours, timeTo set to default")
         } else {
             //do nothing, not obligatory parameter for api

@@ -16,7 +16,7 @@ class AvinorApiHandlerTest {
         /*
         A test where every parameter is set and is valid
          */
-        val result = api.avinorXmlFeedApiCall(
+        val result = api.avinorXmlFeedUrlBuilder(
             airportCodeParam = "OSL",
             timeFromParam = 1,
             timeToParam = 7,
@@ -36,7 +36,7 @@ class AvinorApiHandlerTest {
         A test where the aiport-code is not a valid airport code
          */
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedApiCall(
+            val result = api.avinorXmlFeedUrlBuilder(
                 airportCodeParam = "OS",
                 timeFromParam = 1,
                 timeToParam = 7,
@@ -53,7 +53,7 @@ class AvinorApiHandlerTest {
         A test where the aiport-code is not a valid airport code
          */
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedApiCall(
+            val result = api.avinorXmlFeedUrlBuilder(
                 airportCodeParam = "OSL",
                 timeFromParam = 1,
                 timeToParam = 7,
@@ -68,7 +68,7 @@ class AvinorApiHandlerTest {
     fun `avinorXmlFeedApiCall with negative time from throws exception`(){
 
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedApiCall(
+            val result = api.avinorXmlFeedUrlBuilder(
                 airportCodeParam = "OS",
                 timeFromParam = -100,
                 timeToParam = 7,
@@ -83,7 +83,7 @@ class AvinorApiHandlerTest {
     fun `avinorXmlFeedApiCall with time exceeding limit throw exception`() {
 
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedApiCall(
+            val result = api.avinorXmlFeedUrlBuilder(
                 airportCodeParam = "OS",
                 timeFromParam = 1,
                 timeToParam = 700000000,

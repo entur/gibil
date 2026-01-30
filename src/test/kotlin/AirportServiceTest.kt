@@ -24,7 +24,7 @@ class AirportServiceTest {
         // We can simulate an error by changing this variable in the test
         var simulateError = false
 
-        override fun avinorXmlFeedApiCall(
+        override fun avinorXmlFeedUrlBuilder(
             airportCodeParam: String,
             timeFromParam: Int?,
             timeToParam: Int?,

@@ -24,7 +24,7 @@ class SiriEtService(private val components: App) {
      */
     // Should be switched with iterating through all aiports
     fun fetchAndConvert(airportCode: String): String {
-        val xmlData = components.avinorApi.avinorXmlFeedApiCall(
+        val xmlData = components.avinorApi.avinorXmlFeedUrlBuilder(
             airportCode,
             directionParam = DEPATURE_CODE,
             lastUpdateParam = Instant.now(components.clock),

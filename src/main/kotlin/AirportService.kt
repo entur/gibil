@@ -50,7 +50,7 @@ class AirportService(private val components: App) {
             async(Dispatchers.IO) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                code to components.avinorApi.avinorXmlFeedApiCall(
+                code to components.avinorApi.avinorXmlFeedUrlBuilder(
                     airportCodeParam = code,
                     timeFromParam = 2,
                     timeToParam = 7

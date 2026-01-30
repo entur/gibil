@@ -4,7 +4,7 @@ COPY target/*-SNAPSHOT.jar application.jar
 RUN java -Djarmode=tools  -jar application.jar extract --layers --destination extracted
 
 FROM bellsoft/liberica-openjre-alpine:21.0.10
-RUN apk update && apk upgrade && apk add --no-cache tini=0.19.0-r3
+RUN apk update && apk upgrade && apk add --no-cache tini=0.19
 WORKDIR /deployments
 RUN addgroup appuser && adduser --disabled-password appuser --ingroup appuser
 USER appuser

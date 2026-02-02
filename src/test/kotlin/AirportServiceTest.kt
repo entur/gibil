@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
 import routes.api.AvinorApiHandler
+import routes.api.AvinorXmlFeedParams
 import java.util.Collections
 import java.time.Clock
 
@@ -24,23 +25,24 @@ class AirportServiceTest {
         // We can simulate an error by changing this variable in the test
         var simulateError = false
 
-        override fun avinorXmlFeedUrlBuilder(
-            airportCodeParam: String,
-            timeFromParam: Int?,
-            timeToParam: Int?,
-            directionParam: String?,
-            lastUpdateParam: java.time.Instant?,
-            includeHelicopterParam: Boolean?,
-            codeshareParam: Boolean?
-        ): String? {
-            capturedRequests.add(airportCodeParam)
+        override fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String {
+            capturedRequests.add(params.airportCode)
 
             if (simulateError) {
                 return "Error: 500 Server Error"
             }
 
             // Returns valid XML that the parser should try to read
-            return "<valid_xml_for_$airportCodeParam>"
+            return "<valid_xml_for_${params.airportCode}>"
+        }
+
+        override fun apiCall(url: String): String? {
+            if (simulateError || url.contains("Error")) {
+                return "Error: 500 Server Error"
+            }
+            // Extract airport code from the fake XML URL and return fake XML
+            val airportCode = url.substringAfter("<valid_xml_for_").substringBefore(">")
+            return "<valid_xml_for_$airportCode>"
         }
     }
 

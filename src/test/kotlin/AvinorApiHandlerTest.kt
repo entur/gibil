@@ -3,124 +3,99 @@ package org.example
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
+import routes.api.AvinorXmlFeedParams
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-
 class AvinorApiHandlerTest {
-
-    private val clock = Clock.systemUTC()
-
-    val api = AvinorApiHandler(clock)
+    val api = AvinorApiHandler()
+    val clock: Clock = Clock.systemUTC()
 
     @Test
-    fun `avinorXmlFeedApiCall with all valid parameters returns XML with airport data`() {
-        /*
-        A test where every parameter is set and is valid
-         */
+    fun `avinorXmlFeedUrlBuilder with all valid parameters returns URL`() {
         val result = api.avinorXmlFeedUrlBuilder(
-            airportCodeParam = "OSL",
-            timeFromParam = 1,
-            timeToParam = 7,
-            directionParam = "D",
-            lastUpdateParam = Instant.parse("2024-08-08T09:30:00Z"),
-            includeHelicopterParam = true
+            AvinorXmlFeedParams(
+                airportCode = "OSL",
+                timeFrom = 1,
+                timeTo = 7,
+                direction = "D",
+                lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
+                codeshare = true
+            )
         )
-        requireNotNull(result) {"api call returned null"}
-        assertTrue(result.contains("<airport"))
-        assertTrue(result.contains("name=\"OSL\""))
+        requireNotNull(result) { "url builder returned null" }
+        assertTrue(result.contains("airport=OSL"))
+        assertTrue(result.contains("direction"))
         println(result)
     }
 
     @Test
-    fun `avinorXmlFeedApiCall with invalid airport code throws exception`() {
-        /*
-        A test where the aiport-code is not a valid airport code
-         */
+    fun `avinorXmlFeedUrlBuilder with invalid airport code throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedUrlBuilder(
-                airportCodeParam = "OS",
-                timeFromParam = 1,
-                timeToParam = 7,
-                directionParam = "D",
-                lastUpdateParam = Instant.parse("2024-08-08T09:30:00Z"),
-                includeHelicopterParam = true
+            api.avinorXmlFeedUrlBuilder(
+                AvinorXmlFeedParams(
+                    airportCode = "OS",
+                    timeFrom = 1,
+                    timeTo = 7,
+                    direction = "D",
+                    lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
+                    codeshare = true
+                )
             )
         }
     }
 
     @Test
-    fun `avinorXmlFeedApiCall with invalid direction throws exception`() {
-        /*
-        A test where the aiport-code is not a valid airport code
-         */
+    fun `avinorXmlFeedUrlBuilder with negative time from throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedUrlBuilder(
-                airportCodeParam = "OSL",
-                timeFromParam = 1,
-                timeToParam = 7,
-                directionParam = "f",
-                lastUpdateParam = Instant.parse("2024-08-08T09:30:00Z"),
-                includeHelicopterParam = true
+            api.avinorXmlFeedUrlBuilder(
+                AvinorXmlFeedParams(
+                    airportCode = "OSL",
+                    timeFrom = -100,
+                    timeTo = 7,
+                    direction = "D",
+                    lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
+                    codeshare = true
+                )
             )
         }
     }
 
     @Test
-    fun `avinorXmlFeedApiCall with negative time from throws exception`(){
-
+    fun `avinorXmlFeedUrlBuilder with time exceeding limit throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedUrlBuilder(
-                airportCodeParam = "OS",
-                timeFromParam = -100,
-                timeToParam = 7,
-                directionParam = "D",
-                lastUpdateParam = Instant.parse("2024-08-08T09:30:00Z"),
-                includeHelicopterParam = true
-            )
-        }
-    }
-
-    @Test
-    fun `avinorXmlFeedApiCall with time exceeding limit throw exception`() {
-
-        assertThrows(IllegalArgumentException::class.java) {
-            val result = api.avinorXmlFeedUrlBuilder(
-                airportCodeParam = "OS",
-                timeFromParam = 1,
-                timeToParam = 700000000,
-                directionParam = "D",
-                lastUpdateParam = Instant.parse("2024-08-08T09:30:00Z"),
-                includeHelicopterParam = true
+            api.avinorXmlFeedUrlBuilder(
+                AvinorXmlFeedParams(
+                    airportCode = "OSL",
+                    timeFrom = 1,
+                    timeTo = 700000000,
+                    direction = "D",
+                    lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
+                    codeshare = true
+                )
             )
         }
     }
 
     @Test
     fun `userCorrectDate with valid iso timestamp returns localized date string`() {
-        //current time
         val timeNow: Instant = Instant.now(clock)
 
-        //Makes a time which is correct to the users default timezone
         val datetimeUserCorrect = timeNow.atZone(ZoneId.systemDefault())
 
-        //makes a time which is of LA time, probably different but works for the test anyway
         var datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("America/Los_Angeles"))
 
-        //if the users timezone is conicidentally america/LA, set something different
-        if (datetimeUserDifferentZone == datetimeUserCorrect){
+        if (datetimeUserDifferentZone == datetimeUserCorrect) {
             datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("Europe/Paris"))
         }
 
-        //format for output
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
         val displayTime = datetimeUserCorrect.format(formatter)
         val displayTimeWrong = datetimeUserDifferentZone.format(formatter)
 
-        // Pass the Instant string, not the ZonedDateTime string
         val result = api.userCorrectDate(datetimeUserDifferentZone.toString())
 
         println("Result: $result")
@@ -131,7 +106,7 @@ class AvinorApiHandlerTest {
     }
 
     @Test
-    fun `userCorrectDate with invalid date format returns error`(){
+    fun `userCorrectDate with invalid date format returns error`() {
         val datetime = "not a valid date format"
         val result = api.userCorrectDate(datetime)
         println(result)

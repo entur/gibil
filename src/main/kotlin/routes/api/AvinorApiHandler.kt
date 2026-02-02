@@ -3,7 +3,6 @@ package routes.api
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
-import java.time.Clock
 
 import java.time.Instant
 import java.time.ZoneId
@@ -15,7 +14,6 @@ object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36
     const val TIME_FROM_DEFAULT = 2
-
 
     const val TIME_TO_MIN_NUM = 7
     const val TIME_TO_MAX_NUM = 336
@@ -48,7 +46,6 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
     open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
         append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
 
-
         if(!airportCodeValidator(params.airportCode)) {
             throw IllegalArgumentException("Invalid airport code: ${params.airportCode}")
         }
@@ -57,21 +54,10 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
             append("&TimeFrom=${params.timeFrom}")
             append("&TimeTo=${params.timeTo}")
         }
-/*
-        if(params.lastUpdate != null) {
-            val lastUpdateString = params.lastUpdate.toString()
-            append("&lastUpdate=${lastUpdateString}")
-        }
-*/
         if(params.direction != null) {
             append("&direction=${params.direction}")
         }
-
-        //TODO FIND OUT IF WE HAVE USE FOR CODESHARE DATA
-        if(params.codeshare) {
-            append("&codeshare=Y")
-        }
-    }.also { println("DEBUG URL: $it") }
+    }
 
     private fun timeParamValidation(params: AvinorXmlFeedParams): Boolean {
         if(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM) {

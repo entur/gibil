@@ -1,9 +1,9 @@
-package org.example
+package org.gibil
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication(scanBasePackages = ["org.example", "routes.api", "config", "subscription"])
+@SpringBootApplication(scanBasePackages = ["org.gibil", "routes.api", "config", "siri", "handler", "service", "subscription"])
 class Application
 
 fun main(args: Array<String>) {

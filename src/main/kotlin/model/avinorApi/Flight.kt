@@ -65,6 +65,11 @@ class Flight {
         this.uniqueID = uniqueID
     }
 
+    constructor(airline: String, airport: String) {
+        this.airline = airline
+        this.airport = airport
+    }
+
     fun isDeparture(): Boolean = arrDep == "D"
     fun isArrival(): Boolean = arrDep == "A"
 

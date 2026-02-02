@@ -2,72 +2,73 @@ package routes.api
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.time.Clock
+import org.springframework.stereotype.Component
+import java.io.IOException
 
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.text.uppercase
 import java.time.ZonedDateTime
 
-const val TIMEFROMPARAM_MIN_NUM = 1
-const val TIMEFROMPARAM_MAX_NUM = 36
+object AvinorApiConfig {
 
-const val TIMETOPARAM_MIN_NUM = 7
-const val TIMETOPARAM_MAX_NUM = 336
+    const val TIME_FROM_MIN_NUM = 1
+    const val TIME_FROM_MAX_NUM = 36
+    const val TIME_FROM_DEFAULT = 2
 
-val clock: Clock = Clock.systemUTC()
+    const val TIME_TO_MIN_NUM = 7
+    const val TIME_TO_MAX_NUM = 336
+    const val TIME_TO_DEFAULT = 7
+
+    const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
+    const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
+
+}
+
+data class AvinorXmlFeedParams(
+    val airportCode: String,
+    val timeFrom: Int = AvinorApiConfig.TIME_FROM_DEFAULT,
+    val timeTo: Int = AvinorApiConfig.TIME_TO_DEFAULT,
+    val direction: String? = null
+    //val lastUpdate: Instant? = null, Commented out due to not being in use for now
+    //val codeshare: Boolean = false Commented out due to not being in use for now
+)
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  *
  */
-open class AvinorApiHandler{
-    val client = OkHttpClient()
-    var timeFrom: Int = 2
-    var timeTo: Int = 7
-    var direction: String? = null
-    var lastUpdate: Instant = Instant.now(clock)
-    var includeHelicopter: Boolean = false
-    var codeshare: Boolean = false
-    /**
-     * Handles the apicall to the avinor api, urlBuilder creates the url that is then used by the http3 package to fetch XML dataa from the api, it returns the raw XML as a string or an error message
-     *
-     * @param airportCodeParam OBLIGATORY code of airport, example; OSL, BGO
-     * @param timeFromParam optional amount of hours worth of flight data before last updated time
-     * @param timeToParam optional amount of hours worth of flight data after last updated time
-     * @param directionParam optional, choose to fetch "A" or "D", or both, A is Arrival flights only, D is Departure flights only, picking no option shows both
-     * @param lastUpdateParam optional date of when flight data range is gathered from, standard is now
-     * @param includeHelicopterParam optional, choose to add helicopter flight information, if its set to true a servicetype="E" is added to the apicall
-     * @param codeshareParam optional, choose to add codeshare information or not, consists of: codeshareAirlineDesignators, codeshareAirlineNames, codeshareFlightNumbers and codeshareOperationalSuffixs.
-     * @return XML-result from XMLfeed api-call or an errormessage if failure occured
-     */
-    open fun avinorXmlFeedApiCall(
-        airportCodeParam: String,
-        timeFromParam: Int? = null,
-        timeToParam: Int? = null,
-        directionParam: String? = null,
-        lastUpdateParam: Instant? = null,
-        includeHelicopterParam: Boolean? = null,
-        codeshareParam: Boolean? = null
-    ): String? {
-        //sets the fields to be the parameters, if the parameters are set. this is done since these parameters are optional
-        timeFromParam?.let { timeFrom = it }
-        timeToParam?.let { timeTo = it }
-        directionParam?.let { direction = directionParam.uppercase() }
-        lastUpdateParam?.let { lastUpdate = it }
-        includeHelicopterParam?.let { includeHelicopter = includeHelicopterParam }
-        codeshareParam?.let { codeshare = it }
+@Component
+open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
 
-        val url = urlBuilder(airportCodeParam)
+    companion object {
+        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    }
 
-        //if the response from the urlBuilder isn't an error-message
-        if ("Error" !in url){
-            return apiCall(url)
-        } else {
-            return "Error with avinor-XmlFeed api-call"
+     open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
+        append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
+
+        if(!airportCodeValidator(params.airportCode)) {
+            throw IllegalArgumentException("Invalid airport code: ${params.airportCode}")
         }
+        append("?airport=${params.airportCode.uppercase()}")
+        if(timeParamValidation(params)) {
+            append("&TimeFrom=${params.timeFrom}")
+            append("&TimeTo=${params.timeTo}")
+        }
+        if(params.direction == "A" || params.direction == "D") {
+            append("&direction=${params.direction}")
+        }
+    }
 
+    private fun timeParamValidation(params: AvinorXmlFeedParams): Boolean {
+        if(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM) {
+            throw IllegalArgumentException("TimeTo parameter is outside of valid range, can only be between 7 and 336 hours")
+        }
+        if(params.timeFrom !in AvinorApiConfig.TIME_FROM_MIN_NUM..AvinorApiConfig.TIME_FROM_MAX_NUM) {
+            throw IllegalArgumentException("TimeFrom parameter is outside of valid range, can only be between 1 and 36 hours")
+        }
+        return true
     }
 
     /**
@@ -75,7 +76,7 @@ open class AvinorApiHandler{
      * Works only on open(public) level api's
      * @param url the complete url which the api-call is based on
      */
-    fun apiCall(url: String): String? {
+     open fun apiCall(url: String): String? {
         val request = Request.Builder()
             .url(url)
             .build()
@@ -86,75 +87,9 @@ open class AvinorApiHandler{
             return if (response.isSuccessful) {
                 response.body?.string()  // Returns raw XML
             } else {
-                throw IllegalArgumentException("Error: ${response.code}")
+                throw IOException("Error: ${response.code}")
             }
         }
-    }
-
-    /**
-     * Makes a complete url for the api to use based on the avinor api.
-     * Only adds option to url string if the option is chosen or if the option is obligatory
-     * @param airportCodeParam the code of the airport which the api-information is going to fetch information from
-     * @return returns a string which is the complete url for the xmlfeed api call
-     */
-    private fun urlBuilder(airportCodeParam: String): String {
-        val baseurl = "https://asrv.avinor.no/XmlFeed/v1.0"
-
-        var localUrl = baseurl
-
-        //checks if the airportcode is valid using the airportCodeCheckApi method
-        if (airportCodeCheckApi(airportCodeParam)) {
-            localUrl += "?airport=${airportCodeParam.uppercase()}"
-        } else {
-            throw IllegalArgumentException("Error: Airportcode not valid! XmlFeed api-call not made!")
-        }
-
-        //timeFromParam handling, minimum value is 1 and max is 36
-        if (timeFrom <= TIMEFROMPARAM_MAX_NUM && timeFrom >= TIMEFROMPARAM_MIN_NUM) {
-            localUrl += "&TimeFrom=$timeFrom"
-        } else if (timeFrom != 2) {
-            throw IllegalArgumentException("TimeFrom parameter is outside of valid index, can only be between 1 and 36 hours, timeFrom set to default")
-        } else {
-            //do nothing, not obligatory parameter for api
-        }
-
-        //timeToParam handling, minimum: 7 maximum 336
-        if (timeTo <= TIMETOPARAM_MAX_NUM && timeTo >= TIMETOPARAM_MIN_NUM) {
-            localUrl += "&TimeTo=$timeTo"
-        } else if (timeTo != 7) {
-            throw IllegalArgumentException("TimeTo parameter is outside of valid index, can only be between 7 and 336 hours, timeTo set to default")
-        } else {
-            //do nothing, not obligatory parameter for api
-        }
-
-        //adds the optional "E" service type if the option is specified
-        if (includeHelicopter) {
-            localUrl += "&serviceType=E"
-        } else {
-            //do nothing, not obligatory parameter for api
-        }
-
-        //formats last update parameter. Accepted format: yyyy-MM-ddTHH:mm:ssZ
-        //set format correctly - ISO-8601
-        val lastUpdateString = lastUpdate.toString()
-        localUrl += "&lastUpdate${lastUpdateString}"
-
-        //formats direction-information if a valid direction is specified, else sets it to be nothing
-        if (direction != null && (direction == "D" || direction == "A")) {
-            localUrl += "&Direction${direction}"
-        } else if(direction != null) {
-            throw IllegalArgumentException("Direction parameter invalid, input ignored")
-        } else {
-            //do nothing, not obligatory parameter for api
-        }
-
-        //adds the optional codeshare information
-        if (codeshare) {
-            localUrl += "&codeshare=Y"
-        } else {
-            //do nothing, not obligatory parameter for api
-        }
-        return localUrl
     }
 
     /**
@@ -166,21 +101,20 @@ open class AvinorApiHandler{
      *  @param airportCodeParam a three letter string of the airportcode
      *  @return returns a true if the airportcode is found in the api-call, returns a false if it isn't
      */
-    private fun airportCodeCheckApi(airportCodeParam: String): Boolean{
-        val url = "https://asrv.avinor.no/airportNames/v1.0?airport=" + airportCodeParam.uppercase()
+    private fun airportCodeValidator(airportCode: String): Boolean {
+
+        if(airportCode.length != 3) return false
+
+        val upperCode = airportCode.uppercase()
+        val url = "${AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES}?airport=${upperCode}"
 
         //calls the api
         val response = apiCall(url)
 
         //a snippet of what's expected in the api-response
-        val expectedInResponse = "code=\"${airportCodeParam.uppercase()}\""
+        val expectedInResponse = "code=\"${upperCode}\""
 
-        //if there's a response, the airportcode was found by the api, and the airportcodeparameter is 3 characters
-        if (response != null && airportCodeParam.length == 3 && expectedInResponse in response){
-            return true
-        } else {
-            return false
-        }
+        return response != null && expectedInResponse in response
     }
 
     /**
@@ -201,11 +135,7 @@ open class AvinorApiHandler{
             //finds user's local timezone and applies to original datetime
             val datetimeUserCorrect = datetimeOriginal.atZone(ZoneId.systemDefault())
 
-            //formats for output
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            val displayTime = datetimeUserCorrect.format(formatter)
-
-            return displayTime
+            return datetimeUserCorrect.format(DATE_TIME_FORMATTER)
         } catch (e: Exception) {
             return "Error: Date format in '$datetime' invalid; ${e.localizedMessage}"
         }

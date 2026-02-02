@@ -2,11 +2,13 @@ package subscription
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Repository
 import subscription.SiriHelper.createSiriEtServiceDelivery
 import uk.org.siri.siri21.EstimatedVehicleJourney
 import uk.org.siri.siri21.Siri
 
-abstract class SiriETRepository {
+@Repository
+class SiriETRepository {
     protected val siriData: MutableMap<String, EstimatedVehicleJourney> = HashMap()
 
     val all: MutableCollection<EstimatedVehicleJourney>

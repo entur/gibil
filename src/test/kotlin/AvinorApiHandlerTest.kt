@@ -3,13 +3,17 @@ package org.example
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
-import routes.api.clock
+import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+
 class AvinorApiHandlerTest {
-    val api = AvinorApiHandler()
+
+    private val clock = Clock.systemUTC()
+
+    val api = AvinorApiHandler(clock)
 
     @Test
     fun `avinorXmlFeedApiCall with all valid parameters returns XML with airport data`() {

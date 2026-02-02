@@ -9,7 +9,6 @@ import java.io.File
 import routes.api.AvinorApiHandler
 import routes.api.AvinorXmlFeedParams
 import java.util.Collections
-import java.time.Clock
 
 /**
  * Test class for AirportService.
@@ -19,7 +18,7 @@ class AirportServiceTest {
      /**
       * A fake implementation of AvinorApiHandler for testing purposes.
       */
-     class SpyAvinorApi : AvinorApiHandler(Clock.systemUTC()) {
+     class SpyAvinorApi : AvinorApiHandler() {
         val capturedRequests = Collections.synchronizedList(mutableListOf<String>())
 
         // We can simulate an error by changing this variable in the test

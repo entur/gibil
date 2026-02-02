@@ -41,7 +41,7 @@ class SiriEtService(
             AvinorXmlFeedParams(
                 airportCode = airportCode,
                 direction = DEPATURE_CODE,
-                lastUpdate = Instant.now(components.clock)
+                lastUpdate = Instant.now(clock)
             )
         )
         val xmlData = avinorApi.apiCall(url)

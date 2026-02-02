@@ -2,6 +2,7 @@ package routes.api
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.springframework.stereotype.Component
 import java.io.IOException
 
 import java.time.Instant
@@ -37,13 +38,14 @@ data class AvinorXmlFeedParams(
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  *
  */
+@Component
 open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
 
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     }
 
-    open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
+     open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
         append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
 
         if(!airportCodeValidator(params.airportCode)) {
@@ -74,7 +76,7 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
      * Works only on open(public) level api's
      * @param url the complete url which the api-call is based on
      */
-    open fun apiCall(url: String): String? {
+     open fun apiCall(url: String): String? {
         val request = Request.Builder()
             .url(url)
             .build()

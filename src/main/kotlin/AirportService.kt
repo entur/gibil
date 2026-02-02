@@ -6,6 +6,7 @@ import kotlin.system.measureTimeMillis
 import java.io.File
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
+import routes.api.AvinorXmlFeedParams
 import handler.AvinorScheduleXmlHandler
 
 /**
@@ -51,10 +52,10 @@ class AirportService(
             async(Dispatchers.IO) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                code to avinorApi.avinorXmlFeedApiCall(
-                    airportCodeParam = code,
-                    timeFromParam = 2,
-                    timeToParam = 7
+                code to avinorApi.apiCall(
+                    avinorApi.avinorXmlFeedUrlBuilder(
+                        AvinorXmlFeedParams(airportCode = code, timeFrom = 2, timeTo = 7)
+                    )
                 )
             }
         }

@@ -27,7 +27,7 @@ class HttpHelper(
 
     suspend fun postHeartbeat(address: String, requestorRef: String): Int {
         val siri = SiriHelper.createHeartbeatNotification(requestorRef)
-        return postData(address, convertToXml(siri))
+        return postData(address, publisher.toXml(siri))
     }
 
     suspend fun postData(url: String, xmlData: String?): Int {
@@ -48,10 +48,6 @@ class HttpHelper(
             logger.error("POST request failed: ${e.message}")
             -1
         }
-    }
-
-    private fun convertToXml(siri: Siri): String {
-        return publisher.toXml(siri, formatOutput = true)
     }
 
     fun close() {

@@ -1,8 +1,8 @@
 package service
+import routes.api.AvinorXmlFeedParams
 
 import handler.AvinorScheduleXmlHandler
 import java.time.Clock
-import java.time.Instant
 import org.entur.siri.validator.SiriValidator
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
@@ -11,7 +11,7 @@ import siri.SiriETPublisher
 import siri.validator.ValidationResult
 import siri.validator.XsdValidator
 
-private const val DEPATURE_CODE = "D"
+private const val DEPATURE_CODE = "" //Empty to show both Departures("D") and Arrivals("A")
 
 /**
  * SiriEtService is a service responsible for calling AvinorApi and
@@ -36,12 +36,13 @@ class SiriEtService(
      */
     // Should be switched with iterating through all aiports
     fun fetchAndConvert(airportCode: String): String {
-        val xmlData = avinorApi.avinorXmlFeedApiCall(
-            airportCode,
-            directionParam = DEPATURE_CODE,
-            lastUpdateParam = Instant.now(clock),
-            codeshareParam = true
+        val url = avinorApi.avinorXmlFeedUrlBuilder(
+            AvinorXmlFeedParams(
+                airportCode = airportCode,
+                direction = DEPATURE_CODE,
+            )
         )
+        val xmlData = avinorApi.apiCall(url)
 
         val airport = avxh.unmarshallXmlToAirport(xmlData ?: "")
         val siri = siriMapper.mapToSiri(airport, airportCode)
@@ -58,4 +59,3 @@ class SiriEtService(
         return xsdValidator.validateSirixml(siriXml, SiriValidator.Version.VERSION_2_1)
     }
 }
-

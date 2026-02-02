@@ -1,4 +1,4 @@
-package org.example
+package org.gibil
 
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport

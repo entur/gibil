@@ -8,8 +8,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
-import org.example.BATCH_SIZE
-import org.example.REQUEST_DELAY_MS
+import org.gibil.BATCH_SIZE
+import org.gibil.REQUEST_DELAY_MS
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import routes.api.AvinorXmlFeedParams

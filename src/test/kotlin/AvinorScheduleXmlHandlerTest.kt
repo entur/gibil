@@ -1,4 +1,4 @@
-package org.example
+package org.gibil
 
 import handler.AvinorScheduleXmlHandler
 import model.avinorApi.Airport

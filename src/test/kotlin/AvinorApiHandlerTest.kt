@@ -1,4 +1,4 @@
-package org.example
+package org.gibil
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*

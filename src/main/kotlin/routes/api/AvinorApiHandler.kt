@@ -29,7 +29,7 @@ data class AvinorXmlFeedParams(
     val airportCode: String,
     val timeFrom: Int = AvinorApiConfig.TIME_FROM_DEFAULT,
     val timeTo: Int = AvinorApiConfig.TIME_TO_DEFAULT,
-    val direction: String? = null,
+    val direction: String? = null
     //val lastUpdate: Instant? = null, Commented out due to not being in use for now
     //val codeshare: Boolean = false Commented out due to not being in use for now
 )
@@ -56,7 +56,7 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
             append("&TimeFrom=${params.timeFrom}")
             append("&TimeTo=${params.timeTo}")
         }
-        if(!params.direction.isNullOrBlank()) {
+        if(params.direction == "A" || params.direction == "D") {
             append("&direction=${params.direction}")
         }
     }
@@ -101,7 +101,7 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
      *  @param airportCodeParam a three letter string of the airportcode
      *  @return returns a true if the airportcode is found in the api-call, returns a false if it isn't
      */
-    private fun airportCodeValidator(airportCode: String): Boolean{
+    private fun airportCodeValidator(airportCode: String): Boolean {
 
         if(airportCode.length != 3) return false
 

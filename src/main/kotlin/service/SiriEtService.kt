@@ -1,10 +1,16 @@
-import config.App
+package service
 import routes.api.AvinorXmlFeedParams
 
+import handler.AvinorScheduleXmlHandler
+import java.time.Clock
 import java.time.Instant
 import org.entur.siri.validator.SiriValidator
 import org.springframework.stereotype.Service
+import routes.api.AvinorApiHandler
+import siri.SiriETMapper
+import siri.SiriETPublisher
 import siri.validator.ValidationResult
+import siri.validator.XsdValidator
 
 private const val DEPATURE_CODE = "D"
 
@@ -12,10 +18,16 @@ private const val DEPATURE_CODE = "D"
  * SiriEtService is a service responsible for calling AvinorApi and
  * unmarshall it before converting it to siri-et
  * This siri data is validated before being sent to endpoint
- * @param components application components and dependencies
  */
 @Service
-class SiriEtService(private val components: App) {
+class SiriEtService(
+    private val avinorApi: AvinorApiHandler,
+    private val avxh: AvinorScheduleXmlHandler,
+    private val siriMapper: SiriETMapper,
+    private val siriPublisher: SiriETPublisher,
+    private val xsdValidator: XsdValidator,
+    private val clock: Clock
+) {
 
     /**
      * fetchAndConvert fetches XML data from the avinorScheduleApi,
@@ -25,19 +37,19 @@ class SiriEtService(private val components: App) {
      */
     // Should be switched with iterating through all aiports
     fun fetchAndConvert(airportCode: String): String {
-        val url = components.avinorApi.avinorXmlFeedUrlBuilder(
+        val url = avinorApi.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParams(
                 airportCode = airportCode,
                 direction = DEPATURE_CODE,
                 lastUpdate = Instant.now(components.clock)
             )
         )
-        val xmlData = components.avinorApi.apiCall(url)
+        val xmlData = avinorApi.apiCall(url)
 
-        val airport = components.avxh.unmarshallXmlToAirport(xmlData ?: "")
-        val siri = components.siriMapper.mapToSiri(airport, airportCode)
+        val airport = avxh.unmarshallXmlToAirport(xmlData ?: "")
+        val siri = siriMapper.mapToSiri(airport, airportCode)
 
-        return components.siriPublisher.toXml(siri)
+        return siriPublisher.toXml(siri)
     }
 
     /**
@@ -46,8 +58,6 @@ class SiriEtService(private val components: App) {
      * @return validation result
      */
     fun validateXmlXsd(siriXml: String): ValidationResult {
-        return components.xsdValidator.validateSirixml(siriXml, SiriValidator.Version.VERSION_2_1)
+        return xsdValidator.validateSirixml(siriXml, SiriValidator.Version.VERSION_2_1)
     }
-
-
 }

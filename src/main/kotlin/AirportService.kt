@@ -1,21 +1,21 @@
 package org.example
 
-import config.App
-import routes.api.AvinorXmlFeedParams
 import model.avinorApi.Airport
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 import java.io.File
 import org.springframework.stereotype.Service
-
-const val BATCH_SIZE = 5
-const val REQUEST_DELAY_MS = 50
+import routes.api.AvinorApiHandler
+import handler.AvinorScheduleXmlHandler
 
 /**
  * Service class to handle fetching and processing airport data from the Avinor API.
  */
-
-class AirportService(private val components: App) {
+@Service
+class AirportService(
+    private val avinorApi: AvinorApiHandler,
+    private val avxh: AvinorScheduleXmlHandler
+) {
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.
@@ -51,14 +51,11 @@ class AirportService(private val components: App) {
             async(Dispatchers.IO) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                val url = components.avinorApi.avinorXmlFeedUrlBuilder(
-                    AvinorXmlFeedParams(
-                        airportCode = code,
-                        timeFrom = 2,
-                        timeTo = 7
-                    )
+                code to avinorApi.avinorXmlFeedApiCall(
+                    airportCodeParam = code,
+                    timeFromParam = 2,
+                    timeToParam = 7
                 )
-                code to components.avinorApi.apiCall(url)
             }
         }
 
@@ -67,7 +64,7 @@ class AirportService(private val components: App) {
         results.forEach { (code, xmlData) ->
             if (xmlData != null && "Error" !in xmlData) {
                 try {
-                    val airportObject = components.avxh.unmarshallXmlToAirport(xmlData)
+                    val airportObject = avxh.unmarshallXmlToAirport(xmlData)
                     printFlightDetails(airportObject)
                 } catch (e: Exception) {
                     println("Could not parse data for $code: ${e.message}")

@@ -1,6 +1,5 @@
 package org.example
 
-import config.App
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
 import handler.AvinorScheduleXmlHandler
@@ -9,6 +8,7 @@ import org.junit.jupiter.api.Assertions.*
 import java.io.File
 import routes.api.AvinorApiHandler
 import java.util.Collections
+import java.time.Clock
 
 /**
  * Test class for AirportService.
@@ -18,7 +18,7 @@ class AirportServiceTest {
      /**
       * A fake implementation of AvinorApiHandler for testing purposes.
       */
-     class SpyAvinorApi : AvinorApiHandler() {
+     class SpyAvinorApi : AvinorApiHandler(Clock.systemUTC()) {
         val capturedRequests = Collections.synchronizedList(mutableListOf<String>())
 
         // We can simulate an error by changing this variable in the test
@@ -67,8 +67,7 @@ class AirportServiceTest {
         val spyApi = SpyAvinorApi()
         val spyParser = SpyXmlHandler()
 
-        val app = App(avinorApi = spyApi, avxh = spyParser)
-        val service = AirportService(app)
+        val service = AirportService(spyApi, spyParser)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
@@ -92,8 +91,7 @@ class AirportServiceTest {
 
         val spyParser = SpyXmlHandler()
 
-        val app = App(avinorApi = spyApi, avxh = spyParser)
-        val service = AirportService(app)
+        val service = AirportService(spyApi, spyParser)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 

@@ -30,8 +30,8 @@ data class AvinorXmlFeedParams(
     val timeFrom: Int = AvinorApiConfig.TIME_FROM_DEFAULT,
     val timeTo: Int = AvinorApiConfig.TIME_TO_DEFAULT,
     val direction: String? = null,
-    val lastUpdate: Instant? = null,
-    val codeshare: Boolean = false
+    //val lastUpdate: Instant? = null, Commented out due to not being in use for now
+    //val codeshare: Boolean = false Commented out due to not being in use for now
 )
 
 /**

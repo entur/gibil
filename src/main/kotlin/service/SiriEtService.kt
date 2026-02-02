@@ -3,7 +3,6 @@ import routes.api.AvinorXmlFeedParams
 
 import handler.AvinorScheduleXmlHandler
 import java.time.Clock
-import java.time.Instant
 import org.entur.siri.validator.SiriValidator
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
@@ -41,7 +40,6 @@ class SiriEtService(
             AvinorXmlFeedParams(
                 airportCode = airportCode,
                 direction = DEPATURE_CODE,
-                lastUpdate = Instant.now(clock)
             )
         )
         val xmlData = avinorApi.apiCall(url)

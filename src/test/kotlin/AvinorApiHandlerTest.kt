@@ -21,8 +21,6 @@ class AvinorApiHandlerTest {
                 timeFrom = 1,
                 timeTo = 7,
                 direction = "D",
-                lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
-                codeshare = true
             )
         )
         requireNotNull(result) { "url builder returned null" }
@@ -40,8 +38,6 @@ class AvinorApiHandlerTest {
                     timeFrom = 1,
                     timeTo = 7,
                     direction = "D",
-                    lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
-                    codeshare = true
                 )
             )
         }
@@ -56,8 +52,6 @@ class AvinorApiHandlerTest {
                     timeFrom = -100,
                     timeTo = 7,
                     direction = "D",
-                    lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
-                    codeshare = true
                 )
             )
         }
@@ -72,8 +66,6 @@ class AvinorApiHandlerTest {
                     timeFrom = 1,
                     timeTo = 700000000,
                     direction = "D",
-                    lastUpdate = Instant.parse("2024-08-08T09:30:00Z"),
-                    codeshare = true
                 )
             )
         }

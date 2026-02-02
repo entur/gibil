@@ -7,7 +7,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
 import uk.org.siri.siri21.Siri
 import siri.SiriETPublisher
 

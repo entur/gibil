@@ -19,7 +19,7 @@
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <start-class>org.gibil.MainKt</start-class>
         <sonar.organization>enturas-github</sonar.organization>
-        <ktor.version>2.3.13</ktor.version>
+        <ktor.version>3.3.3</ktor.version>
     </properties>
 
     <repositories>

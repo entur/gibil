@@ -56,7 +56,7 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
             append("&TimeFrom=${params.timeFrom}")
             append("&TimeTo=${params.timeTo}")
         }
-        if(params.direction != null) {
+        if(!params.direction.isNullOrBlank()) {
             append("&direction=${params.direction}")
         }
     }

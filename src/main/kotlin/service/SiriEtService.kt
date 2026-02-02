@@ -12,7 +12,7 @@ import siri.SiriETPublisher
 import siri.validator.ValidationResult
 import siri.validator.XsdValidator
 
-private const val DEPATURE_CODE = "D"
+private const val DEPATURE_CODE = "" //Empty to show both Departures("D") and Arrivals("A")
 
 /**
  * SiriEtService is a service responsible for calling AvinorApi and

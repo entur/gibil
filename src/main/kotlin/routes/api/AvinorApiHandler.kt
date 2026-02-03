@@ -48,8 +48,8 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
      open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
         append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
 
-        if(!airportCodeValidator(params.airportCode)) {
-            throw IllegalArgumentException("Invalid airport code: ${params.airportCode}")
+        require(airportCodeValidator(params.airportCode)) {
+            "Invalid airport code: ${params.airportCode}"
         }
         append("?airport=${params.airportCode.uppercase()}")
         if(timeParamValidation(params)) {
@@ -62,11 +62,11 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
     }
 
     private fun timeParamValidation(params: AvinorXmlFeedParams): Boolean {
-        if(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM) {
-            throw IllegalArgumentException("TimeTo parameter is outside of valid range, can only be between 7 and 336 hours")
+        require(!(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM)) {
+            "TimeTo parameter is outside of valid range, can only be between 7 and 336 hours"
         }
-        if(params.timeFrom !in AvinorApiConfig.TIME_FROM_MIN_NUM..AvinorApiConfig.TIME_FROM_MAX_NUM) {
-            throw IllegalArgumentException("TimeFrom parameter is outside of valid range, can only be between 1 and 36 hours")
+        require(!(params.timeFrom !in AvinorApiConfig.TIME_FROM_MIN_NUM..AvinorApiConfig.TIME_FROM_MAX_NUM)) {
+            "TimeTo parameter is outside of valid range, can only be between 1 and 36 hours"
         }
         return true
     }

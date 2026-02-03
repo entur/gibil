@@ -4,14 +4,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.stereotype.Component
 import java.io.IOException
-
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
 
 object AvinorApiConfig {
-
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36
     const val TIME_FROM_DEFAULT = 2
@@ -22,7 +20,6 @@ object AvinorApiConfig {
 
     const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
-
 }
 
 data class AvinorXmlFeedParams(
@@ -36,7 +33,6 @@ data class AvinorXmlFeedParams(
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
- *
  */
 @Component
 open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
@@ -45,7 +41,12 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     }
 
-     open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
+    /**
+     * Builds a url string used for the AvinorXmlFeed Api
+     * @param AvinorXmlFeedParams, makes use of [airportCode], [timeFrom], [timeTo], [direction]
+     * @return finished AvinorXmlFeed url String
+     */
+    open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
         append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
 
         if(!airportCodeValidator(params.airportCode)) {
@@ -61,6 +62,11 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
         }
     }
 
+    /**
+     * Validates if the timeTo and timeFrom are within valid parameters, throws IllegalArgumentException if not
+     * @param AvinorXmlFeedParams makes use of timeTo and timeFrom
+     * @return boolean, returns true if no exception is thrown
+     */
     private fun timeParamValidation(params: AvinorXmlFeedParams): Boolean {
         if(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM) {
             throw IllegalArgumentException("TimeTo parameter is outside of valid range, can only be between 7 and 336 hours")

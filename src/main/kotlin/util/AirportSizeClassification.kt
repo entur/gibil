@@ -1,9 +1,9 @@
 package util
+import org.gibil.LARGE_AIRPORTS
+import org.gibil.MEDIUM_AIRPORTS
+
 
 object AirportSizeClassification {
-    //Might serve better to declare these somewhere else?
-    private val LARGE_AIRPORTS = setOf("OSL")
-    private val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 
     /**
      * Returns size priority for specified airport.

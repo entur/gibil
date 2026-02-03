@@ -1,0 +1,53 @@
+{
+  "logLevel" : "INFO",
+
+  "printReport" : true,
+
+  "doc6" :  "Include the following lines, these are merged with the serviceJourneys and flex-lines",
+  "lines" : [
+    "NNN:Line:500"
+  ],
+
+  "doc7" :  "Include the following service journeys, these are merged with the lines and flex-lines",
+  "serviceJourneys" : [
+    "NNN:ServiceJourney:310_12"
+  ],
+
+  "doc8" :  "Include the following flexible lines, these are merged with the lines and service journeys",
+  "flexLines" : [
+    "NNN:FlexLine:1"
+  ],
+
+  "doc9" : "These elements are skipped, nested elements are skipped as well. The list included here is are all not parsed by OTP or optional (Notice).",
+  "skipElements" : [
+    "AccessibilityAssessment",
+    "AlternativeName",
+    "keyList",
+    "FromPointRef",
+    "GroupOfStopPlaces",
+    "NoticeAssignment",
+    "NoticeRef",
+    "NoticedObjectRef",
+    "Parking",
+    "ParkingProperties",
+    "placeEquipments",
+    "ServiceLink",
+    "TopographicPlace",
+    "TopographicPlaceRef",
+    "TariffZone",
+    "TariffZoneRef",
+    "ToPointRef"
+  ],
+
+  "doc10" :  "The alias is used in the report only to shorten the lines",
+  "alias" : [
+    "CompositeFrame CF",
+    "ResourceFrame RF",
+    "ServiceCalendarFrame SCF",
+    "ServiceFrame SF",
+    "Network NW",
+    "TimetableFrame TTF",
+    "SiteFrame SF",
+    "StopPointInJourneyPattern SPInJP"
+  ]
+}

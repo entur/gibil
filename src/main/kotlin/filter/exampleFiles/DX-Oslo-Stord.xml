@@ -1,0 +1,1388 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:ns2="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+    <PublicationTimestamp>2026-01-15T13:14:04.455</PublicationTimestamp>
+    <ParticipantRef>Avinor</ParticipantRef>
+    <Description>Line: Oslo-Stord</Description>
+    <dataObjects>
+        <CompositeFrame created="2026-01-15T13:14:04.455" version="1" id="AVI:CompositeFrame:DX-OSL-SRP">
+            <validityConditions>
+                <AvailabilityCondition version="1" id="AVI:AvailabilityCondition:3691119">
+                    <FromDate>2026-01-15T00:00:00</FromDate>
+                    <ToDate>2026-01-15T00:00:00</ToDate>
+                </AvailabilityCondition>
+            </validityConditions>
+            <codespaces>
+                <Codespace id="avi">
+                    <Xmlns>AVI</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/avi</XmlnsUrl>
+                </Codespace>
+                <Codespace id="nsr">
+                    <Xmlns>NSR</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+                </Codespace>
+            </codespaces>
+            <FrameDefaults>
+                <DefaultLocale>
+                    <TimeZone>Europe/Oslo</TimeZone>
+                    <DefaultLanguage>no</DefaultLanguage>
+                </DefaultLocale>
+            </FrameDefaults>
+            <frames>
+                <ServiceFrame version="1" id="AVI:ServiceFrame:8505303">
+                    <routes>
+                        <Route version="1" id="AVI:Route:514290753">
+                            <Name>Stord-Oslo</Name>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <pointsInSequence>
+<PointOnRoute order="1" version="1" id="AVI:PointOnRoute:51429075301">
+    <RoutePointRef ref="AVI:RoutePoint:SRP"/>
+</PointOnRoute>
+<PointOnRoute order="2" version="1" id="AVI:PointOnRoute:51429075302">
+    <RoutePointRef ref="AVI:RoutePoint:OSL"/>
+</PointOnRoute>
+                            </pointsInSequence>
+                        </Route>
+                        <Route version="1" id="AVI:Route:1284182209">
+                            <Name>Oslo-Stord</Name>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <pointsInSequence>
+<PointOnRoute order="1" version="1" id="AVI:PointOnRoute:128418220901">
+    <RoutePointRef ref="AVI:RoutePoint:OSL"/>
+</PointOnRoute>
+<PointOnRoute order="2" version="1" id="AVI:PointOnRoute:128418220902">
+    <RoutePointRef ref="AVI:RoutePoint:SRP"/>
+</PointOnRoute>
+                            </pointsInSequence>
+                        </Route>
+                    </routes>
+                    <lines>
+                        <Line version="1" id="AVI:Line:DX_OSL-SRP">
+                            <Name>Oslo-Stord</Name>
+                            <TransportMode>air</TransportMode>
+                            <TransportSubmode>
+<AirSubmode>domesticFlight</AirSubmode>
+                            </TransportSubmode>
+                            <OperatorRef ref="AVI:Operator:DX"/>
+                            <routes>
+<RouteRef ref="AVI:Route:1284182209" version="1"/>
+<RouteRef ref="AVI:Route:514290753" version="1"/>
+                            </routes>
+                            <RepresentedByGroupRef ref="AVI:Network:DX"/>
+                        </Line>
+                    </lines>
+                    <destinationDisplays>
+                        <DestinationDisplay version="1" id="AVI:DestinationDisplay:1284182209">
+                            <Name>Stord</Name>
+                            <FrontText>Stord</FrontText>
+                        </DestinationDisplay>
+                        <DestinationDisplay version="1" id="AVI:DestinationDisplay:514290753">
+                            <Name>Oslo</Name>
+                            <FrontText>Oslo</FrontText>
+                        </DestinationDisplay>
+                        <DestinationDisplay version="1" id="AVI:DestinationDisplay:DXOSLSRP-OSL">
+                            <FrontText>Oslo</FrontText>
+                        </DestinationDisplay>
+                        <DestinationDisplay version="1" id="AVI:DestinationDisplay:DXOSLSRP-SRP">
+                            <FrontText>Stord</FrontText>
+                        </DestinationDisplay>
+                    </destinationDisplays>
+                    <journeyPatterns>
+                        <JourneyPattern version="1" id="AVI:JourneyPattern:1284182209">
+                            <RouteRef ref="AVI:Route:1284182209" version="1"/>
+                            <pointsInSequence>
+<StopPointInJourneyPattern order="1" version="1" id="AVI:StopPointInJourneyPattern:128418220901">
+    <ScheduledStopPointRef ref="AVI:ScheduledStopPoint:OSL"/>
+    <ForAlighting>false</ForAlighting>
+    <DestinationDisplayRef ref="AVI:DestinationDisplay:1284182209" version="1"/>
+</StopPointInJourneyPattern>
+<StopPointInJourneyPattern order="2" version="1" id="AVI:StopPointInJourneyPattern:128418220902">
+    <ScheduledStopPointRef ref="AVI:ScheduledStopPoint:SRP"/>
+    <ForBoarding>false</ForBoarding>
+</StopPointInJourneyPattern>
+                            </pointsInSequence>
+                        </JourneyPattern>
+                        <JourneyPattern version="1" id="AVI:JourneyPattern:514290753">
+                            <RouteRef ref="AVI:Route:514290753" version="1"/>
+                            <pointsInSequence>
+<StopPointInJourneyPattern order="1" version="1" id="AVI:StopPointInJourneyPattern:51429075301">
+    <ScheduledStopPointRef ref="AVI:ScheduledStopPoint:SRP"/>
+    <ForAlighting>false</ForAlighting>
+    <DestinationDisplayRef ref="AVI:DestinationDisplay:514290753" version="1"/>
+</StopPointInJourneyPattern>
+<StopPointInJourneyPattern order="2" version="1" id="AVI:StopPointInJourneyPattern:51429075302">
+    <ScheduledStopPointRef ref="AVI:ScheduledStopPoint:OSL"/>
+    <ForBoarding>false</ForBoarding>
+</StopPointInJourneyPattern>
+                            </pointsInSequence>
+                        </JourneyPattern>
+                    </journeyPatterns>
+                </ServiceFrame>
+                <TimetableFrame version="1" id="AVI:TimetableFrame:4453896">
+                    <vehicleJourneys>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX547-01-514290753">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_01" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_09" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:514290753" version="1"/>
+                            <PublicCode>DX547</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:230e0d0f-3380-4ee7-af71-e7974a6082cd">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075301" version="1"/>
+    <DepartureTime>17:20:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:4a14ac4f-6805-4cae-aa06-5378c1f97722">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075302" version="1"/>
+    <ArrivalTime>18:20:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX545-01-514290753">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_01" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:514290753" version="1"/>
+                            <PublicCode>DX545</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:fa4dd816-d2c4-4d86-a574-3a19cf6d05eb">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075301" version="1"/>
+    <DepartureTime>16:40:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:e139e484-5734-4fcf-80b2-332c025cfe90">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075302" version="1"/>
+    <ArrivalTime>17:40:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX543-01-514290753">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:514290753" version="1"/>
+                            <PublicCode>DX543</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:b9beca67-a71d-4eb9-b9a0-026f14793778">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075301" version="1"/>
+    <DepartureTime>13:30:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:1e997720-c813-4c9a-a5af-64124f0019ee">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075302" version="1"/>
+    <ArrivalTime>14:30:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX543-02-514290753">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_01" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_09" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:514290753" version="1"/>
+                            <PublicCode>DX543</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:b4e0f0f1-4da5-4641-b23b-c570138cb715">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075301" version="1"/>
+    <DepartureTime>13:00:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:f76dfee9-9502-44ff-be63-35b083f850d2">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075302" version="1"/>
+    <ArrivalTime>14:00:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX541-01-514290753">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:514290753" version="1"/>
+                            <PublicCode>DX541</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:506ab1d1-4970-4c03-aad1-19595e866b05">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075301" version="1"/>
+    <DepartureTime>07:00:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:6a137852-ee14-4e0d-be50-651ee791af3d">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075302" version="1"/>
+    <ArrivalTime>08:00:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX541-02-514290753">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_31" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:514290753" version="1"/>
+                            <PublicCode>DX541</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:97027642-07bf-4187-84de-04248f508447">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075301" version="1"/>
+    <DepartureTime>09:00:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:f19c36ca-a7c6-4692-acdd-2f7d51791581">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:51429075302" version="1"/>
+    <ArrivalTime>10:00:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX546-01-1284182209">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_01" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:1284182209" version="1"/>
+                            <PublicCode>DX546</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:6ca710dd-0295-49a6-909c-fc69ab904275">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220901" version="1"/>
+    <DepartureTime>18:10:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:b721f918-f117-4be7-82a5-82e25187691e">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220902" version="1"/>
+    <ArrivalTime>19:15:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX546-02-1284182209">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_01" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_09" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:1284182209" version="1"/>
+                            <PublicCode>DX546</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:defdd803-2fd7-46f8-9ed6-d8394bbd0dcd">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220901" version="1"/>
+    <DepartureTime>18:50:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:3220b8c4-3714-4b10-b6aa-b1963995f907">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220902" version="1"/>
+    <ArrivalTime>19:55:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX544-01-1284182209">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_01" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_09" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:1284182209" version="1"/>
+                            <PublicCode>DX544</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:62b31082-61e0-4d3c-badd-352de4efb30d">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220901" version="1"/>
+    <DepartureTime>14:30:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:8d54e9c3-7982-4fdb-a3a0-e47cb3875e2f">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220902" version="1"/>
+    <ArrivalTime>15:35:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX544-02-1284182209">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:1284182209" version="1"/>
+                            <PublicCode>DX544</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:2ef2b191-96ab-431f-a257-3d062cf68e61">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220901" version="1"/>
+    <DepartureTime>15:00:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:1e731b59-d90a-449a-95d5-c33b1f80b665">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220902" version="1"/>
+    <ArrivalTime>16:05:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX542-01-1284182209">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_31" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:1284182209" version="1"/>
+                            <PublicCode>DX542</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:6e865e95-3a58-46e2-a245-939b505f2983">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220901" version="1"/>
+    <DepartureTime>10:30:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:be9fda3c-fff1-432e-a53d-00e893661151">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220902" version="1"/>
+    <ArrivalTime>11:35:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="1" id="AVI:ServiceJourney:DX542-02-1284182209">
+                            <Name/>
+                            <dayTypes>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_17" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_18" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_24" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_25" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_03" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_04" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_10" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_11" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+<DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="AVI:JourneyPattern:1284182209" version="1"/>
+                            <PublicCode>DX542</PublicCode>
+                            <LineRef ref="AVI:Line:DX_OSL-SRP" version="1"/>
+                            <passingTimes>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:ce1603c7-5b2e-49f6-b82c-8cb705210922">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220901" version="1"/>
+    <DepartureTime>08:30:00</DepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:3b31054b-ba54-46e3-a465-6ef608c5f70b">
+    <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:128418220902" version="1"/>
+    <ArrivalTime>09:35:00</ArrivalTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                    </vehicleJourneys>
+                </TimetableFrame>
+                <ServiceCalendarFrame version="1" id="AVI:ServiceCalendarFrame:8587815">
+                    <dayTypes>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Fri_29"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Wed_01"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Mon_24"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Tue_17"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Fri_22"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Wed_08"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Wed_04"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Fri_14"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Thu_05"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Mon_02"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Thu_16"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Tue_24"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Sun_17"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Sun_16"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Tue_14"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Wed_26"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Mon_09"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Mon_10"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Wed_19"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Fri_07"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Thu_02"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Mon_17"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Wed_11"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Fri_15"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Wed_15"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Sun_24"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Sun_23"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Tue_21"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Wed_18"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Mon_06"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Thu_12"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Fri_03"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Tue_28"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Wed_12"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Mon_16"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Thu_19"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Thu_09"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Tue_31"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Thu_13"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Sun_01"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Fri_10"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Thu_28"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Fri_14"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Sun_09"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Tue_25"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Mon_18"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Sun_08"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Thu_26"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Tue_18"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Wed_20"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Mon_23"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Thu_20"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Thu_21"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Wed_27"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Fri_06"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Fri_17"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Thu_27"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Fri_07"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Tue_03"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Mon_25"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Tue_11"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Sun_15"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Sun_02"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Mon_30"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Tue_04"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Sun_09"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Tue_10"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Fri_24"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Wed_05"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Sun_26"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Sun_22"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Fri_31"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Mon_03"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Tue_12"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Sun_29"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Thu_13"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Fri_20"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Tue_19"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Tue_11"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Fri_27"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Thu_06"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Thu_14"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Sun_12"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Tue_26"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Sun_19"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Dec_Fri_13"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Sun_02"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Nov_Wed_13"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Tue_04"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Thu_30"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Sun_05"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Wed_22"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Mon_03"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Wed_29"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Mon_20"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Mon_13"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Wed_05"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Fri_28"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Thu_06"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Thu_23"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Wed_12"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Feb_Fri_21"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Mar_Mon_10"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Mon_27"/>
+                        <DayType version="1" id="AVI:DayType:1383632765-Jan_Tue_07"/>
+                    </dayTypes>
+                    <dayTypeAssignments>
+                        <DayTypeAssignment order="1" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Tue_24">
+                            <Date>2024-12-24</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_24" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="1" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Sun_17">
+                            <Date>2024-11-17</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_17" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="1" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Tue_12">
+                            <Date>2024-11-12</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_12" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="2" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Tue_31">
+                            <Date>2024-12-31</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_31" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="2" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Sun_24">
+                            <Date>2024-11-24</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Sun_24" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="2" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Wed_13">
+                            <Date>2024-11-13</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_13" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="3" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Thu_14">
+                            <Date>2024-11-14</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_14" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="3" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Sun_01">
+                            <Date>2024-12-01</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_01" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="4" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Fri_15">
+                            <Date>2024-11-15</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_15" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="4" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Sun_08">
+                            <Date>2024-12-08</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_08" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="5" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Mon_18">
+                            <Date>2024-11-18</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_18" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="5" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Sun_15">
+                            <Date>2024-12-15</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_15" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="6" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Sun_22">
+                            <Date>2024-12-22</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_22" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="6" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Tue_19">
+                            <Date>2024-11-19</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_19" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="7" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Sun_29">
+                            <Date>2024-12-29</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Sun_29" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="7" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Wed_20">
+                            <Date>2024-11-20</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_20" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="8" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Sun_05">
+                            <Date>2025-01-05</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_05" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="8" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Thu_21">
+                            <Date>2024-11-21</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_21" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="9" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Sun_12">
+                            <Date>2025-01-12</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_12" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="9" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Fri_22">
+                            <Date>2024-11-22</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_22" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="10" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Sun_19">
+                            <Date>2025-01-19</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_19" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="10" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Mon_25">
+                            <Date>2024-11-25</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Mon_25" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="11" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Tue_26">
+                            <Date>2024-11-26</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Tue_26" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="11" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Sun_26">
+                            <Date>2025-01-26</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Sun_26" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="12" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Sun_02">
+                            <Date>2025-02-02</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_02" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="12" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Wed_27">
+                            <Date>2024-11-27</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Wed_27" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="13" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Sun_09">
+                            <Date>2025-02-09</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_09" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="13" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Thu_28">
+                            <Date>2024-11-28</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Thu_28" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="14" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Sun_16">
+                            <Date>2025-02-16</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_16" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="14" version="1" id="AVI:DayTypeAssignment:1383632765-Nov_Fri_29">
+                            <Date>2024-11-29</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Nov_Fri_29" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="15" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Sun_23">
+                            <Date>2025-02-23</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Sun_23" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="15" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Mon_02">
+                            <Date>2024-12-02</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_02" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="16" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Sun_02">
+                            <Date>2025-03-02</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_02" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="16" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Tue_03">
+                            <Date>2024-12-03</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_03" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="17" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Wed_04">
+                            <Date>2024-12-04</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_04" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="17" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Sun_09">
+                            <Date>2025-03-09</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Sun_09" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="18" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Thu_05">
+                            <Date>2024-12-05</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_05" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="19" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Fri_06">
+                            <Date>2024-12-06</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_06" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="20" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Mon_09">
+                            <Date>2024-12-09</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_09" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="21" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Tue_10">
+                            <Date>2024-12-10</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_10" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="22" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Wed_11">
+                            <Date>2024-12-11</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_11" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="23" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Thu_12">
+                            <Date>2024-12-12</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_12" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="24" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Fri_13">
+                            <Date>2024-12-13</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_13" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="25" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Mon_16">
+                            <Date>2024-12-16</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_16" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="26" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Tue_17">
+                            <Date>2024-12-17</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Tue_17" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="27" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Wed_18">
+                            <Date>2024-12-18</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Wed_18" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="28" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Thu_19">
+                            <Date>2024-12-19</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_19" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="29" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Fri_20">
+                            <Date>2024-12-20</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_20" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="30" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Mon_23">
+                            <Date>2024-12-23</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_23" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="31" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Thu_26">
+                            <Date>2024-12-26</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Thu_26" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="31" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Fri_27">
+                            <Date>2024-12-27</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Fri_27" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="32" version="1" id="AVI:DayTypeAssignment:1383632765-Dec_Mon_30">
+                            <Date>2024-12-30</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Dec_Mon_30" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="33" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Thu_02">
+                            <Date>2025-01-02</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_02" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="34" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Wed_01">
+                            <Date>2025-01-01</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_01" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="34" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Fri_03">
+                            <Date>2025-01-03</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_03" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="35" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Mon_06">
+                            <Date>2025-01-06</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_06" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="36" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Tue_07">
+                            <Date>2025-01-07</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_07" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="37" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Wed_08">
+                            <Date>2025-01-08</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_08" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="38" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Thu_09">
+                            <Date>2025-01-09</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_09" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="39" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Fri_10">
+                            <Date>2025-01-10</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_10" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="40" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Mon_13">
+                            <Date>2025-01-13</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_13" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="41" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Tue_14">
+                            <Date>2025-01-14</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_14" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="42" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Wed_15">
+                            <Date>2025-01-15</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_15" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="43" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Thu_16">
+                            <Date>2025-01-16</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_16" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="44" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Fri_17">
+                            <Date>2025-01-17</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_17" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="45" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Mon_20">
+                            <Date>2025-01-20</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_20" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="46" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Tue_21">
+                            <Date>2025-01-21</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_21" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="47" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Wed_22">
+                            <Date>2025-01-22</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_22" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="48" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Thu_23">
+                            <Date>2025-01-23</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_23" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="49" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Fri_24">
+                            <Date>2025-01-24</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_24" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="50" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Mon_27">
+                            <Date>2025-01-27</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Mon_27" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="51" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Tue_28">
+                            <Date>2025-01-28</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Tue_28" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="52" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Wed_29">
+                            <Date>2025-01-29</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Wed_29" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="53" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Thu_30">
+                            <Date>2025-01-30</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Thu_30" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="54" version="1" id="AVI:DayTypeAssignment:1383632765-Jan_Fri_31">
+                            <Date>2025-01-31</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Jan_Fri_31" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="55" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Mon_03">
+                            <Date>2025-02-03</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_03" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="56" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Tue_04">
+                            <Date>2025-02-04</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_04" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="57" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Wed_05">
+                            <Date>2025-02-05</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_05" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="58" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Thu_06">
+                            <Date>2025-02-06</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_06" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="59" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Fri_07">
+                            <Date>2025-02-07</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_07" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="60" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Mon_10">
+                            <Date>2025-02-10</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_10" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="61" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Tue_11">
+                            <Date>2025-02-11</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_11" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="62" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Wed_12">
+                            <Date>2025-02-12</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_12" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="63" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Thu_13">
+                            <Date>2025-02-13</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_13" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="64" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Fri_14">
+                            <Date>2025-02-14</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_14" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="65" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Mon_17">
+                            <Date>2025-02-17</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_17" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="66" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Tue_18">
+                            <Date>2025-02-18</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_18" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="67" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Wed_19">
+                            <Date>2025-02-19</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_19" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="68" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Thu_20">
+                            <Date>2025-02-20</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_20" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="69" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Fri_21">
+                            <Date>2025-02-21</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_21" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="70" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Mon_24">
+                            <Date>2025-02-24</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Mon_24" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="71" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Tue_25">
+                            <Date>2025-02-25</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Tue_25" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="72" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Wed_26">
+                            <Date>2025-02-26</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Wed_26" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="73" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Thu_27">
+                            <Date>2025-02-27</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Thu_27" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="74" version="1" id="AVI:DayTypeAssignment:1383632765-Feb_Fri_28">
+                            <Date>2025-02-28</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Feb_Fri_28" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="75" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Mon_03">
+                            <Date>2025-03-03</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_03" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="76" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Tue_04">
+                            <Date>2025-03-04</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_04" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="77" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Wed_05">
+                            <Date>2025-03-05</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_05" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="78" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Thu_06">
+                            <Date>2025-03-06</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_06" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="79" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Fri_07">
+                            <Date>2025-03-07</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_07" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="80" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Mon_10">
+                            <Date>2025-03-10</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Mon_10" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="81" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Tue_11">
+                            <Date>2025-03-11</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Tue_11" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="82" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Wed_12">
+                            <Date>2025-03-12</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Wed_12" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="83" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Thu_13">
+                            <Date>2025-03-13</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Thu_13" version="1"/>
+                        </DayTypeAssignment>
+                        <DayTypeAssignment order="84" version="1" id="AVI:DayTypeAssignment:1383632765-Mar_Fri_14">
+                            <Date>2025-03-14</Date>
+                            <DayTypeRef ref="AVI:DayType:1383632765-Mar_Fri_14" version="1"/>
+                        </DayTypeAssignment>
+                    </dayTypeAssignments>
+                </ServiceCalendarFrame>
+            </frames>
+        </CompositeFrame>
+    </dataObjects>
+</PublicationDelivery>

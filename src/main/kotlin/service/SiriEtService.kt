@@ -39,7 +39,7 @@ class SiriEtService(
         val url = avinorApi.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParams(
                 airportCode = airportCode,
-                direction = DEPATURE_CODE,
+                direction = DEPATURE_CODE
             )
         )
         val xmlData = avinorApi.apiCall(url)

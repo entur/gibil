@@ -26,7 +26,6 @@ class AvinorApiHandlerTest {
         requireNotNull(result) { "url builder returned null" }
         assertTrue(result.contains("airport=OSL"))
         assertTrue(result.contains("direction"))
-        println(result)
     }
 
     @Test
@@ -91,10 +90,6 @@ class AvinorApiHandlerTest {
 
         val result = api.userCorrectDate(datetimeUserDifferentZone.toString())
 
-        println("Result: $result")
-        println("Expected: $displayTime")
-        println("Wrong timezone example: $displayTimeWrong")
-
         assertEquals(displayTime, result)
     }
 
@@ -102,7 +97,7 @@ class AvinorApiHandlerTest {
     fun `userCorrectDate with invalid date format returns error`() {
         val datetime = "not a valid date format"
         val result = api.userCorrectDate(datetime)
-        println(result)
+
         assertTrue(result.contains("Error: Date format in"))
     }
 }

@@ -109,6 +109,8 @@ class SiriETMapper {
         estimatedVehicleJourney.operatorRef = operatorRef
 
         addEstimatedCalls(estimatedVehicleJourney, flight, requestingAirportCode, scheduleTime)
+
+        estimatedVehicleJourney.isIsCompleteStopSequence = true
         return estimatedVehicleJourney
     }
 

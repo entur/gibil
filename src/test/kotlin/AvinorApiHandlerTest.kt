@@ -79,6 +79,7 @@ class AvinorApiHandlerTest {
 
         var datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("America/Los_Angeles"))
 
+        //if the users timezone is conicidentally america/LA, set something different
         if (datetimeUserDifferentZone == datetimeUserCorrect) {
             datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("Europe/Paris"))
         }

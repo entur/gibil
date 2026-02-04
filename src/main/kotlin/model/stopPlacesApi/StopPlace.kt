@@ -6,9 +6,9 @@ import jakarta.xml.bind.annotation.XmlElement
 
 @XmlAccessorType(XmlAccessType.FIELD)
 class StopPlace {
-    @field:XmlElement(name = "StopPlaceType")
+    @field:XmlElement(name = "StopPlaceType", namespace = "http://www.netex.org.uk/netex")
     val stopPlaceType: String = ""
 
-    @field:XmlElement(name = "quays")
+    @field:XmlElement(name = "quays", namespace = "http://www.netex.org.uk/netex")
     val quays: Quays? = null
 }

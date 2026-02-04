@@ -6,6 +6,6 @@ import jakarta.xml.bind.annotation.XmlElement
 
 @XmlAccessorType(XmlAccessType.FIELD)
 class Quays {
-    @field:XmlElement(name = "Quay")
-    val quays: List<Quay> = emptyList()
+    @field:XmlElement(name = "Quay", namespace = "http://www.netex.org.uk/netex")
+    val quay: MutableList<Quay> = mutableListOf()
 }

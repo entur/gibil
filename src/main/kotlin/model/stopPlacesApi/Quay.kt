@@ -10,6 +10,6 @@ class Quay {
     @field:XmlAttribute
     val id: String = ""
 
-    @field:XmlElement(name = "keyList")
+    @field:XmlElement(name = "keyList", namespace = "http://www.netex.org.uk/netex")
     val keyList: KeyList? = null
 }

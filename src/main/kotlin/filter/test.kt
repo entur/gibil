@@ -18,11 +18,13 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
 
         println(">>> LineSelector.selectEntities() CALLED <<<")  // DEBUG
         println(">>> Looking for: $lineIds <<<")  // DEBUG
+        println(model)
 
         lineIds.forEach { lineId ->
             val entity = model.getEntity(lineId)
             if (entity != null) {
                 println(">>> FOUND LINE: ${entity.id} <<<")  // DEBUG
+                println(entity)
                 addEntityAndRelated(entity, model, selectionMap, visited)
             } else {
                 println(">>> LINE NOT FOUND: $lineId <<<")  // DEBUG
@@ -63,16 +65,24 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
 }
 
 fun main() {
-    val lineIds = setOf("AVI:Line:SK_OSL-BGO")
+    val lineIds = setOf("AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE")
 
     println("Filtering for lines: $lineIds\n")
 
     val filterConfig = FilterConfig(
         entitySelectors = listOf(LineSelector(lineIds)),
-        preserveComments = false,
+        preserveComments = true,
         pruneReferences = true,
+        referencesToExcludeFromPruning = setOf(
+            "DayType",
+            "DayTypeAssignment",
+            "DayTypeRef",
+            "TimetabledPassingTime",
+            "TimetableFrame",
+            "passingTimes"
+        ),
         unreferencedEntitiesToPrune = setOf(
-            "DayType", "DayTypeAssignment", "TimetabledPassingTime",
+            "DayTypeAssignment",
             "JourneyPattern", "Route", "PointOnRoute",
             "StopPointInJourneyPattern", "DestinationDisplay"
         )

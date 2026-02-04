@@ -5,7 +5,7 @@
 
   "doc6" :  "Include the following lines, these are merged with the serviceJourneys and flex-lines",
   "lines" : [
-    "NNN:Line:500"
+    "AVI:Line:SK_OSL-BGO"
   ],
 
   "doc7" :  "Include the following service journeys, these are merged with the lines and flex-lines",

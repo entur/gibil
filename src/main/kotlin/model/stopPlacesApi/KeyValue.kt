@@ -6,9 +6,9 @@ import jakarta.xml.bind.annotation.XmlElement
 
 @XmlAccessorType(XmlAccessType.FIELD)
 class KeyValue {
-    @field:XmlElement(name = "Key")
+    @field:XmlElement(name = "Key", namespace = "http://www.netex.org.uk/netex")
     val key: String = ""
 
-    @field:XmlElement(name = "Value")
+    @field:XmlElement(name = "Value", namespace = "http://www.netex.org.uk/netex")
     val value: String = ""
 }

@@ -1,5 +1,11 @@
 package org.gibil
 
+import okhttp3.OkHttpClient
+import org.gibil.model.stopPlacesApi.StopPlaces
+import org.gibil.service.ApiService
+import util.SharedJaxbContext
+import java.io.StringReader
+
 
 object AirportQuayConfig {
     const val BASE_URL_STOP_PLACES = "https://api.entur.io/stop-places/v1/read/stop-places"
@@ -12,4 +18,37 @@ fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 10, transportModes: String = "A
     }
     append("&transportModes=$transportModes")
     append("&stopPlaceTypes=$stopPlaceTypes")
+}
+
+fun unmarhsallStopPlaceXml(xmlData: String): StopPlaces {
+    try {
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
+        return unmarshaller.unmarshal(StringReader(xmlData)) as StopPlaces
+
+    } catch (e: Exception) {
+        throw RuntimeException("Error parsing StopPlaces", e)
+    }
+}
+
+fun main() {
+    val url = stopPlaceApiUrlBuilder()
+    val client = OkHttpClient()
+    val apiService = ApiService(client)
+
+    val response = apiService.apiCall(url, "application/xml")
+
+    if(response != null) {
+        val stopPlaces = unmarhsallStopPlaceXml(response)
+        println("Found ${stopPlaces.stopPlace.size} stop places:")
+        stopPlaces.stopPlace.forEach { sp ->
+            println("  Type: ${sp.stopPlaceType}")
+            sp.quays?.quay?.forEach { quay ->
+                println("    Quay ID: ${quay.id}")
+                quay.keyList?.keyValues?.forEach { kv ->
+                    println("      ${kv.key}: ${kv.value}")
+                }
+            }
+        }
+    }
+    
 }

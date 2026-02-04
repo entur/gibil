@@ -22,7 +22,7 @@ class Endpoint(
      */
     @GetMapping("/avinor", produces = [MediaType.APPLICATION_XML_VALUE])
     fun rawAvinorEndpoint(
-        @RequestParam(defaultValue = "OSL") airport: String,
+        @RequestParam(defaultValue = "OSL") airport: String
     ): String {
         val url = avinorApiHandler.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParams(airportCode = airport)

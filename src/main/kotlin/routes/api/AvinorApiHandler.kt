@@ -1,9 +1,7 @@
 package routes.api
 
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
-import java.io.IOException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -35,7 +33,7 @@ data class AvinorXmlFeedParams(
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  */
 @Component
-open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
+open class AvinorApiHandler(private val apiService: ApiService) {
 
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -78,27 +76,6 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
     }
 
     /**
-     * A basic api call that returns the raw XML it gets from the call.
-     * Works only on open(public) level api's
-     * @param url the complete url which the api-call is based on
-     */
-     open fun apiCall(url: String): String? {
-        val request = Request.Builder()
-            .url(url)
-            .build()
-
-        val response = client.newCall(request).execute()
-
-        response.use {
-            return if (response.isSuccessful) {
-                response.body?.string()  // Returns raw XML
-            } else {
-                throw IOException("Error: ${response.code}")
-            }
-        }
-    }
-
-    /**
      * Uses airportNames api from avinor to check if the airportcode is in their db, and thus valid for their main api-call
      *  expected response from this api being used, when OSL is the param:
      *  <airportNames>
@@ -115,7 +92,7 @@ open class AvinorApiHandler(private val client: OkHttpClient = OkHttpClient()) {
         val url = "${AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES}?airport=${upperCode}"
 
         //calls the api
-        val response = apiCall(url)
+        val response = apiService.apiCall(url)
 
         //a snippet of what's expected in the api-response
         val expectedInResponse = "code=\"${upperCode}\""

@@ -4,6 +4,7 @@ import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
 import jakarta.xml.bind.Unmarshaller
 import model.avinorApi.Airport
+import org.gibil.model.stopPlacesApi.StopPlaces
 import uk.org.siri.siri21.Siri
 
 /**
@@ -14,7 +15,8 @@ object SharedJaxbContext {
 
    val context: JAXBContext = JAXBContext.newInstance(
        Airport::class.java,
-       Siri::class.java
+       Siri::class.java,
+       StopPlaces::class.java
    )
 
     /**

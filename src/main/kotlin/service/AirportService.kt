@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
+import org.gibil.service.ApiService
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import routes.api.AvinorXmlFeedParams
@@ -23,7 +24,8 @@ import kotlin.system.measureTimeMillis
 @Service
 class AirportService(
     private val avinorApi: AvinorApiHandler,
-    private val avxh: AvinorScheduleXmlHandler
+    private val avxh: AvinorScheduleXmlHandler,
+    private val apiService: ApiService
 ) {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
@@ -61,7 +63,7 @@ class AirportService(
             async(ioDispatcher) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                code to avinorApi.apiCall(
+                code to apiService.apiCall(
                     avinorApi.avinorXmlFeedUrlBuilder(
                         AvinorXmlFeedParams(airportCode = code, timeFrom = 2, timeTo = 7)
                     )

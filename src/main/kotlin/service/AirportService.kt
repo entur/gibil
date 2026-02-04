@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
@@ -26,6 +27,7 @@ class AirportService(
     private val avxh: AvinorScheduleXmlHandler,
     private val apiService: ApiService
 ) {
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.
@@ -58,7 +60,7 @@ class AirportService(
      */
     private suspend fun processBatch(batch: List<String>) = coroutineScope {
         val deferredResults = batch.map { code ->
-            async(Dispatchers.IO) {
+            async(ioDispatcher) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
                 code to apiService.apiCall(

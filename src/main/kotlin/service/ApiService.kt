@@ -12,11 +12,14 @@ open class ApiService(private val client: OkHttpClient) {
      * A basic api call that returns the raw XML it gets from the call.
      * Works only on open(public) level api's
      * @param url the complete url which the api-call is based on
+     * @param acceptHeader Can input header if needed to change requested dataformat
      */
-    open fun apiCall(url: String): String? {
-        val request = Request.Builder()
-            .url(url)
-            .build()
+    open fun apiCall(url: String, acceptHeader: String? = null): String? {
+        val requestBuilder = Request.Builder().url(url)
+        if(acceptHeader != null) {
+            requestBuilder.addHeader("Accept", acceptHeader)
+        }
+        val request = requestBuilder.build()
 
         val response = client.newCall(request).execute()
 

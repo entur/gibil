@@ -1,4 +1,4 @@
-package org.gibil.filter
+package filter
 
 import org.entur.netex.tools.cli.app.FilterNetexApp
 import org.entur.netex.tools.lib.config.CliConfig
@@ -97,7 +97,7 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
     }
 }
 
-fun main() {
+/*fun main() {
     val lineIds = setOf("AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE")
 
     println("Filtering for lines: $lineIds\n")
@@ -130,4 +130,4 @@ fun main() {
     ).run()
 
     println("\n=== FILTERING FERDIG ===")
-}
+}*/

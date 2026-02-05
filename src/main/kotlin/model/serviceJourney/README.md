@@ -9,24 +9,6 @@ Parse NeTEx (Network Timetable Exchange) XML files to extract ServiceJourney dat
 - **DayTypeRef.kt** - Day type references
 - **PassingTimesWrapper.kt** - Wrapper class for passing times (included in ServiceJourney.kt)
 - **ServiceJourneyParser.kt** - Streaming XML parser that efficiently extracts only ServiceJourney elements
-- **Example files** - Various usage examples
-
-## Gradle Dependencies
-
-Add to your `build.gradle.kts`:
-
-```kotlin
-dependencies {
-    // Jakarta XML Binding API
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
-    
-    // JAXB Runtime Implementation
-    runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.2")
-    
-    // Kotlin stdlib
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
-}
-```
 
 ## Quick Start
 
@@ -56,7 +38,7 @@ val file = File("data.xml")
 val journeys = parser.parseFile(file)
 ```
 
-### Parse Folder (Non-Recursive)
+### Parse Folder (Non-Recursive), which is whats used by the system
 ```kotlin
 // Parses all .xml files in the folder
 val journeys = parser.parseFolder("data/xml")

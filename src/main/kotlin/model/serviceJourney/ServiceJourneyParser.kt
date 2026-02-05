@@ -85,7 +85,7 @@ class ServiceJourneyParser {
     }
 }
 
-fun main() {
+/*fun main() {
     val parser = ServiceJourneyParser()
     println("=== Parsing folder ===")
     val journeysFromFolder = parser.parseFolder("C:\\Users\\niril\\Documents\\.Uia\\is-314\\gibil\\Gibil\\src\\main\\kotlin\\filter\\output")
@@ -101,4 +101,4 @@ fun main() {
         println("Day Types: ${journey.dayTypes.size}")
         println()
     }
-}
+}*/

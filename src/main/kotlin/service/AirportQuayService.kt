@@ -21,7 +21,11 @@ class AirportQuayService(private val handler: StopPlaceApiHandler, private val m
         iataToQuayMap = mapper.makeIataToQuayMap(stopPlaces)
     }
 
-    fun getQuayIds(iataCode: String): List<String> {
+    fun getQuayId(iataCode: String): String? {
+        return iataToQuayMap[iataCode]?.firstOrNull()
+    }
+
+    fun getAllQuayIds(iataCode: String): List<String> {
         return iataToQuayMap[iataCode] ?: emptyList()
     }
 }

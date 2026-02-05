@@ -41,6 +41,17 @@ fun isolateIataCode(quay: Quay): String? {
         ?.removePrefix("AVI:Quay:")
 }
 
+fun makeAirportQuayMapFromStopPlaces(stopPlaces: StopPlaces): Map<String, List<String>> {
+    return stopPlaces.stopPlace
+        .flatMap { sp -> sp.quays?.quay ?: emptyList() }
+        .mapNotNull { quay ->
+            isolateIataCode(quay)?.let { iataCode ->
+                iataCode to quay.id
+            }
+        }
+        .groupBy({it.first}, {it.second})
+}
+
 fun main() {
     val url = stopPlaceApiUrlBuilder()
     println(url)
@@ -49,22 +60,14 @@ fun main() {
 
     val response = apiService.apiCall(url, "application/xml")
 
-    if(response != null) {
+    if (response != null) {
         val stopPlaces = unmarhsallStopPlaceXml(response)
-        println("Found ${stopPlaces.stopPlace.size} stop places:")
-        stopPlaces.stopPlace.forEach { sp ->
-            println("  Type: ${sp.stopPlaceType}")
-            sp.quays?.quay?.forEach { quay ->
-                println("    Quay ID: ${quay.id}")
-                val isolatedIataCode = isolateIataCode(quay)
-                println("   IATA isolated ${isolatedIataCode}")
-                quay.keyList?.keyValues?.forEach { kv ->
-                    println("      ${kv.key}: ${kv.value}")
-                }
-            }
 
+        val iataToQuayMap = makeAirportQuayMapFromStopPlaces(stopPlaces)
+
+        println("Found ${iataToQuayMap.size} IATA to Quay mappings:")
+        iataToQuayMap.forEach { (iata, quayId) ->
+            println("  $iata -> $quayId")
         }
     }
-
-    
 }

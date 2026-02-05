@@ -39,3 +39,7 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### filter files ###
+/**/src/main/kotlin/filter/exampleFiles
+/**/src/main/kotlin/filter/output

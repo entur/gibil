@@ -31,6 +31,39 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
             }
         }
 
+        // This ensures the content of journeys is kept.
+        val childTypes = setOf(
+            "TimetabledPassingTime",
+            "PointOnRoute",
+            "StopPointInJourneyPattern",
+            "RoutePoint",
+            "DestinationDisplay"
+        )
+        childTypes.forEach { type ->
+            model.getEntitiesOfType(type).forEach { entity ->
+                selectionMap.computeIfAbsent(entity.type) { mutableMapOf() }[entity.id] = entity
+            }
+        }
+
+        // If we don't select these, the "Parent Rule" kills the ServiceFrame because
+        val frameTypes = setOf(
+            "CompositeFrame",
+            "ServiceFrame",
+            "TimetableFrame",
+            "ResourceFrame",
+            "GeneralFrame",
+            "SiteFrame",
+            "ServiceCalendarFrame"
+        )
+        println(">>> Auto-selecting Frames to preserve hierarchy <<<")
+        frameTypes.forEach { type ->
+            val frames = model.getEntitiesOfType(type)
+            frames.forEach { entity ->
+                selectionMap.computeIfAbsent(entity.type) { mutableMapOf() }[entity.id] = entity
+            }
+            if (frames.isNotEmpty()) println("   + Kept ${frames.size} $type")
+        }
+
         println(">>> Total selected: ${selectionMap.values.sumOf { it.size }} <<<")  // DEBUG
         println("All available IDs: " + model.listAllEntities().take(10).map { it.id })
         return EntitySelection(selectionMap, model)
@@ -78,13 +111,12 @@ fun main() {
             "DayTypeAssignment",
             "DayTypeRef",
             "TimetabledPassingTime",
-            "TimetableFrame",
-            "passingTimes"
+            "passingTimes",
+            "StopPointInJourneyPatternRef"
         ),
         unreferencedEntitiesToPrune = setOf(
             "DayTypeAssignment",
-            "JourneyPattern", "Route", "PointOnRoute",
-            "StopPointInJourneyPattern", "DestinationDisplay"
+            "JourneyPattern", "Route", "PointOnRoute", "DestinationDisplay"
         )
     )
 

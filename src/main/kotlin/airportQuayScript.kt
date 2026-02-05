@@ -1,6 +1,9 @@
 package org.gibil
 
 import okhttp3.OkHttpClient
+import org.gibil.model.stopPlacesApi.Quay
+import org.gibil.model.stopPlacesApi.Quays
+import org.gibil.model.stopPlacesApi.StopPlace
 import org.gibil.model.stopPlacesApi.StopPlaces
 import org.gibil.service.ApiService
 import util.SharedJaxbContext
@@ -30,8 +33,17 @@ fun unmarhsallStopPlaceXml(xmlData: String): StopPlaces {
     }
 }
 
+fun isolateIataCode(quay: Quay): String? {
+    return quay.keyList?.keyValues
+        ?.find { it.key == "imported-id" }
+        ?.value
+        ?.takeIf { it.startsWith("AVI:Quay:") }
+        ?.removePrefix("AVI:Quay:")
+}
+
 fun main() {
     val url = stopPlaceApiUrlBuilder()
+    println(url)
     val client = OkHttpClient()
     val apiService = ApiService(client)
 
@@ -44,11 +56,15 @@ fun main() {
             println("  Type: ${sp.stopPlaceType}")
             sp.quays?.quay?.forEach { quay ->
                 println("    Quay ID: ${quay.id}")
+                val isolatedIataCode = isolateIataCode(quay)
+                println("   IATA isolated ${isolatedIataCode}")
                 quay.keyList?.keyValues?.forEach { kv ->
                     println("      ${kv.key}: ${kv.value}")
                 }
             }
+
         }
     }
+
     
 }

@@ -12,6 +12,10 @@ import java.io.File
 import filter.LineSelector
 import model.serviceJourney.ServiceJourney
 import model.serviceJourney.ServiceJourneyParser
+import java.time.Instant
+import java.time.ZonedDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class FilterExtimeAndFindServiceJourney {
 
@@ -74,13 +78,35 @@ class FilterExtimeAndFindServiceJourney {
         filterExtimeAndWriteResults(setOf("AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE"))
         val serviceJourneys = findServiceJourney()
         serviceJourneys.forEach { journey ->
-            println(journey.departureTime)
-            println(journey.dayTypes)
+            println(journey)
         }
+    }
+
+    fun formatDateTimeZoneToTime(dateTimeWithZone: String): List<String> {
+        val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
+        val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+        val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss")
+        val formatMonth = DateTimeFormatter.ofPattern("MM")
+        val formatDate = DateTimeFormatter.ofPattern("dd")
+        val formatDayName = DateTimeFormatter.ofPattern("E")
+
+        val month = dateTimeWithZone.format(formatMonth)
+        val monthCode = months[month.toInt() - 1]
+
+        val dayName = dateTimeWithZone.format(formatDayName)
+
+        val day = dateTimeWithZone.format(formatDate)
+
+        val dayTypeRef = "${monthCode}_${dayName}_${day}"
+
+        return listOf(dateTimeWithZone.format(formatFull), dayTypeRef)
     }
 }
 
 fun main(){
     val test = FilterExtimeAndFindServiceJourney()
     test.matchServiceJourney()
+    val exFlight = listOf("2026-02-07T13:40:00Z", "SK267", "BGO")
+    println(test.formatDateTimeZoneToTime(exFlight[0]))
 }

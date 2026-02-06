@@ -265,8 +265,13 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         }
     }
 
+    /**
+     * Finds first, and for now only quay belonging to wanted airport, if no quay found returns IATA code
+     * @param airportCode String, IATA code of airport used as a map key
+     * @return String, First quay belonging to specified airport.
+     */
     private fun findStopPointRef(airportCode: String): String {
-        return airportQuayService.getQuayId(airportCode) ?: "$STOP_POINT_REF_PREFIX$airportCode"
+        return airportQuayService.getQuayId(airportCode) ?: "$airportCode"
     }
 
     /**

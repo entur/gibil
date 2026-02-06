@@ -13,7 +13,7 @@ class StopPlaceApiHandler(private val apiService: ApiService) {
     /**
      * Builds url used for StopPlaces [API] from Entur, defaults to 100 airports,
      * [AIR] transportModes, [AIRPORT] stop place type. Other functions must be expanded to use other modes
-     * @param stopPlaceCount, [transportModes], [stopPlaceTypes]
+     * @param stopPlaceCount Int, [transportModes] String, [stopPlaceTypes] String
      * @return String, built url
      */
     fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100, transportModes: String = "AIR", stopPlaceTypes: String = "AIRPORT"): String = buildString {

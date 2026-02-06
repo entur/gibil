@@ -23,9 +23,10 @@ import kotlin.system.measureTimeMillis
 @Service
 class AirportService(
     private val avinorApi: AvinorApiHandler,
-    private val avxh: AvinorScheduleXmlHandler
-) {
+    private val avxh: AvinorScheduleXmlHandler,
+
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.

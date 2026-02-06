@@ -63,7 +63,7 @@ object SiriHelper {
     }
 
     fun resolveSubscriptionId(subscriptionRequest: SubscriptionRequest): String? {
-        if (!subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty()) {
+        if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isNotEmpty()) {
             val estimatedTimetableSubscriptionStructure =
                 subscriptionRequest.getEstimatedTimetableSubscriptionRequests()[0]
 
@@ -73,7 +73,7 @@ object SiriHelper {
     }
 
     fun resolveSiriDataType(subscriptionRequest: SubscriptionRequest): SiriDataType? {
-        if (!subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty()) {
+        if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isNotEmpty()) {
             return SiriDataType.ESTIMATED_TIMETABLE
         }
         return null

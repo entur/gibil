@@ -101,6 +101,11 @@
             <version>0.0.37</version>
         </dependency>
         <dependency>
+        <groupId>org.entur.ror</groupId>
+        <artifactId>netex-tools-cli</artifactId>
+        <version>0.0.37</version>
+        </dependency>
+        <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk-jvm</artifactId>
             <version>1.14.6</version>

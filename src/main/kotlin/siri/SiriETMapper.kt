@@ -271,7 +271,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
      * @return String, First quay belonging to specified airport.
      */
     private fun findStopPointRef(airportCode: String): String {
-        return airportQuayService.getQuayId(airportCode) ?: "$airportCode"
+        return airportQuayService.getQuayId(airportCode) ?: "$STOP_POINT_REF_PREFIX${airportCode}"
     }
 
     /**

@@ -5,11 +5,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import routes.api.AvinorXmlFeedParams
@@ -22,8 +24,14 @@ import kotlin.system.measureTimeMillis
 @Service
 class AirportService(
     private val avinorApi: AvinorApiHandler,
-    private val avxh: AvinorScheduleXmlHandler
+    private val avxh: AvinorScheduleXmlHandler,
+    private val ioDispatcher: CoroutineDispatcher
 ) {
+    @Autowired
+    constructor(
+        avinorApi: AvinorApiHandler,
+        avxh: AvinorScheduleXmlHandler
+    ) : this(avinorApi, avxh, Dispatchers.IO)
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.
@@ -56,7 +64,7 @@ class AirportService(
      */
     private suspend fun processBatch(batch: List<String>) = coroutineScope {
         val deferredResults = batch.map { code ->
-            async(Dispatchers.IO) {
+            async(ioDispatcher) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
                 code to avinorApi.apiCall(

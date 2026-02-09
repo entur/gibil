@@ -96,38 +96,3 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
         }
     }
 }
-
-/*fun main() {
-    val lineIds = setOf("AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE")
-
-    println("Filtering for lines: $lineIds\n")
-
-    val filterConfig = FilterConfig(
-        entitySelectors = listOf(LineSelector(lineIds)),
-        preserveComments = true,
-        pruneReferences = true,
-        referencesToExcludeFromPruning = setOf(
-            "DayType",
-            "DayTypeAssignment",
-            "DayTypeRef",
-            "TimetabledPassingTime",
-            "passingTimes",
-            "StopPointInJourneyPatternRef"
-        ),
-        unreferencedEntitiesToPrune = setOf(
-            "DayTypeAssignment",
-            "JourneyPattern", "Route", "PointOnRoute", "DestinationDisplay"
-        )
-    )
-
-    //println(">>> FilterConfig has ${filterConfig.entitySelectors.size} selectors <<<")  // DEBUG
-
-    FilterNetexApp(
-        cliConfig = CliConfig(alias = mapOf()),
-        filterConfig = filterConfig,
-        input = File("src/main/kotlin/filter/exampleFiles"),
-        target = File("src/main/kotlin/filter/output")
-    ).run()
-
-    println("\n=== FILTERING FERDIG ===")
-}*/

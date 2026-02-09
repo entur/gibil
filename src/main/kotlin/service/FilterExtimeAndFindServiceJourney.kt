@@ -17,7 +17,12 @@ import java.time.ZonedDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class FilterExtimeAndFindServiceJourney {
+class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
+    val pathBase = if (unitTest){
+        "src/test/resources/extime"
+    } else {
+        "src/main/kotlin/filter"
+    }
 
     /**
      * Initializes the filter that filters through extime files to only include the lines we need, and writes the results to a specified output folder.
@@ -44,12 +49,11 @@ class FilterExtimeAndFindServiceJourney {
                 "JourneyPattern", "Route", "PointOnRoute", "DestinationDisplay"
             )
         )
-
         FilterNetexApp(
             cliConfig = CliConfig(alias = mapOf()),
             filterConfig = filterConfig,
-            input = File("src/main/kotlin/filter/exampleFiles"),
-            target = File("src/main/kotlin/filter/output")
+            input = File("$pathBase/input"),
+            target = File("$pathBase/output")
         ).run()
 
         println("\n=== FILTERING FERDIG ===")
@@ -58,35 +62,33 @@ class FilterExtimeAndFindServiceJourney {
     /**
      * Uses ServiceJourneyParser to find service journeys by parsing XML files in a specified folder and extracting relevant information.
      * @return A list of ServiceJourney objects
+     * Servicejourney data class contains:
+     * - serviceJourneyId: String. The golden reference we want to return when a match is found
+     * - dayTypes: List<String>. A list of day type references associated with the service journey
+     * - publicCode: String. The flight code associated with the service journey, e.g., "SK267"
+     * - departureTime: String. The scheduled departure time of the service journey, what we use to match against with flight code and date
+     * - arrivalTime: String. The scheduled arrival time of the service journey
      */
     fun findServiceJourney(): List<ServiceJourney> {
         val parser = ServiceJourneyParser()
         println("=== Parsing folder ===")
-        val journeysFromFolder = parser.parseFolder("C:\\Users\\niril\\Documents\\.Uia\\is-314\\gibil\\Gibil\\src\\main\\kotlin\\filter\\output")
+        val journeysFromFolder = parser.parseFolder("$pathBase/output")
         println("Total: ${journeysFromFolder.size} service journeys\n")
 
-        /*
-        // Process the results
-        println("=== Sample results ===")
-        journeysFromFolder.forEach { journey ->
-            println("Service Journey ID: ${journey.serviceJourneyId}")
-            println("Public Code: ${journey.publicCode}")
-            println("Departure Time: ${journey.departureTime}")
-            println("Arrival Time: ${journey.arrivalTime}")
-            println("Day Types: ${journey.dayTypes.size}")
-            println()
-        }
-        */
         return journeysFromFolder
     }
 
     /**
      * Matches a service journey based on date information and flight code.
-     * @param dateInfo A list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
+     * @param dateInfoRaw A string representing the date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(dateInfo: List<String>, flightCode: String): String {
+    fun matchServiceJourney(dateInfoRaw: String, flightCode: String): String {
+        //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
+        val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
+
+        //finding all service journeys and searching through them for a match
         val serviceJourneys = findServiceJourney()
         serviceJourneys.forEach { journey ->
             val dayTypeMatch = journey.dayTypes.any { dayType ->
@@ -97,13 +99,7 @@ class FilterExtimeAndFindServiceJourney {
             val flightCodeMatch = journey.publicCode == flightCode
 
             if (dateInfoMatch && flightCodeMatch){
-                /*println("=== Found match ===")
-                println("Service Journey ID: ${journey.serviceJourneyId}")
-                println("Public Code: ${journey.publicCode}")
-                println("Departure Time: ${journey.departureTime}")
-                println("Arrival Time: ${journey.arrivalTime}")
-                println("Day Types: ${journey.dayTypes.size}")*/
-                return "=== Found match === Service Journey ID: ${journey.serviceJourneyId} Public Code: ${journey.publicCode} Departure Time: ${journey.departureTime} Arrival Time: ${journey.arrivalTime} Day Types: ${journey.dayTypes.size}"
+                return journey.serviceJourneyId
             } else{
                 println("${journey.departureTime} == ${dateInfo[0]} (${journey.departureTime == dateInfo[0]}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == ${flightCode} (${journey.publicCode == flightCode})")
             }
@@ -146,11 +142,9 @@ fun main(){
     //example usage
     val exFlight = listOf("2026-02-07T13:40:00Z", "SK267")
     val exFlight2 = listOf("2026-02-04T09:20:00Z", "DX522")
-    val dateInfo = test.formatDateTimeZoneToTime(exFlight[0])
-    val dateInfo2 = test.formatDateTimeZoneToTime(exFlight2[0])
-    val foundMatch = test.matchServiceJourney(dateInfo, exFlight[1])
-    val foundMatch2 = test.matchServiceJourney(dateInfo2, exFlight2[1])
+    val foundMatch = test.matchServiceJourney(exFlight[0], exFlight[1])
+    val foundMatch2 = test.matchServiceJourney(exFlight[0], exFlight2[1])
 
-    println(foundMatch)
-    println(foundMatch2)
+    println("Found match: ${foundMatch}")
+    println("Found match: ${foundMatch2}")
 }

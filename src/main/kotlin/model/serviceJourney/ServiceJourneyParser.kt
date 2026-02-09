@@ -84,21 +84,3 @@ class ServiceJourneyParser {
         return allJourneys
     }
 }
-
-/*fun main() {
-    val parser = ServiceJourneyParser()
-    println("=== Parsing folder ===")
-    val journeysFromFolder = parser.parseFolder("C:\\Users\\niril\\Documents\\.Uia\\is-314\\gibil\\Gibil\\src\\main\\kotlin\\filter\\output")
-    println("Total: ${journeysFromFolder.size} service journeys\n")
-
-    // Process the results
-    println("=== Sample results ===")
-    journeysFromFolder.forEach { journey ->
-        println("Service Journey ID: ${journey.serviceJourneyId}")
-        println("Public Code: ${journey.publicCode}")
-        println("Departure Time: ${journey.departureTime}")
-        println("Arrival Time: ${journey.arrivalTime}")
-        println("Day Types: ${journey.dayTypes.size}")
-        println()
-    }
-}*/

@@ -16,6 +16,7 @@ import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
     val pathBase = if (unitTest){
@@ -113,14 +114,16 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
      * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
      */
     fun formatDateTimeZoneToTime(dateTimeWithZone: String): List<String> {
+        //todo: make locale sit in constant file stuff
+        val locale = Locale.ENGLISH
         //parse parameter into a ZonedDateTime object
         val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
 
         // different formats needed
-        val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss")
-        val formatMonth = DateTimeFormatter.ofPattern("MMM")
-        val formatDate = DateTimeFormatter.ofPattern("dd")
-        val formatDayShortName = DateTimeFormatter.ofPattern("E")
+        val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", locale)
+        val formatMonth = DateTimeFormatter.ofPattern("MMM", locale)
+        val formatDate = DateTimeFormatter.ofPattern("dd", locale)
+        val formatDayShortName = DateTimeFormatter.ofPattern("E", locale)
 
         // Implement formats onto object and create partial daytype-value
         val month = dateTimeWithZone.format(formatMonth)

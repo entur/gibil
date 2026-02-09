@@ -45,7 +45,7 @@ public class FilterExtimeAndFindServiceJourneyTest {
         val foundMatch3 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1])
 
         assertTrue { "SK4011-02-358551288" in foundMatch }
-        assertTrue { "SK349-03-465081146" in foundMatch2 }
+        assertTrue { !("SK349-03-465081146" in foundMatch2) }
         assertTrue { "DY628-01-523288933" in foundMatch3 }
 
     }

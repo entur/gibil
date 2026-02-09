@@ -3,6 +3,8 @@ package org.gibil
 import kotlinx.coroutines.runBlocking
 import model.avinorApi.Airport
 import handler.AvinorScheduleXmlHandler
+import okhttp3.OkHttpClient
+import org.gibil.service.ApiService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
@@ -16,33 +18,33 @@ import java.util.Collections
  */
 class AirportServiceTest {
 
-     /**
-      * A fake implementation of AvinorApiHandler for testing purposes.
-      */
-     class SpyAvinorApi : AvinorApiHandler() {
-        val capturedRequests = Collections.synchronizedList(mutableListOf<String>())
-
-        // We can simulate an error by changing this variable in the test
+    /**
+     * A fake implementation of ApiService that returns controlled responses
+     * instead of making real HTTP calls.
+     */
+    class SpyApiService : ApiService(OkHttpClient()) {
         var simulateError = false
 
-        override fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String {
-            capturedRequests.add(params.airportCode)
-
+        override fun apiCall(url: String, acceptHeader: String?): String? {
             if (simulateError) {
                 return "Error: 500 Server Error"
             }
-
-            // Returns valid XML that the parser should try to read
-            return "<valid_xml_for_${params.airportCode}>"
+            val code = url.substringAfterLast("/")
+            return "<valid_xml_for_$code>"
         }
+    }
 
-        override fun apiCall(url: String): String? {
-            if (simulateError || url.contains("Error")) {
-                return "Error: 500 Server Error"
-            }
-            // Extract airport code from the fake XML URL and return fake XML
-            val airportCode = url.substringAfter("<valid_xml_for_").substringBefore(">")
-            return "<valid_xml_for_$airportCode>"
+    /**
+     * A fake implementation of AvinorApiHandler for testing purposes.
+     * Overrides the URL builder to skip real airport code validation
+     * and return a predictable URL.
+     */
+    class SpyAvinorApi(apiService: ApiService) : AvinorApiHandler(apiService) {
+        val capturedRequests = Collections.synchronizedList(mutableListOf<String>())
+
+        override fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String {
+            capturedRequests.add(params.airportCode)
+            return "http://test/${params.airportCode}"
         }
     }
 
@@ -66,10 +68,11 @@ class AirportServiceTest {
         tempFile.writeText("OSL")
         tempFile.deleteOnExit()
 
-        val spyApi = SpyAvinorApi()
+        val spyApiService = SpyApiService()
+        val spyApi = SpyAvinorApi(spyApiService)
         val spyParser = SpyXmlHandler()
 
-        val service = AirportService(spyApi, spyParser)
+        val service = AirportService(spyApi, spyParser, spyApiService)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
@@ -88,12 +91,13 @@ class AirportServiceTest {
         tempFile.writeText("BGO")
         tempFile.deleteOnExit()
 
-        val spyApi = SpyAvinorApi()
-        spyApi.simulateError = true // We simulate that Avinor is down/returning errors
+        val spyApiService = SpyApiService()
+        spyApiService.simulateError = true // We simulate that Avinor is down/returning errors
 
+        val spyApi = SpyAvinorApi(spyApiService)
         val spyParser = SpyXmlHandler()
 
-        val service = AirportService(spyApi, spyParser)
+        val service = AirportService(spyApi, spyParser, spyApiService)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 

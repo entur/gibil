@@ -6,7 +6,7 @@ import org.gibil.routes.api.StopPlaceApiHandler
 import org.springframework.stereotype.Service
 
 @Service
-class AirportQuayService(private val handler: StopPlaceApiHandler, private val mapper: StopPlaceMapper) {
+open class AirportQuayService(private val handler: StopPlaceApiHandler, private val mapper: StopPlaceMapper) {
 
     private var iataToQuayMap: Map<String, List<String>> = emptyMap()
 
@@ -31,7 +31,7 @@ class AirportQuayService(private val handler: StopPlaceApiHandler, private val m
      * @param iataCode String, used as key for map to fetch quayID belonging to airport.
      * @return String?, quayID
      */
-    fun getQuayId(iataCode: String): String? {
+    open fun getQuayId(iataCode: String): String? {
         return iataToQuayMap[iataCode]?.firstOrNull()
     }
 

@@ -27,8 +27,21 @@ class AvinorApiHandlerTest() {
             if (simulateError) {
                 return "Error: 500 Server Error"
             }
-            val code = url.substringAfterLast("/")
-            return "<valid_xml_for_$code>"
+
+            // Extract airport code from query parameter
+            val airportCode = url.substringAfter("airport=", "").substringBefore("&")
+
+            // Return appropriate response based on which API is being called
+            return when {
+                url.contains("airportNames") -> {
+                    // Simulate airport names API response format
+                    """<airportNames><airportName code="$airportCode" name="Airport"/></airportNames>"""
+                }
+                else -> {
+                    // Default response for other APIs
+                    "<valid_xml_for_$airportCode>"
+                }
+            }
         }
     }
 
@@ -39,9 +52,10 @@ class AvinorApiHandlerTest() {
                 airportCode = "OSL",
                 timeFrom = 1,
                 timeTo = 7,
-                direction = "D",
+                direction = "D"
             )
         )
+
         requireNotNull(result) { "url builder returned null" }
         assertTrue(result.contains("airport=OSL"))
         assertTrue(result.contains("direction"))

@@ -1,5 +1,5 @@
 package service
-import routes.api.AvinorXmlFeedParams
+import model.AvinorXmlFeedParams
 
 import handler.AvinorScheduleXmlHandler
 import java.time.Clock

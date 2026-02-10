@@ -1,14 +1,10 @@
 package filter
 
-import org.entur.netex.tools.cli.app.FilterNetexApp
-import org.entur.netex.tools.lib.config.CliConfig
-import org.entur.netex.tools.lib.config.FilterConfig
 import org.entur.netex.tools.lib.selectors.entities.EntitySelector
 import org.entur.netex.tools.lib.selectors.entities.EntitySelectorContext
 import org.entur.netex.tools.lib.selections.EntitySelection
 import org.entur.netex.tools.lib.model.Entity
 import org.entur.netex.tools.lib.model.EntityModel
-import java.io.File
 
 class LineSelector(private val lineIds: Set<String>) : EntitySelector {
     override fun selectEntities(context: EntitySelectorContext): EntitySelection {

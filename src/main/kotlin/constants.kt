@@ -15,3 +15,16 @@ val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 
 object Constants {
 }
+
+object AvinorApiConfig {
+    const val TIME_FROM_MIN_NUM = 1
+    const val TIME_FROM_MAX_NUM = 36
+    const val TIME_FROM_DEFAULT = 2
+
+    const val TIME_TO_MIN_NUM = 7
+    const val TIME_TO_MAX_NUM = 336
+    const val TIME_TO_DEFAULT = 7
+
+    const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
+    const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
+}

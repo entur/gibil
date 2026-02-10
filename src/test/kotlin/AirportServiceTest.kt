@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
 import routes.api.AvinorApiHandler
-import routes.api.AvinorXmlFeedParams
+import model.AvinorXmlFeedParams
 import service.AirportService
 import java.util.Collections
 

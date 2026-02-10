@@ -29,7 +29,8 @@ object AvinorApiConfig {
 
     const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
-  
+}
+
 object LineSelector {
     val DEBUG_PRINTING_LINESELECTOR = false
 }

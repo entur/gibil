@@ -12,6 +12,9 @@ common:
     volumeMounts:
       - name: extime-data
         mountPath: /app/input
+    volumes:
+      - name: extime-data
+        emptyDir: {}
     probes:
       enabled: true
       spec:
@@ -39,10 +42,6 @@ common:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-
-  volumes:
-    - name: extime-data
-      emptyDir: {}
 
   initContainers:
     - name: extime-data-fetch

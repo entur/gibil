@@ -41,8 +41,9 @@ class FlightAggregationService(
 
     /**
      * Fetches flight data from all airports concurrently and merges flights by uniqueID.
-     * Filters out flights with missing departure or arrival data and old flights.
-     * @return Map of uniqueID to merged Flight with complete departure and arrival data
+     * Filters out flights that are outside the configured time window
+     * (more than [MAX_PAST_MINUTES] minutes in the past or more than [MAX_FUTURE_HOURS] hours in the future).
+     * @return Map of uniqueID to merged Flight entries within the configured time window
      */
     fun fetchAndMergeAllFlights(): Map<String, Flight> = runBlocking {
         val airportCodes = loadAirportCodes()

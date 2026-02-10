@@ -49,6 +49,44 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         return siri
     }
 
+    /**
+     * Maps a collection of merged flights (from all airports) to a SIRI document.
+     * Use this when you have pre-aggregated flight data with complete departure/arrival info.
+     * @param mergedFlights Collection of flights that have been merged across airports
+     * @return SIRI document with complete EstimatedCalls for all flights
+     */
+    fun mapMergedFlightsToSiri(mergedFlights: Collection<Flight>): Siri {
+        val siri = Siri()
+
+        val serviceDelivery = ServiceDelivery()
+        serviceDelivery.responseTimestamp = ZonedDateTime.now()
+
+        val producerRef = RequestorRef()
+        producerRef.value = PRODUCER_REF
+        serviceDelivery.producerRef = producerRef
+
+        val delivery = EstimatedTimetableDeliveryStructure()
+        delivery.version = "2.1"
+        delivery.responseTimestamp = ZonedDateTime.now()
+
+        val estimatedVersionFrame = EstimatedVersionFrameStructure()
+        estimatedVersionFrame.recordedAtTime = ZonedDateTime.now()
+
+        mergedFlights.forEach { flight ->
+            // For merged flights, use departureAirport as the "requesting" airport context
+            val contextAirport = flight.departureAirport ?: flight.arrivalAirport ?: return@forEach
+            val evj = mapFlightToEstimatedVehicleJourney(flight, contextAirport)
+            if (evj != null) {
+                estimatedVersionFrame.estimatedVehicleJourneies.add(evj)
+            }
+        }
+
+        delivery.estimatedJourneyVersionFrames.add(estimatedVersionFrame)
+        serviceDelivery.estimatedTimetableDeliveries.add(delivery)
+        siri.serviceDelivery = serviceDelivery
+        return siri
+    }
+
     private fun createEstimatedTimetableDelivery(
         airport: Airport,
         requestingAirportCode: String
@@ -81,7 +119,12 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         // Skip flights without a flightId
         if (flight.flightId == null) return null
         val airline = flight.airline ?: return null
-        val scheduleTime = parseTimestamp(flight.scheduleTime) ?: return null
+
+        // For merged flights, use scheduledDepartureTime or scheduledArrivalTime; otherwise use scheduleTime
+        val scheduleTime = parseTimestamp(flight.scheduledDepartureTime)
+            ?: parseTimestamp(flight.scheduledArrivalTime)
+            ?: parseTimestamp(flight.scheduleTime)
+            ?: return null
 
         val estimatedVehicleJourney = EstimatedVehicleJourney()
 
@@ -91,9 +134,13 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         lineRef.value = "$LINE_PREFIX$route"
         estimatedVehicleJourney.lineRef = lineRef
 
-        //Set directionRef
+        //Set directionRef - for merged flights, check if departure airport matches context
         val directionRef = DirectionRefStructure()
-        directionRef.value = if (flight.isDeparture()) "outbound" else "inbound"
+        directionRef.value = if (flight.isMerged) {
+            if (flight.departureAirport == requestingAirportCode) "outbound" else "inbound"
+        } else {
+            if (flight.isDeparture()) "outbound" else "inbound"
+        }
         estimatedVehicleJourney.directionRef = directionRef
 
         // Set FramedVehicleJourneyRef
@@ -129,9 +176,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         estimatedVehicleJourney: EstimatedVehicleJourney,
         flight: Flight,
         requestingAirportCode: String,
-        scheduleTime: ZonedDateTime
-    ) {
-        val statusTime = parseTimestamp(flight.status?.time)
+        scheduleTime: ZonedDateTime) {
 
         var estimatedCallsWrapper = estimatedVehicleJourney.getEstimatedCalls()
         if (estimatedCallsWrapper == null) {
@@ -141,10 +186,14 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         val calls = estimatedCallsWrapper.getEstimatedCalls()
 
-        if (flight.isDeparture()) {
-            val call = createDepartureCall(requestingAirportCode, scheduleTime,
-                flight.status?.code, statusTime)
-            calls.add(call)
+        // Use merged data if available, otherwise fall back to original fields
+        val depAirport = flight.departureAirport ?: if (flight.isDeparture()) requestingAirportCode else flight.airport
+        val arrAirport = flight.arrivalAirport ?: if (flight.isArrival()) requestingAirportCode else flight.airport
+
+        val depScheduleTime = parseTimestamp(flight.scheduledDepartureTime)
+            ?: if (flight.isDeparture()) scheduleTime else null
+        val arrScheduleTime = parseTimestamp(flight.scheduledArrivalTime)
+            ?: if (flight.isArrival()) scheduleTime else null
 
             val destAirport = flight.airport
             if (destAirport != null) {
@@ -156,6 +205,19 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                 destCall.order = BigInteger.valueOf(2)
                 calls.add(destCall)
             }
+        val depStatus = flight.departureStatus ?: if (flight.isDeparture()) flight.status else null
+        val arrStatus = flight.arrivalStatus ?: if (flight.isArrival()) flight.status else null
+
+        // Create departure call
+        if (depAirport != null) {
+            val depStatusTime = parseTimestamp(depStatus?.time)
+            val departureCall = createDepartureCall(
+                depAirport,
+                depScheduleTime,
+                depStatus?.code,
+                depStatusTime
+            )
+            calls.add(departureCall)
         }
         else {
             val originAirport = flight.airport
@@ -168,21 +230,28 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                 calls.add(originCall)
             }
 
-            val destCall = createArrivalCall(requestingAirportCode, scheduleTime,
-                flight.status?.code, statusTime,
-                if (originAirport != null) BigInteger.valueOf(2) else BigInteger.ONE
+        // Create arrival call
+        if (arrAirport != null) {
+            val arrStatusTime = parseTimestamp(arrStatus?.time)
+            val arrivalCall = createArrivalCall(
+                arrAirport,
+                arrScheduleTime,
+                arrStatus?.code,
+                arrStatusTime,
+                if (depAirport != null) BigInteger.valueOf(2) else BigInteger.ONE
             )
-            calls.add(destCall)
+            calls.add(arrivalCall)
         }
     }
 
     private fun createDepartureCall(
         airportCode: String,
-        scheduleTime: ZonedDateTime,
+        scheduleTime: ZonedDateTime?,
         statusCode: String?,
         statusTime: ZonedDateTime?
     ): EstimatedCall {
 
+    }
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
@@ -190,24 +259,27 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         call.stopPointRef = stopPointRef
 
         call.order = BigInteger.ONE
-        call.aimedDepartureTime = scheduleTime
 
-        when (statusCode) {
-            "D" -> {
-                call.expectedDepartureTime = statusTime ?: scheduleTime
-                call.departureStatus = CallStatusEnumeration.DEPARTED
-            }
-            "E" -> {
-                call.expectedDepartureTime = statusTime ?: scheduleTime
-                call.departureStatus = CallStatusEnumeration.DELAYED
-            }
-            "C" -> {
-                call.departureStatus = CallStatusEnumeration.CANCELLED
-                call.setCancellation(true)
-            }
-            else -> {
-                call.expectedDepartureTime = scheduleTime
-                call.departureStatus = CallStatusEnumeration.ON_TIME
+        if (scheduleTime != null) {
+            call.aimedDepartureTime = scheduleTime
+
+            when (statusCode) {
+                "D" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
+                    call.departureStatus = CallStatusEnumeration.DEPARTED
+                }
+                "E" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
+                    call.departureStatus = CallStatusEnumeration.DELAYED
+                }
+                "C" -> {
+                    call.departureStatus = CallStatusEnumeration.CANCELLED
+                    call.setCancellation(true)
+                }
+                else -> {
+                    call.expectedDepartureTime = scheduleTime
+                    call.departureStatus = CallStatusEnumeration.ON_TIME
+                }
             }
         }
         return call
@@ -215,7 +287,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
     private fun createArrivalCall(
         airportCode: String,
-        scheduleTime: ZonedDateTime,
+        scheduleTime: ZonedDateTime?,
         statusCode: String?,
         statusTime: ZonedDateTime?,
         order: BigInteger
@@ -227,24 +299,27 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         call.stopPointRef = stopPointRef
 
         call.order = order
-        call.aimedArrivalTime = scheduleTime
 
-        when (statusCode) {
-            "A" -> {
-                call.expectedArrivalTime = statusTime ?: scheduleTime
-                call.arrivalStatus = CallStatusEnumeration.ARRIVED
-            }
-            "E" -> {
-                call.expectedArrivalTime = statusTime ?: scheduleTime
-                call.arrivalStatus = CallStatusEnumeration.DELAYED
-            }
-            "C" -> {
-                call.arrivalStatus = CallStatusEnumeration.CANCELLED
-                call.setCancellation(true)
-            }
-            else -> {
-                call.expectedArrivalTime = scheduleTime
-                call.arrivalStatus = CallStatusEnumeration.ON_TIME
+        if (scheduleTime != null) {
+            call.aimedArrivalTime = scheduleTime
+
+            when (statusCode) {
+                "A" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.ARRIVED
+                }
+                "E" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.DELAYED
+                }
+                "C" -> {
+                    call.arrivalStatus = CallStatusEnumeration.CANCELLED
+                    call.setCancellation(true)
+                }
+                else -> {
+                    call.expectedArrivalTime = scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.ON_TIME
+                }
             }
         }
         return call
@@ -289,15 +364,21 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
      private fun routeBuilder(
         requestingAirportCode: String,
         flight: Flight,
-        wantOrdered: Boolean = false
+        wantOrdered: Boolean = true
      ): String {
 
         val airline = flight.airline
 
+        // For merged flights, use departureAirport/arrivalAirport; otherwise use original fields
+        val depAirport = flight.departureAirport
+            ?: if (flight.isDeparture()) requestingAirportCode else flight.airport
+        val arrAirport = flight.arrivalAirport
+            ?: if (flight.isArrival()) requestingAirportCode else flight.airport
+
         val(firstAirport, secondAirport) = if(wantOrdered) {
-            orderAirportBySize(requestingAirportCode, flight.airport.toString())
+            orderAirportBySize(depAirport.toString(), arrAirport.toString())
         } else {
-            requestingAirportCode to flight.airport.toString()
+            depAirport.toString() to arrAirport.toString()
         }
 
         return "${airline}_${firstAirport}-${secondAirport}"

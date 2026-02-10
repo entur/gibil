@@ -1,6 +1,5 @@
 package org.gibil.routes.api
 
-import org.gibil.routes.api.StopPlaceApiHandler.StopPlaceApiHandlerConfig.STOP_PLACE_BASE_COUNT
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder

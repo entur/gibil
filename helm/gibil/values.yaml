@@ -36,3 +36,27 @@ common:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
+
+  initContainers:
+    - name: extime-data-fetch
+      image: <+artifacts.primary.image>
+      command:
+        - sh
+        - -c
+        - |
+          echo "Downloading zip file..."
+          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-production/outbound/netex/rb_avi-aggregated-netex.zip
+          echo "Download complete. Extracting to input folder..."
+          mkdir -p /app/input
+          cd /app/input && jar xf /tmp/rb_avi-aggregated-netex.zip
+          echo "Extraction complete. Cleaning up zip file..."
+          rm /tmp/rb_avi-aggregated-netex.zip
+          echo "Init container finished. Files in /app/input:"
+          ls -la /app/input/
+      resources:
+        limits:
+          cpu: 1
+          memory: 512Mi
+        requests:
+          cpu: 0.5
+          memory: 256Mi

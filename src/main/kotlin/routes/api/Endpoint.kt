@@ -1,10 +1,12 @@
 package routes.api
 
+import model.serviceJourney.ServiceJourney
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import service.FilterExtimeAndFindServiceJourney
 import service.FlightAggregationService
 import service.SiriEtService
 import siri.SiriETMapper
@@ -89,4 +91,26 @@ class Endpoint(
         return combinedXml.toString()
     }
     */
+
+    @GetMapping("/service-journeys", produces = [MediaType.APPLICATION_XML_VALUE])
+    fun serviceJourneysEndpoint(
+        @RequestParam(required = false) lineIds: Set<String>?
+    ): List<ServiceJourney> {
+        val filter = FilterExtimeAndFindServiceJourney()
+
+        // Use provided lineIds or default to common routes
+        val lines = lineIds ?: setOf(
+            "AVI:Line:SK_OSL-BGO",
+            "AVI:Line:SK_OSL-TRD",
+            "AVI:Line:SK_OSL-SVG",
+            "AVI:Line:DY_OSL-BGO",
+            "AVI:Line:DY_OSL-TRD"
+        )
+
+        // Filter the downloaded extime data
+        filter.filterExtimeAndWriteResults(lines)
+
+        // Return the parsed service journeys
+        return filter.findServiceJourney()
+    }
 }

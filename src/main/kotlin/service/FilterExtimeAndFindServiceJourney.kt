@@ -22,7 +22,7 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
     val pathBase = if (unitTest){
         "src/test/resources/extime"
     } else {
-        "src/main/kotlin/filter"
+        "/app"
     }
 
     /**

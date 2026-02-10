@@ -57,7 +57,9 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             target = File("$pathBase/output")
         ).run()
 
-        println("\n=== FILTERING FERDIG ===")
+        if (debugPrinting) {
+            println("\n=== FILTERING FERDIG ===")
+        }
     }
 
     /**
@@ -120,18 +122,17 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
      * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
      */
     fun formatDateTimeZoneToTime(dateTimeWithZone: String): List<String> {
-        //todo: make locale sit in constant file stuff
         try {
             //parse parameter into a ZonedDateTime object
             val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
 
-            // different formats needed
+            // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", FilterExtimeAFSJ.LOCALE)
             val formatMonth = DateTimeFormatter.ofPattern("MMM", FilterExtimeAFSJ.LOCALE)
             val formatDate = DateTimeFormatter.ofPattern("dd", FilterExtimeAFSJ.LOCALE)
             val formatDayShortName = DateTimeFormatter.ofPattern("E", FilterExtimeAFSJ.LOCALE)
 
-            // Implement formats onto object and create partial daytype-value
+            // Implement formats onto object and create partial daytyperef-value
             val month = dateTimeWithZone.format(formatMonth)
             val dayName = dateTimeWithZone.format(formatDayShortName)
             val day = dateTimeWithZone.format(formatDate)

@@ -1,13 +1,16 @@
 package org.gibil.routes.api
 
+import org.gibil.routes.api.StopPlaceApiHandler.StopPlaceApiHandlerConfig.STOP_PLACE_BASE_COUNT
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
+import org.springframework.web.util.UriComponentsBuilder
 
 @Component
 class StopPlaceApiHandler(private val apiService: ApiService) {
 
-    object StopPlaceApiHandlerConfig {
+    companion object {
         const val BASE_URL_STOP_PLACES = "https://api.entur.io/stop-places/v1/read/stop-places"
+        const val STOP_PLACE_BASE_COUNT = 100
     }
 
     /**
@@ -16,13 +19,18 @@ class StopPlaceApiHandler(private val apiService: ApiService) {
      * @param stopPlaceCount Int, [transportModes] String, [stopPlaceTypes] String
      * @return String, built url
      */
-    fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100, transportModes: String = "AIR", stopPlaceTypes: String = "AIRPORT"): String = buildString {
-        append(StopPlaceApiHandlerConfig.BASE_URL_STOP_PLACES)
-        if(stopPlaceCount > 0){
-            append("?count=$stopPlaceCount")
-        }
-        append("&transportModes=$transportModes")
-        append("&stopPlaceTypes=$stopPlaceTypes")
+    fun stopPlaceApiUrlBuilder(
+        stopPlaceCount: Int = STOP_PLACE_BASE_COUNT,
+        transportModes: String = "AIR",
+        stopPlaceTypes: String = "AIRPORT"
+    ): String {
+        require(stopPlaceCount > 0) { "stopPlaceCount must be positive" }
+
+        return UriComponentsBuilder.fromUriString(BASE_URL_STOP_PLACES)
+            .queryParam("count", stopPlaceCount)
+            .queryParam("transportModes", transportModes)
+            .queryParam("stopPlaceTypes", stopPlaceTypes)
+            .toUriString()
     }
 
     /**

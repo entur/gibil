@@ -12,7 +12,6 @@ import model.avinorApi.Airport
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
 import org.gibil.service.ApiService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import routes.api.AvinorXmlFeedParams
@@ -26,14 +25,9 @@ import kotlin.system.measureTimeMillis
 class AirportService(
     private val avinorApi: AvinorApiHandler,
     private val avxh: AvinorScheduleXmlHandler,
-    private val ioDispatcher: CoroutineDispatcher
-    private val apiService: ApiService
+    private val apiService: ApiService,
 ) {
-    @Autowired
-    constructor(
-        avinorApi: AvinorApiHandler,
-        avxh: AvinorScheduleXmlHandler
-    ) : this(avinorApi, avxh, Dispatchers.IO)
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.

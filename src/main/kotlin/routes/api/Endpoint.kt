@@ -1,5 +1,6 @@
 package routes.api
 
+import org.gibil.service.ApiService
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -9,7 +10,8 @@ import service.SiriEtService
 @RestController
 class Endpoint(
     private val siriEtService: SiriEtService,
-    private val avinorApiHandler: AvinorApiHandler
+    private val avinorApiHandler: AvinorApiHandler,
+    private val apiService: ApiService
 ) {
 
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
@@ -27,6 +29,6 @@ class Endpoint(
         val url = avinorApiHandler.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParams(airportCode = airport)
         )
-        return avinorApiHandler.apiCall(url) ?: "Error: No response from Avinor API"
+        return apiService.apiCall(url) ?: "Error: No response from Avinor API"
     }
 }

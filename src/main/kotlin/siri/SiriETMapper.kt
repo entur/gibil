@@ -3,6 +3,7 @@ package siri
 import util.AirportSizeClassification.orderAirportBySize
 import model.avinorApi.Airport
 import model.avinorApi.Flight
+import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
 import java.math.BigInteger
@@ -15,7 +16,7 @@ import filter.LineSelector
 
 
 @Component
-class SiriETMapper {
+class SiriETMapper(private val airportQuayService: AirportQuayService) {
     companion object {
         // Constants for SIRI mapping
         private const val PRODUCER_REF = "AVINOR"
@@ -28,7 +29,10 @@ class SiriETMapper {
     }
 
     //Create SIRI element, populate header and add EstimatedTimetableDelivery to SIRI response
-    fun mapToSiri(airport: Airport, requestingAirportCode: String): Siri {
+    fun mapToSiri(
+        airport: Airport,
+        requestingAirportCode: String
+    ): Siri {
         val siri = Siri()
 
         val serviceDelivery = ServiceDelivery()
@@ -45,8 +49,49 @@ class SiriETMapper {
         return siri
     }
 
+    /**
+     * Maps a collection of merged flights (from all airports) to a SIRI document.
+     * Use this when you have pre-aggregated flight data with complete departure/arrival info.
+     * @param mergedFlights Collection of flights that have been merged across airports
+     * @return SIRI document with complete EstimatedCalls for all flights
+     */
+    fun mapMergedFlightsToSiri(mergedFlights: Collection<Flight>): Siri {
+        val siri = Siri()
+
+        val serviceDelivery = ServiceDelivery()
+        serviceDelivery.responseTimestamp = ZonedDateTime.now()
+
+        val producerRef = RequestorRef()
+        producerRef.value = PRODUCER_REF
+        serviceDelivery.producerRef = producerRef
+
+        val delivery = EstimatedTimetableDeliveryStructure()
+        delivery.version = "2.1"
+        delivery.responseTimestamp = ZonedDateTime.now()
+
+        val estimatedVersionFrame = EstimatedVersionFrameStructure()
+        estimatedVersionFrame.recordedAtTime = ZonedDateTime.now()
+
+        mergedFlights.forEach { flight ->
+            // For merged flights, use departureAirport as the "requesting" airport context
+            val contextAirport = flight.departureAirport ?: flight.arrivalAirport ?: return@forEach
+            val evj = mapFlightToEstimatedVehicleJourney(flight, contextAirport)
+            if (evj != null) {
+                estimatedVersionFrame.estimatedVehicleJourneies.add(evj)
+            }
+        }
+
+        delivery.estimatedJourneyVersionFrames.add(estimatedVersionFrame)
+        serviceDelivery.estimatedTimetableDeliveries.add(delivery)
+        siri.serviceDelivery = serviceDelivery
+        return siri
+    }
+
     private fun createEstimatedTimetableDelivery(
-        airport: Airport, requestingAirportCode: String): EstimatedTimetableDeliveryStructure {
+        airport: Airport,
+        requestingAirportCode: String
+    ): EstimatedTimetableDeliveryStructure {
+
         val delivery = EstimatedTimetableDeliveryStructure()
         delivery.version = "2.1"
         delivery.responseTimestamp = ZonedDateTime.now()
@@ -67,12 +112,19 @@ class SiriETMapper {
     }
 
     private fun mapFlightToEstimatedVehicleJourney(
-        flight: Flight, requestingAirportCode: String): EstimatedVehicleJourney? {
+        flight: Flight,
+        requestingAirportCode: String
+    ): EstimatedVehicleJourney? {
 
         // Skip flights without a flightId
         if (flight.flightId == null) return null
         val airline = flight.airline ?: return null
-        val scheduleTime = parseTimestamp(flight.scheduleTime) ?: return null
+
+        // For merged flights, use scheduledDepartureTime or scheduledArrivalTime; otherwise use scheduleTime
+        val scheduleTime = parseTimestamp(flight.scheduledDepartureTime)
+            ?: parseTimestamp(flight.scheduledArrivalTime)
+            ?: parseTimestamp(flight.scheduleTime)
+            ?: return null
 
         val estimatedVehicleJourney = EstimatedVehicleJourney()
 
@@ -82,9 +134,13 @@ class SiriETMapper {
         lineRef.value = "$LINE_PREFIX$route"
         estimatedVehicleJourney.lineRef = lineRef
 
-        //Set directionRef
+        //Set directionRef - for merged flights, check if departure airport matches context
         val directionRef = DirectionRefStructure()
-        directionRef.value = if (flight.isDeparture()) "outbound" else "inbound"
+        directionRef.value = if (flight.isMerged) {
+            if (flight.departureAirport == requestingAirportCode) "outbound" else "inbound"
+        } else {
+            if (flight.isDeparture()) "outbound" else "inbound"
+        }
         estimatedVehicleJourney.directionRef = directionRef
 
         // Set FramedVehicleJourneyRef
@@ -116,10 +172,11 @@ class SiriETMapper {
         return estimatedVehicleJourney
     }
 
-    private fun addEstimatedCalls(estimatedVehicleJourney: EstimatedVehicleJourney, flight: Flight
-    , requestingAirportCode: String, scheduleTime: ZonedDateTime) {
-        val statusTime = parseTimestamp(flight.status?.time)
-
+    private fun addEstimatedCalls(
+        estimatedVehicleJourney: EstimatedVehicleJourney,
+        flight: Flight,
+        requestingAirportCode: String,
+        scheduleTime: ZonedDateTime) {
 
         var estimatedCallsWrapper = estimatedVehicleJourney.getEstimatedCalls()
         if (estimatedCallsWrapper == null) {
@@ -129,68 +186,90 @@ class SiriETMapper {
 
         val calls = estimatedCallsWrapper.getEstimatedCalls()
 
-        if (flight.isDeparture()) {
-            val call = createDepartureCall(requestingAirportCode, scheduleTime,
-                flight.status?.code, statusTime)
-            calls.add(call)
+        // Use merged data if available, otherwise fall back to original fields
+        val depAirport = flight.departureAirport ?: if (flight.isDeparture()) requestingAirportCode else flight.airport
+        val arrAirport = flight.arrivalAirport ?: if (flight.isArrival()) requestingAirportCode else flight.airport
 
-            val destAirport = flight.airport
-            if (destAirport != null) {
-                val destCall = EstimatedCall()
-                val destStopRef = StopPointRefStructure()
-                //TODO! Will have to be changed when airport quays are expanded. (for now just use prefix + dest airport code)
-                destStopRef.value = "$STOP_POINT_REF_PREFIX$destAirport"
-                destCall.stopPointRef = destStopRef
-                destCall.order = BigInteger.valueOf(2)
-                calls.add(destCall)
-            }
+        val depScheduleTime = parseTimestamp(flight.scheduledDepartureTime)
+            ?: if (flight.isDeparture()) scheduleTime else null
+        val arrScheduleTime = parseTimestamp(flight.scheduledArrivalTime)
+            ?: if (flight.isArrival()) scheduleTime else null
+
+        val depStatus = flight.departureStatus ?: if (flight.isDeparture()) flight.status else null
+        val arrStatus = flight.arrivalStatus ?: if (flight.isArrival()) flight.status else null
+
+        // Create departure call
+        if (depAirport != null) {
+            val depStatusTime = parseTimestamp(depStatus?.time)
+            val departureCall = createDepartureCall(
+                depAirport,
+                depScheduleTime,
+                depStatus?.code,
+                depStatusTime
+            )
+            calls.add(departureCall)
         }
         else {
             val originAirport = flight.airport
             if (originAirport != null) {
                 val originCall = EstimatedCall()
                 val originStopRef = StopPointRefStructure()
-                originStopRef.value = "$STOP_POINT_REF_PREFIX$originAirport"
+                originStopRef.value = findStopPointRef(originAirport)
                 originCall.stopPointRef = originStopRef
                 originCall.order = BigInteger.ONE
                 calls.add(originCall)
             }
+        }
 
-            val destCall = createArrivalCall(requestingAirportCode, scheduleTime,
-                flight.status?.code, statusTime,
-                if (originAirport != null) BigInteger.valueOf(2) else BigInteger.ONE
+        // Create arrival call
+        if (arrAirport != null) {
+            val arrStatusTime = parseTimestamp(arrStatus?.time)
+            val arrivalCall = createArrivalCall(
+                arrAirport,
+                arrScheduleTime,
+                arrStatus?.code,
+                arrStatusTime,
+                if (depAirport != null) BigInteger.valueOf(2) else BigInteger.ONE
             )
-            calls.add(destCall)
+            calls.add(arrivalCall)
         }
     }
 
-    private fun createDepartureCall(airportCode: String, scheduleTime: ZonedDateTime,
-                                    statusCode: String?, statusTime: ZonedDateTime?): EstimatedCall {
+    private fun createDepartureCall(
+        airportCode: String,
+        scheduleTime: ZonedDateTime?,
+        statusCode: String?,
+        statusTime: ZonedDateTime?
+    ): EstimatedCall {
+
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
-        stopPointRef.value = "$STOP_POINT_REF_PREFIX$airportCode"
+        stopPointRef.value = findStopPointRef(airportCode)
         call.stopPointRef = stopPointRef
 
         call.order = BigInteger.ONE
-        call.aimedDepartureTime = scheduleTime
 
-        when (statusCode) {
-            "D" -> {
-                call.expectedDepartureTime = statusTime ?: scheduleTime
-                call.departureStatus = CallStatusEnumeration.DEPARTED
-            }
-            "E" -> {
-                call.expectedDepartureTime = statusTime ?: scheduleTime
-                call.departureStatus = CallStatusEnumeration.DELAYED
-            }
-            "C" -> {
-                call.departureStatus = CallStatusEnumeration.CANCELLED
-                call.setCancellation(true)
-            }
-            else -> {
-                call.expectedDepartureTime = scheduleTime
-                call.departureStatus = CallStatusEnumeration.ON_TIME
+        if (scheduleTime != null) {
+            call.aimedDepartureTime = scheduleTime
+
+            when (statusCode) {
+                "D" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
+                    call.departureStatus = CallStatusEnumeration.DEPARTED
+                }
+                "E" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
+                    call.departureStatus = CallStatusEnumeration.DELAYED
+                }
+                "C" -> {
+                    call.departureStatus = CallStatusEnumeration.CANCELLED
+                    call.setCancellation(true)
+                }
+                else -> {
+                    call.expectedDepartureTime = scheduleTime
+                    call.departureStatus = CallStatusEnumeration.ON_TIME
+                }
             }
         }
         return call
@@ -198,7 +277,7 @@ class SiriETMapper {
 
     private fun createArrivalCall(
         airportCode: String,
-        scheduleTime: ZonedDateTime,
+        scheduleTime: ZonedDateTime?,
         statusCode: String?,
         statusTime: ZonedDateTime?,
         order: BigInteger
@@ -206,28 +285,31 @@ class SiriETMapper {
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
-        stopPointRef.value = "$STOP_POINT_REF_PREFIX$airportCode"
+        stopPointRef.value = findStopPointRef(airportCode)
         call.stopPointRef = stopPointRef
 
         call.order = order
-        call.aimedArrivalTime = scheduleTime
 
-        when (statusCode) {
-            "A" -> {
-                call.expectedArrivalTime = statusTime ?: scheduleTime
-                call.arrivalStatus = CallStatusEnumeration.ARRIVED
-            }
-            "E" -> {
-                call.expectedArrivalTime = statusTime ?: scheduleTime
-                call.arrivalStatus = CallStatusEnumeration.DELAYED
-            }
-            "C" -> {
-                call.arrivalStatus = CallStatusEnumeration.CANCELLED
-                call.setCancellation(true)
-            }
-            else -> {
-                call.expectedArrivalTime = scheduleTime
-                call.arrivalStatus = CallStatusEnumeration.ON_TIME
+        if (scheduleTime != null) {
+            call.aimedArrivalTime = scheduleTime
+
+            when (statusCode) {
+                "A" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.ARRIVED
+                }
+                "E" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.DELAYED
+                }
+                "C" -> {
+                    call.arrivalStatus = CallStatusEnumeration.CANCELLED
+                    call.setCancellation(true)
+                }
+                else -> {
+                    call.expectedArrivalTime = scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.ON_TIME
+                }
             }
         }
         return call
@@ -251,6 +333,15 @@ class SiriETMapper {
     }
 
     /**
+     * Finds first, and for now only quay belonging to wanted airport, if no quay found returns IATA code
+     * @param airportCode String, IATA code of airport used as a map key
+     * @return String, First quay belonging to specified airport.
+     */
+    private fun findStopPointRef(airportCode: String): String {
+        return airportQuayService.getQuayId(airportCode) ?: "$STOP_POINT_REF_PREFIX${airportCode}"
+    }
+
+    /**
      * Function that builds the routes used for LineRef and DatedVehicleJourneyRef
      * Can be ordered by size priority or not depending on usecase
      *
@@ -260,13 +351,24 @@ class SiriETMapper {
      * @return String. Route code, "airline_firstAirport-SecondAirport" either ordered by largest first or requestingAirportCode first depends on param choice.
      *
      */
-     private fun routeBuilder(requestingAirportCode: String, flight: Flight, wantOrdered: Boolean = false): String {
+     private fun routeBuilder(
+        requestingAirportCode: String,
+        flight: Flight,
+        wantOrdered: Boolean = true
+     ): String {
+
         val airline = flight.airline
 
+        // For merged flights, use departureAirport/arrivalAirport; otherwise use original fields
+        val depAirport = flight.departureAirport
+            ?: if (flight.isDeparture()) requestingAirportCode else flight.airport
+        val arrAirport = flight.arrivalAirport
+            ?: if (flight.isArrival()) requestingAirportCode else flight.airport
+
         val(firstAirport, secondAirport) = if(wantOrdered) {
-            orderAirportBySize(requestingAirportCode, flight.airport.toString())
+            orderAirportBySize(depAirport.toString(), arrAirport.toString())
         } else {
-            requestingAirportCode to flight.airport.toString()
+            depAirport.toString() to arrAirport.toString()
         }
 
         return "${airline}_${firstAirport}-${secondAirport}"

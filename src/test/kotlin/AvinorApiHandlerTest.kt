@@ -1,5 +1,7 @@
 package org.gibil
 
+import okhttp3.OkHttpClient
+import org.gibil.service.ApiService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
@@ -9,20 +11,51 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class AvinorApiHandlerTest {
-    val api = AvinorApiHandler()
+class AvinorApiHandlerTest() {
+    val spyApiService = SpyApiService()
+    val apiHandler = AvinorApiHandler(spyApiService)
     val clock: Clock = Clock.systemUTC()
+
+    /**
+     * A fake implementation of ApiService that returns controlled responses
+     * instead of making real HTTP calls.
+     */
+    class SpyApiService : ApiService(OkHttpClient()) {
+        var simulateError = false
+
+        override fun apiCall(url: String, acceptHeader: String?): String? {
+            if (simulateError) {
+                return "Error: 500 Server Error"
+            }
+
+            // Extract airport code from query parameter
+            val airportCode = url.substringAfter("airport=", "").substringBefore("&")
+
+            // Return appropriate response based on which API is being called
+            return when {
+                url.contains("airportNames") -> {
+                    // Simulate airport names API response format
+                    """<airportNames><airportName code="$airportCode" name="Airport"/></airportNames>"""
+                }
+                else -> {
+                    // Default response for other APIs
+                    "<valid_xml_for_$airportCode>"
+                }
+            }
+        }
+    }
 
     @Test
     fun `avinorXmlFeedUrlBuilder with all valid parameters returns URL`() {
-        val result = api.avinorXmlFeedUrlBuilder(
+        val result = apiHandler.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParams(
                 airportCode = "OSL",
                 timeFrom = 1,
                 timeTo = 7,
-                direction = "D",
+                direction = "D"
             )
         )
+
         requireNotNull(result) { "url builder returned null" }
         assertTrue(result.contains("airport=OSL"))
         assertTrue(result.contains("direction"))
@@ -31,7 +64,7 @@ class AvinorApiHandlerTest {
     @Test
     fun `avinorXmlFeedUrlBuilder with invalid airport code throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            api.avinorXmlFeedUrlBuilder(
+            apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
                     airportCode = "OS",
                     timeFrom = 1,
@@ -45,7 +78,7 @@ class AvinorApiHandlerTest {
     @Test
     fun `avinorXmlFeedUrlBuilder with negative time from throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            api.avinorXmlFeedUrlBuilder(
+            apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
                     airportCode = "OSL",
                     timeFrom = -100,
@@ -59,7 +92,7 @@ class AvinorApiHandlerTest {
     @Test
     fun `avinorXmlFeedUrlBuilder with time exceeding limit throws exception`() {
         assertThrows(IllegalArgumentException::class.java) {
-            api.avinorXmlFeedUrlBuilder(
+            apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
                     airportCode = "OSL",
                     timeFrom = 1,
@@ -88,7 +121,7 @@ class AvinorApiHandlerTest {
         val displayTime = datetimeUserCorrect.format(formatter)
         val displayTimeWrong = datetimeUserDifferentZone.format(formatter)
 
-        val result = api.userCorrectDate(datetimeUserDifferentZone.toString())
+        val result = apiHandler.userCorrectDate(datetimeUserDifferentZone.toString())
 
         assertEquals(displayTime, result)
     }
@@ -96,7 +129,7 @@ class AvinorApiHandlerTest {
     @Test
     fun `userCorrectDate with invalid date format returns error`() {
         val datetime = "not a valid date format"
-        val result = api.userCorrectDate(datetime)
+        val result = apiHandler.userCorrectDate(datetime)
 
         assertTrue(result.contains("Error: Date format in"))
     }

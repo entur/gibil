@@ -1,9 +1,11 @@
 package org.gibil
 
+import org.junit.jupiter.api.Assertions
 import service.FilterExtimeAndFindServiceJourney
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
+import service.ServiceJourneyNotFoundException
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
@@ -41,12 +43,20 @@ public class FilterExtimeAndFindServiceJourneyTest {
         service.filterExtimeAndWriteResults(exampleLines)
 
         val foundMatch = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1])
-        val foundMatch2 = service.matchServiceJourney(exampleNanFlightcode[0], exampleNanFlightcode[1])
         val foundMatch3 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1])
 
         assertTrue { "SK4011-02-358551288" in foundMatch }
-        assertTrue { !("SK349-03-465081146" in foundMatch2) }
         assertTrue { "DY628-01-523288933" in foundMatch3 }
 
+        //we should not find a match for the flightcode that does not exist in the servicejourneys
+        Assertions.assertThrows(ServiceJourneyNotFoundException::class.java) {
+            service.matchServiceJourney(exampleNanFlightcode[0], exampleNanFlightcode[1])
+        }
     }
+
+    @Test
+    fun `filterExtimeAndWriteResults `() {
+
+    }
+
 }

@@ -3,23 +3,21 @@ package service
 import org.entur.netex.tools.cli.app.FilterNetexApp
 import org.entur.netex.tools.lib.config.CliConfig
 import org.entur.netex.tools.lib.config.FilterConfig
-import org.entur.netex.tools.lib.selectors.entities.EntitySelector
-import org.entur.netex.tools.lib.selectors.entities.EntitySelectorContext
-import org.entur.netex.tools.lib.selections.EntitySelection
-import org.entur.netex.tools.lib.model.Entity
-import org.entur.netex.tools.lib.model.EntityModel
 import java.io.File
 import filter.LineSelector
 import model.serviceJourney.ServiceJourney
 import model.serviceJourney.ServiceJourneyParser
-import java.time.Instant
 import java.time.ZonedDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.gibil.FilterExtimeAFSJ
+
+class ServiceJourneyNotFoundException(message: String) : Exception(message)
+
+val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
 
 class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
-    val pathBase = if (unitTest){
+    val pathBase = if (unitTest) {
         "src/test/resources/extime"
     } else {
         "src/main/kotlin/filter"
@@ -30,8 +28,10 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
      * @param lineIds A set of strings representing the line IDs to filter for (e.g., "AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE").
      * @return nothing, but it creates filtered XML files in the specified output folder.
      */
-    fun filterExtimeAndWriteResults(lineIds: Set<String>){
-        println("Filtering for lines: $lineIds\n")
+    fun filterExtimeAndWriteResults(lineIds: Set<String>) {
+        if (debugPrinting){
+            println("Filtering for lines: $lineIds\n")
+        }
 
         val filterConfig = FilterConfig(
             entitySelectors = listOf(LineSelector(lineIds)),
@@ -57,7 +57,9 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             target = File("$pathBase/output")
         ).run()
 
-        println("\n=== FILTERING FERDIG ===")
+        if (debugPrinting) {
+            println("\n=== FILTERING FERDIG ===")
+        }
     }
 
     /**
@@ -72,9 +74,13 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
      */
     fun findServiceJourney(): List<ServiceJourney> {
         val parser = ServiceJourneyParser()
-        println("=== Parsing folder ===")
+        if (debugPrinting) {
+            println("=== Parsing folder ===")
+        }
         val journeysFromFolder = parser.parseFolder("$pathBase/output")
-        println("Total: ${journeysFromFolder.size} service journeys\n")
+        if (debugPrinting) {
+            println("Total: ${journeysFromFolder.size} service journeys\n")
+        }
 
         return journeysFromFolder
     }
@@ -99,13 +105,15 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             val dateInfoMatch = journey.departureTime == dateInfo[0] && dayTypeMatch
             val flightCodeMatch = journey.publicCode == flightCode
 
-            if (dateInfoMatch && flightCodeMatch){
+            if (dateInfoMatch && flightCodeMatch) {
                 return journey.serviceJourneyId
-            } else{
-                println("${journey.departureTime} == ${dateInfo[0]} (${journey.departureTime == dateInfo[0]}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == ${flightCode} (${journey.publicCode == flightCode})")
+            } else {
+                if (debugPrinting) {
+                    println("${journey.departureTime} == ${dateInfo[0]} (${journey.departureTime == dateInfo[0]}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == ${flightCode} (${journey.publicCode == flightCode})")
+                }
             }
         }
-        return "none found"
+        throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")
     }
 
     /**
@@ -114,40 +122,25 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
      * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
      */
     fun formatDateTimeZoneToTime(dateTimeWithZone: String): List<String> {
-        //todo: make locale sit in constant file stuff
-        val locale = Locale.ENGLISH
-        //parse parameter into a ZonedDateTime object
-        val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
+        try {
+            //parse parameter into a ZonedDateTime object
+            val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
 
-        // different formats needed
-        val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", locale)
-        val formatMonth = DateTimeFormatter.ofPattern("MMM", locale)
-        val formatDate = DateTimeFormatter.ofPattern("dd", locale)
-        val formatDayShortName = DateTimeFormatter.ofPattern("E", locale)
+            // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
+            val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", FilterExtimeAFSJ.LOCALE)
+            val formatMonth = DateTimeFormatter.ofPattern("MMM", FilterExtimeAFSJ.LOCALE)
+            val formatDate = DateTimeFormatter.ofPattern("dd", FilterExtimeAFSJ.LOCALE)
+            val formatDayShortName = DateTimeFormatter.ofPattern("E", FilterExtimeAFSJ.LOCALE)
 
-        // Implement formats onto object and create partial daytype-value
-        val month = dateTimeWithZone.format(formatMonth)
-        val dayName = dateTimeWithZone.format(formatDayShortName)
-        val day = dateTimeWithZone.format(formatDate)
+            // Implement formats onto object and create partial daytyperef-value
+            val month = dateTimeWithZone.format(formatMonth)
+            val dayName = dateTimeWithZone.format(formatDayShortName)
+            val day = dateTimeWithZone.format(formatDate)
 
-        val dayType = "${month}_${dayName}_${day}"
+            val dayType = "${month}_${dayName}_${day}"
 
-        return listOf(dateTimeWithZone.format(formatFull), dayType)
+            return listOf(dateTimeWithZone.format(formatFull), dayType)
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Invalid date-time format: $dateTimeWithZone. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
-}
-
-fun main(){
-    val test = FilterExtimeAndFindServiceJourney()
-
-    //filter extime input data to only include the lines we need
-    test.filterExtimeAndWriteResults(setOf("AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE", "AVI:Line:DX_OSL-RRS"))
-
-    //example usage
-    val exFlight = listOf("2026-02-07T13:40:00Z", "SK267")
-    val exFlight2 = listOf("2026-02-04T09:20:00Z", "DX522")
-    val foundMatch = test.matchServiceJourney(exFlight[0], exFlight[1])
-    val foundMatch2 = test.matchServiceJourney(exFlight[0], exFlight2[1])
-
-    println("Found match: ${foundMatch}")
-    println("Found match: ${foundMatch2}")
 }

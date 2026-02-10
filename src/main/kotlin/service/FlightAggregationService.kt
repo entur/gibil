@@ -15,7 +15,7 @@ import org.gibil.service.ApiService
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
-import routes.api.AvinorXmlFeedParams
+import model.AvinorXmlFeedParams
 
 /**
  * Service that fetches flight data from all Avinor airports and merges

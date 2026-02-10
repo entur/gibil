@@ -40,6 +40,13 @@ common:
   initContainers:
     - name: extime-data-fetch
       image: <+artifacts.primary.image>
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
       command:
         - sh
         - -c

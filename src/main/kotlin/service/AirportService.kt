@@ -10,7 +10,7 @@ import org.gibil.REQUEST_DELAY_MS
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
-import routes.api.AvinorXmlFeedParams
+import model.AvinorXmlFeedParams
 import java.io.File
 import kotlin.system.measureTimeMillis
 

@@ -1,5 +1,6 @@
 package routes.api
 
+import model.AvinorXmlFeedParams
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping

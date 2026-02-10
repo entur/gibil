@@ -6,28 +6,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
-
-object AvinorApiConfig {
-    const val TIME_FROM_MIN_NUM = 1
-    const val TIME_FROM_MAX_NUM = 36
-    const val TIME_FROM_DEFAULT = 2
-
-    const val TIME_TO_MIN_NUM = 7
-    const val TIME_TO_MAX_NUM = 336
-    const val TIME_TO_DEFAULT = 10
-
-    const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
-    const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
-}
-
-data class AvinorXmlFeedParams(
-    val airportCode: String,
-    val timeFrom: Int = AvinorApiConfig.TIME_FROM_DEFAULT,
-    val timeTo: Int = AvinorApiConfig.TIME_TO_DEFAULT,
-    val direction: String? = null
-    //val lastUpdate: Instant? = null, Commented out due to not being in use for now
-    //val codeshare: Boolean = false Commented out due to not being in use for now
-)
+import org.gibil.AvinorApiConfig
+import model.AvinorXmlFeedParams
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
@@ -51,29 +31,16 @@ open class AvinorApiHandler(private val apiService: ApiService) {
             "Invalid airport code: ${params.airportCode}"
         }
         append("?airport=${params.airportCode.uppercase()}")
-        if(timeParamValidation(params)) {
-            append("&TimeFrom=${params.timeFrom}")
-            append("&TimeTo=${params.timeTo}")
-        }
+
+        // Time parameters are validated in AvinorXmlFeedParams init block
+        append("&TimeFrom=${params.timeFrom}")
+        append("&TimeTo=${params.timeTo}")
+
         if(params.direction == "A" || params.direction == "D") {
             append("&direction=${params.direction}")
         }
     }
 
-    /**
-     * Validates if the timeTo and timeFrom are within valid parameters, throws IllegalArgumentException if not
-     * @param AvinorXmlFeedParams makes use of timeTo and timeFrom
-     * @return boolean, returns true if no exception is thrown
-     */
-    private fun timeParamValidation(params: AvinorXmlFeedParams): Boolean {
-        require(!(params.timeTo !in AvinorApiConfig.TIME_TO_MIN_NUM..AvinorApiConfig.TIME_TO_MAX_NUM)) {
-            "TimeTo parameter is outside of valid range, can only be between 7 and 336 hours"
-        }
-        require(!(params.timeFrom !in AvinorApiConfig.TIME_FROM_MIN_NUM..AvinorApiConfig.TIME_FROM_MAX_NUM)) {
-            "TimeFrom parameter is outside of valid range, can only be between 1 and 36 hours"
-        }
-        return true
-    }
 
     /**
      * Uses airportNames api from avinor to check if the airportcode is in their db, and thus valid for their main api-call

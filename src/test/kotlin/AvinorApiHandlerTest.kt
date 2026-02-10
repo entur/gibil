@@ -5,7 +5,7 @@ import org.gibil.service.ApiService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
-import routes.api.AvinorXmlFeedParams
+import model.AvinorXmlFeedParams
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId

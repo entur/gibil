@@ -9,6 +9,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
 
+/**
+ * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.
+ * It uses Ktor's HttpClient with the CIO engine to perform HTTP operations.
+ */
 @Component
 class HttpHelper(
     private val verbose: Boolean = true
@@ -24,11 +28,25 @@ class HttpHelper(
         }
     }
 
+    /**
+     * Sends a heartbeat notification to the specified address using the provided requestor reference.
+     * The method constructs a SIRI heartbeat notification using the SiriETPublisher and sends it as an XML payload in a POST request.
+     * @param address The URL to which the heartbeat notification should be sent.
+     * @param requestorRef The reference identifier for the requester, used in the heartbeat notification.
+     * @return The HTTP status code of the response, or -1 if the request fails
+     */
     suspend fun postHeartbeat(address: String, requestorRef: String): Int {
         val siri = SiriHelper.createHeartbeatNotification(requestorRef)
         return postData(address, publisher.toXml(siri))
     }
 
+    /**
+     * Sends a POST request to the specified URL with the given XML data as the body.
+     * If verbose logging is enabled, it logs the XML data being sent. It also logs the response status code or any errors that occur during the request.
+     * @param url The URL to which the POST request should be sent.
+     * @param xmlData The XML data to be included in the body of the POST request. If null, no body will be sent.
+     * @return The HTTP status code of the response, or -1 if the request fails
+     */
     suspend fun postData(url: String, xmlData: String?): Int {
         if (verbose && xmlData != null) {
             logger.info(xmlData)
@@ -49,6 +67,10 @@ class HttpHelper(
         }
     }
 
+    /**
+     * Closes the HttpClient instance to release any resources it holds.
+     * This should be called when the HttpHelper is no longer needed to ensure proper cleanup.
+     */
     fun close() {
         httpClient.close()
     }

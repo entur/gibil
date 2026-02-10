@@ -8,12 +8,24 @@ import uk.org.siri.siri21.EstimatedVehicleJourney
 import uk.org.siri.siri21.Siri
 import java.time.Duration
 
+/**
+ * REST controller that handles incoming SIRI subscription and service requests.
+ * It processes the requests, manages subscriptions, and generates appropriate responses.
+ * The controller has three endpoints, subscription, unsubscription and service, each handling different types of SIRI requests.
+ */
 @RestController
 class SiriEndpoint(
     @Autowired private val subscriptionManager: SubscriptionManager,
     @Autowired private val siriETRepository: SiriETRepository
 ) {
 
+    /**
+     * Handles incoming subscription requests. It extracts necessary information from the request,
+     * creates a new Subscription object, and adds it to the SubscriptionManager.
+     * It also generates a subscription response to be sent back to the requester.
+     * @param siriRequest The incoming SIRI subscription request, expected to be in XML format and deserialized into a Siri object.
+     * @return A Siri object representing the subscription response, which will be serialized back to XML and sent to the requester.
+     */
     @PostMapping(value = ["/subscribe"], produces = ["application/xml"], consumes = ["application/xml"])
     fun handleSubscriptionRequest(@RequestBody siriRequest: Siri): Siri {
         val subscriptionRequest = siriRequest.subscriptionRequest
@@ -48,6 +60,12 @@ class SiriEndpoint(
         return SiriHelper.createSubscriptionResponse(subscription.subscriptionId)
     }
 
+    /**
+     * Handles incoming unsubscription requests. It extracts the subscription ID from the request,
+     * terminates the corresponding subscription in the SubscriptionManager, and generates an unsubscription response.
+     * @param siriRequest The incoming SIRI unsubscription request, expected to be in XML format and deserialized into a Siri object.
+     * @return A Siri object representing the unsubscription response, which will be serialized back to XML and sent to the requester.
+     */
     @PostMapping(value = ["/unsubscribe"], produces = ["application/xml"], consumes = ["application/xml"])
     fun handleTerminateSubscriptionRequest(@RequestBody siriRequest: Siri): Siri {
         val terminateSubscriptionRequest = siriRequest.terminateSubscriptionRequest
@@ -55,6 +73,12 @@ class SiriEndpoint(
         return SiriHelper.createTerminateSubscriptionResponse(terminateSubscriptionRequest)
     }
 
+    /**
+     * Handles incoming service requests. It processes the request, retrieves the relevant Estimated Vehicle Journey (ET)
+     * data from the SiriETRepository, and generates a service delivery response containing the ET data.
+     * @param siriRequest The incoming SIRI service request, expected to be in XML format and deserialized into a Siri object.
+     * @return A Siri object representing the service delivery response, which will be serialized back to XML and sent to the requester.
+     */
     @PostMapping(value = ["/service"], produces = ["application/xml"], consumes = ["application/xml"])
     fun handleServiceRequest(@RequestBody siriRequest: Siri): Siri {
         val serviceRequest = siriRequest.serviceRequest

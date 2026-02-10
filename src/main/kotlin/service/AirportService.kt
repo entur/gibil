@@ -3,12 +3,10 @@ package service
 import handler.AvinorScheduleXmlHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import model.avinorApi.Airport
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
 import org.gibil.service.ApiService
@@ -24,7 +22,6 @@ import kotlin.system.measureTimeMillis
 @Service
 class AirportService(
     private val avinorApi: AvinorApiHandler,
-    private val avxh: AvinorScheduleXmlHandler,
     private val apiService: ApiService
 ) {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO

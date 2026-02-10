@@ -3,6 +3,7 @@ package siri
 import util.AirportSizeClassification.orderAirportBySize
 import model.avinorApi.Airport
 import model.avinorApi.Flight
+import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
 import java.math.BigInteger
@@ -15,7 +16,7 @@ import filter.LineSelector
 
 
 @Component
-class SiriETMapper {
+class SiriETMapper(private val airportQuayService: AirportQuayService) {
     companion object {
         // Constants for SIRI mapping
         private const val PRODUCER_REF = "AVINOR"
@@ -28,7 +29,10 @@ class SiriETMapper {
     }
 
     //Create SIRI element, populate header and add EstimatedTimetableDelivery to SIRI response
-    fun mapToSiri(airport: Airport, requestingAirportCode: String): Siri {
+    fun mapToSiri(
+        airport: Airport,
+        requestingAirportCode: String
+    ): Siri {
         val siri = Siri()
 
         val serviceDelivery = ServiceDelivery()
@@ -84,7 +88,10 @@ class SiriETMapper {
     }
 
     private fun createEstimatedTimetableDelivery(
-        airport: Airport, requestingAirportCode: String): EstimatedTimetableDeliveryStructure {
+        airport: Airport,
+        requestingAirportCode: String
+    ): EstimatedTimetableDeliveryStructure {
+
         val delivery = EstimatedTimetableDeliveryStructure()
         delivery.version = "2.1"
         delivery.responseTimestamp = ZonedDateTime.now()
@@ -105,7 +112,9 @@ class SiriETMapper {
     }
 
     private fun mapFlightToEstimatedVehicleJourney(
-        flight: Flight, requestingAirportCode: String): EstimatedVehicleJourney? {
+        flight: Flight,
+        requestingAirportCode: String
+    ): EstimatedVehicleJourney? {
 
         // Skip flights without a flightId
         if (flight.flightId == null) return null
@@ -163,8 +172,11 @@ class SiriETMapper {
         return estimatedVehicleJourney
     }
 
-    private fun addEstimatedCalls(estimatedVehicleJourney: EstimatedVehicleJourney, flight: Flight
-    , requestingAirportCode: String, scheduleTime: ZonedDateTime) {
+    private fun addEstimatedCalls(
+        estimatedVehicleJourney: EstimatedVehicleJourney,
+        flight: Flight,
+        requestingAirportCode: String,
+        scheduleTime: ZonedDateTime) {
 
         var estimatedCallsWrapper = estimatedVehicleJourney.getEstimatedCalls()
         if (estimatedCallsWrapper == null) {
@@ -197,6 +209,17 @@ class SiriETMapper {
             )
             calls.add(departureCall)
         }
+        else {
+            val originAirport = flight.airport
+            if (originAirport != null) {
+                val originCall = EstimatedCall()
+                val originStopRef = StopPointRefStructure()
+                originStopRef.value = findStopPointRef(originAirport)
+                originCall.stopPointRef = originStopRef
+                originCall.order = BigInteger.ONE
+                calls.add(originCall)
+            }
+        }
 
         // Create arrival call
         if (arrAirport != null) {
@@ -212,12 +235,17 @@ class SiriETMapper {
         }
     }
 
-    private fun createDepartureCall(airportCode: String, scheduleTime: ZonedDateTime?,
-                                    statusCode: String?, statusTime: ZonedDateTime?): EstimatedCall {
+    private fun createDepartureCall(
+        airportCode: String,
+        scheduleTime: ZonedDateTime?,
+        statusCode: String?,
+        statusTime: ZonedDateTime?
+    ): EstimatedCall {
+
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
-        stopPointRef.value = "$STOP_POINT_REF_PREFIX$airportCode"
+        stopPointRef.value = findStopPointRef(airportCode)
         call.stopPointRef = stopPointRef
 
         call.order = BigInteger.ONE
@@ -257,7 +285,7 @@ class SiriETMapper {
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()
-        stopPointRef.value = "$STOP_POINT_REF_PREFIX$airportCode"
+        stopPointRef.value = findStopPointRef(airportCode)
         call.stopPointRef = stopPointRef
 
         call.order = order
@@ -305,6 +333,15 @@ class SiriETMapper {
     }
 
     /**
+     * Finds first, and for now only quay belonging to wanted airport, if no quay found returns IATA code
+     * @param airportCode String, IATA code of airport used as a map key
+     * @return String, First quay belonging to specified airport.
+     */
+    private fun findStopPointRef(airportCode: String): String {
+        return airportQuayService.getQuayId(airportCode) ?: "$STOP_POINT_REF_PREFIX${airportCode}"
+    }
+
+    /**
      * Function that builds the routes used for LineRef and DatedVehicleJourneyRef
      * Can be ordered by size priority or not depending on usecase
      *
@@ -314,7 +351,12 @@ class SiriETMapper {
      * @return String. Route code, "airline_firstAirport-SecondAirport" either ordered by largest first or requestingAirportCode first depends on param choice.
      *
      */
-     private fun routeBuilder(requestingAirportCode: String, flight: Flight, wantOrdered: Boolean = true): String {
+     private fun routeBuilder(
+        requestingAirportCode: String,
+        flight: Flight,
+        wantOrdered: Boolean = true
+     ): String {
+
         val airline = flight.airline
 
         // For merged flights, use departureAirport/arrivalAirport; otherwise use original fields

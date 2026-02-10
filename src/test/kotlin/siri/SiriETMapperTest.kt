@@ -4,14 +4,28 @@ import model.avinorApi.Airport
 import model.avinorApi.Flight
 import model.avinorApi.FlightsContainer
 import model.avinorApi.FlightStatus
+import okhttp3.OkHttpClient
+import org.gibil.StopPlaceMapper
+import org.gibil.routes.api.StopPlaceApiHandler
+import org.gibil.service.AirportQuayService
+import org.gibil.service.ApiService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.time.ZonedDateTime
 
-class SiriETMapperTest {
-    private val mapper = SiriETMapper()
+class SiriETMapperTest() {
+
+    class SpyAirportQuayService : AirportQuayService(
+        StopPlaceApiHandler(ApiService(OkHttpClient())),
+        StopPlaceMapper()
+    ) {
+        override fun getQuayId(iataCode: String): String? = null
+    }
+
+    private val mapper = SiriETMapper(SpyAirportQuayService())
+
 
     @Test
     fun `should handle empty flight list`() {

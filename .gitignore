@@ -39,3 +39,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### filter files ###
+/**/src/main/kotlin/filter/input
+/**/src/main/kotlin/filter/output
+/**/src/test/resources/extime/output

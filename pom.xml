@@ -95,6 +95,22 @@
             <artifactId>ktor-client-cio-jvm</artifactId>
             <version>${ktor.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.entur.ror</groupId>
+            <artifactId>netex-tools-lib</artifactId>
+            <version>0.0.37</version>
+        </dependency>
+        <dependency>
+            <groupId>org.entur.ror</groupId>
+            <artifactId>netex-tools-cli</artifactId>
+            <version>0.0.37</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk-jvm</artifactId>
+            <version>1.14.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
@@ -132,6 +148,7 @@
                         <artifactId>kotlin-maven-allopen</artifactId>
                         <version>${kotlin.version}</version>
                     </dependency>
+
                 </dependencies>
             </plugin>
         </plugins>

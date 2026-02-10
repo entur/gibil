@@ -1,6 +1,6 @@
 package service
-import model.AvinorXmlFeedParams
 
+import model.AvinorXmlFeedParams
 import handler.AvinorScheduleXmlHandler
 import java.time.Clock
 import org.entur.siri.validator.SiriValidator

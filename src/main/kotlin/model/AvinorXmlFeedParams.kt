@@ -11,7 +11,7 @@ data class AvinorXmlFeedParams(
     init {
         // Enforce basic format rules immediately upon creation
         require(airportCode.length == 3) {
-            "Invalid airport code format: $airportCode. Must be 3 letters."
+            "Invalid airport code format: $airportCode. Must be 3 characters."
         }
 
         // Move the time validation logic here

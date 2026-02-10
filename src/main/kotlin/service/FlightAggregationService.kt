@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import model.avinorApi.Flight
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
+import org.gibil.service.ApiService
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
@@ -27,7 +28,8 @@ import java.time.format.DateTimeParseException
 @Service
 class FlightAggregationService(
     private val avinorApiHandler: AvinorApiHandler,
-    private val xmlHandler: AvinorScheduleXmlHandler
+    private val xmlHandler: AvinorScheduleXmlHandler,
+    private val apiService: ApiService
 ) {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
@@ -131,7 +133,7 @@ class FlightAggregationService(
             val url = avinorApiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(airportCode = airportCode)
             )
-            val xmlResponse = avinorApiHandler.apiCall(url) ?: return emptyList()
+            val xmlResponse = apiService.apiCall(url) ?: return emptyList()
 
             if ("Error" in xmlResponse) {
                 println("API returned error for $airportCode")

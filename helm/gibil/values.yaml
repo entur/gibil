@@ -12,8 +12,12 @@ common:
     volumeMounts:
       - name: extime-data
         mountPath: /app/input
+      - name: extime-output
+        mountPath: /app/output
     volumes:
       - name: extime-data
+        emptyDir: {}
+      - name: extime-output
         emptyDir: {}
     probes:
       enabled: true

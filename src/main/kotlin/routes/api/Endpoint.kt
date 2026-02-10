@@ -19,23 +19,18 @@ class Endpoint(
     private val siriETPublisher: SiriETPublisher
 ) {
 
-    @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
-    fun siriEtEndpoint(@RequestParam(defaultValue = "OSL") airport: String): String {
-        return siriEtService.fetchAndConvert(airport)
-    }
-
     /**
      * SIRI-ET endpoint that aggregates data from ALL Avinor airports.
      * Merges departure and arrival data for complete EstimatedCalls.
      * Warning: Makes ~55 API calls, may take 30-60 seconds.
-
-    @GetMapping("/siri/all", produces = [MediaType.APPLICATION_XML_VALUE])
+     */
+    @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
         val mergedFlights = flightAggregationService.fetchAllMergedFlightsAsList()
         val siri = siriETMapper.mapMergedFlightsToSiri(mergedFlights)
         return siriETPublisher.toXml(siri)
     }
-    */
+
 
     /**
      * Debug endpoint that returns the raw XML response from the Avinor API.

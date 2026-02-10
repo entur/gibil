@@ -1,5 +1,7 @@
 package config
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -13,6 +15,9 @@ class AppConfig {
     fun clock(): Clock {
         return Clock.systemUTC()
     }
+
+    @Bean
+    fun ioDispatcher(): CoroutineDispatcher = Dispatchers.IO
 
     @Bean
     fun okHttpClient(): OkHttpClient {

@@ -1,7 +1,5 @@
 package service
 
-import handler.AvinorScheduleXmlHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,9 +20,9 @@ import kotlin.system.measureTimeMillis
 @Service
 class AirportService(
     private val avinorApi: AvinorApiHandler,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val ioDispatcher: CoroutineDispatcher
 ) {
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.

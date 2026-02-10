@@ -1,5 +1,7 @@
 package org.gibil
 
+import java.util.Locale
+
 /**
  * Project-wide constants.
  * You can define top-level constants using `const val` or group them in an object.
@@ -27,4 +29,18 @@ object AvinorApiConfig {
 
     const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
+  
+object LineSelector {
+    val DEBUG_PRINTING_LINESELECTOR = false
+}
+
+//FilterExtimeAndFindServiceJourney
+object FilterExtimeAFSJ {
+    val DEBUG_PRINTING_FEAFSJ = false
+    val LOCALE = Locale.ENGLISH
+}
+
+object ServiceJourneyModel {
+    const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
+    val DEBUG_PRINTING_SJM = false
 }

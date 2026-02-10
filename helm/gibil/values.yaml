@@ -39,12 +39,13 @@ common:
 
   initContainers:
     - name: extime-data-fetch
-      image: <+artifacts.primary.image>
+      image: alpine:latest  # Lightweight (~5MB) with sh, curl, and basic utilities
       securityContext:
         allowPrivilegeEscalation: false
         runAsNonRoot: true
+        runAsUser: 65534  # nobody user
         capabilities:
-          drop: ["ALL"]
+          drop: [ "ALL" ]
         seccompProfile:
           type: RuntimeDefault
       command:
@@ -55,7 +56,7 @@ common:
           curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-production/outbound/netex/rb_avi-aggregated-netex.zip
           echo "Download complete. Extracting to input folder..."
           mkdir -p /app/input
-          cd /app/input && jar xf /tmp/rb_avi-aggregated-netex.zip
+          cd /app/input && unzip /tmp/rb_avi-aggregated-netex.zip
           echo "Extraction complete. Cleaning up zip file..."
           rm /tmp/rb_avi-aggregated-netex.zip
           echo "Init container finished. Files in /app/input:"

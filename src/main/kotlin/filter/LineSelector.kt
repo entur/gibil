@@ -1,33 +1,44 @@
 package filter
 
-import org.entur.netex.tools.cli.app.FilterNetexApp
-import org.entur.netex.tools.lib.config.CliConfig
-import org.entur.netex.tools.lib.config.FilterConfig
 import org.entur.netex.tools.lib.selectors.entities.EntitySelector
 import org.entur.netex.tools.lib.selectors.entities.EntitySelectorContext
 import org.entur.netex.tools.lib.selections.EntitySelection
 import org.entur.netex.tools.lib.model.Entity
 import org.entur.netex.tools.lib.model.EntityModel
-import java.io.File
+import org.gibil.LineSelector
 
+val debugPrinting = LineSelector.DEBUG_PRINTING_LINESELECTOR
+
+/**
+ * An EntitySelector that selects entities based on a set of line IDs.
+ * Made custom to ensure all relevant child data inside servicejourney is kept, as the "Parent Rule" would otherwise prune away important information.
+ * This selector is designed to be used in the context of filtering NeTEx data for specific lines, ensuring that all relevant information is retained.
+ * @param lineIds A set of strings representing the line IDs to filter for (e.g., "AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE").
+ * @return An EntitySelection containing all entities related to the specified line IDs
+ */
 class LineSelector(private val lineIds: Set<String>) : EntitySelector {
     override fun selectEntities(context: EntitySelectorContext): EntitySelection {
         val model = context.entityModel
         val selectionMap = mutableMapOf<String, MutableMap<String, Entity>>()
         val visited = mutableSetOf<String>()
 
-        println(">>> LineSelector.selectEntities() CALLED <<<")  // DEBUG
-        println(">>> Looking for: $lineIds <<<")  // DEBUG
-        println(model)
-
+        if (debugPrinting) {
+            println(">>> LineSelector.selectEntities() CALLED <<<")
+            println(">>> Looking for: $lineIds <<<")
+            println(model)
+        }
         lineIds.forEach { lineId ->
             val entity = model.getEntity(lineId)
             if (entity != null) {
-                println(">>> FOUND LINE: ${entity.id} <<<")  // DEBUG
-                println(entity)
+                if (debugPrinting) {
+                    println(">>> FOUND LINE: ${entity.id} <<<")
+                    println(entity)
+                }
                 addEntityAndRelated(entity, model, selectionMap, visited)
             } else {
-                println(">>> LINE NOT FOUND: $lineId <<<")  // DEBUG
+                if (debugPrinting) {
+                    println(">>> LINE NOT FOUND: $lineId <<<")
+                }
             }
         }
 
@@ -55,7 +66,9 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
             "SiteFrame",
             "ServiceCalendarFrame"
         )
-        println(">>> Auto-selecting Frames to preserve hierarchy <<<")
+        if (debugPrinting) {
+            println(">>> Auto-selecting Frames to preserve hierarchy <<<")
+        }
         frameTypes.forEach { type ->
             val frames = model.getEntitiesOfType(type)
             frames.forEach { entity ->
@@ -64,8 +77,10 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
             if (frames.isNotEmpty()) println("   + Kept ${frames.size} $type")
         }
 
-        println(">>> Total selected: ${selectionMap.values.sumOf { it.size }} <<<")  // DEBUG
-        println("All available IDs: " + model.listAllEntities().take(10).map { it.id })
+        if(debugPrinting) {
+            println(">>> Total selected: ${selectionMap.values.sumOf { it.size }} <<<")
+            println("All available IDs: " + model.listAllEntities().map { it.id })
+        }
         return EntitySelection(selectionMap, model)
     }
 

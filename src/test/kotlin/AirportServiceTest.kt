@@ -1,8 +1,7 @@
 package org.gibil
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import model.avinorApi.Airport
-import handler.AvinorScheduleXmlHandler
 import okhttp3.OkHttpClient
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.Test
@@ -48,20 +47,6 @@ class AirportServiceTest {
         }
     }
 
-    // This checks if the Service actually sends the data to the parsing logic
-    class SpyXmlHandler : AvinorScheduleXmlHandler() {
-        val capturedXmlData = Collections.synchronizedList(mutableListOf<String>())
-
-        override fun unmarshallXmlToAirport(xmlData: String): Airport {
-            capturedXmlData.add(xmlData)
-
-            // Return a dummy object so the "print" function doesn't crash
-            val dummyAirport = Airport()
-            dummyAirport.name = "Test Airport"
-            return dummyAirport
-        }
-    }
-
     @Test
     fun `fetchAndProcessAirports should flow correctly from API to Parser`() = runBlocking {
         val tempFile = File.createTempFile("test_airports", ".txt")
@@ -70,19 +55,13 @@ class AirportServiceTest {
 
         val spyApiService = SpyApiService()
         val spyApi = SpyAvinorApi(spyApiService)
-        val spyParser = SpyXmlHandler()
 
-        val service = AirportService(spyApi, spyParser, spyApiService)
+        val service = AirportService(spyApi, spyApiService, Dispatchers.Unconfined)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
-        // 1. Check that the API was called
+        // Check that the API was called
         assertTrue(spyApi.capturedRequests.contains("OSL"), "API should have been called for OSL")
-
-        // 2. Check that data from the API was passed to the Parser
-        // Our API returns "<valid_xml_for_OSL>", so we check that the parser received exactly this.
-        assertEquals(1, spyParser.capturedXmlData.size, "The parser should have received data 1 time")
-        assertEquals("<valid_xml_for_OSL>", spyParser.capturedXmlData[0], "The parser received incorrect data!")
     }
 
     @Test
@@ -95,15 +74,12 @@ class AirportServiceTest {
         spyApiService.simulateError = true // We simulate that Avinor is down/returning errors
 
         val spyApi = SpyAvinorApi(spyApiService)
-        val spyParser = SpyXmlHandler()
 
-        val service = AirportService(spyApi, spyParser, spyApiService)
+        val service = AirportService(spyApi, spyApiService, Dispatchers.Unconfined)
 
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
-        // 1. API was called
+        // API was called
         assertTrue(spyApi.capturedRequests.contains("BGO"))
-        // 2. The parser should NOT have been called, because the API returned "Error"
-        assertEquals(0, spyParser.capturedXmlData.size, "The parser should not run when the API fails")
     }
 }

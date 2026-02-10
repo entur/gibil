@@ -195,16 +195,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         val arrScheduleTime = parseTimestamp(flight.scheduledArrivalTime)
             ?: if (flight.isArrival()) scheduleTime else null
 
-            val destAirport = flight.airport
-            if (destAirport != null) {
-                val destCall = EstimatedCall()
-                val destStopRef = StopPointRefStructure()
-                //TODO! Will have to be changed when airport quays are expanded. (for now just use prefix + dest airport code)
-                destStopRef.value = findStopPointRef(destAirport)
-                destCall.stopPointRef = destStopRef
-                destCall.order = BigInteger.valueOf(2)
-                calls.add(destCall)
-            }
         val depStatus = flight.departureStatus ?: if (flight.isDeparture()) flight.status else null
         val arrStatus = flight.arrivalStatus ?: if (flight.isArrival()) flight.status else null
 
@@ -229,6 +219,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                 originCall.order = BigInteger.ONE
                 calls.add(originCall)
             }
+        }
 
         // Create arrival call
         if (arrAirport != null) {
@@ -251,7 +242,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         statusTime: ZonedDateTime?
     ): EstimatedCall {
 
-    }
         val call = EstimatedCall()
 
         val stopPointRef = StopPointRefStructure()

@@ -45,7 +45,7 @@ common:
 
   initContainers:
     - name: extime-data-fetch
-      image: alpine:latest
+      image: curlimages/curl:latest
       securityContext:
         allowPrivilegeEscalation: false
         runAsNonRoot: true

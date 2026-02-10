@@ -32,7 +32,7 @@ class ServiceJourneyParser {
 
                 // Look for ServiceJourney start elements
                 if (reader.isStartElement && reader.localName == "ServiceJourney") {
-                    // Unmarshal just this element as a service journey model
+                    // Unmarshall just this element as a service journey model
                     val journey = unmarshaller.unmarshal(reader) as ServiceJourney
                     serviceJourneys.add(journey)
                 }
@@ -78,34 +78,4 @@ class ServiceJourneyParser {
 
         return allJourneys
     }
-
-    /* if needed in the future:
-    fun parseFolderRecursive(folderPath: String): List<ServiceJourney> {
-        val folder = File(folderPath)
-
-        if (!folder.exists() || !folder.isDirectory) {
-            throw IllegalArgumentException("$folderPath is not a valid directory")
-        }
-
-        val allJourneys = mutableListOf<ServiceJourney>()
-
-        folder.walk().forEach { file ->
-            if (file.isFile && file.extension.lowercase() == "xml") {
-                if (printLog) {
-                    println("Parsing: ${file.relativeTo(folder)}")
-                }
-                try {
-                    val journeys = parseFile(file)
-                    allJourneys.addAll(journeys)
-                    if (printLog) {
-                        println("  Found ${journeys.size} service journeys")
-                    }
-                } catch (e: Exception) {
-                    println("  Error parsing ${file.name}: ${e.message}")
-                }
-            }
-        }
-
-        return allJourneys
-    }*/
 }

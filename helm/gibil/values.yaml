@@ -50,7 +50,7 @@ common:
   initContainers:
     - name: extime-data-fetch
       image: curlimages/curl:latest
-      securityContext:
+      securityCo  ntext:
         allowPrivilegeEscalation: false
         runAsNonRoot: true
         runAsUser: 65534
@@ -66,7 +66,7 @@ common:
         - -c
         - |
           echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-production/outbound/netex/rb_avi-aggregated-netex.zip
+          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
           echo "Download complete. Extracting to shared volume..."
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/input
           echo "Extraction complete. Cleaning up zip file..."

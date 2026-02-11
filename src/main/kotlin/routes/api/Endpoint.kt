@@ -101,9 +101,6 @@ class Endpoint(
 
         val lines = lineIds ?: setOf(
             "AVI:Line:SK_OSL-BGO",
-            "AVI:Line:SK_OSL-TRD",
-            "AVI:Line:SK_OSL-SVG",
-            "AVI:Line:DY_OSL-BGO",
             "AVI:Line:DY_OSL-TRD"
         )
 

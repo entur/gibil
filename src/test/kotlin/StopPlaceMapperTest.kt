@@ -2,11 +2,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import jakarta.xml.bind.JAXB
 import jakarta.xml.bind.Unmarshaller
 import org.gibil.StopPlaceMapper
 import org.gibil.model.stopPlacesApi.StopPlaces
-import org.gibil.routes.api.StopPlaceApiHandler
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -27,7 +25,7 @@ class StopPlaceMapperTest {
     }
 
     @Nested
-    inner class unmarshallStopPlaceXml {
+    inner class UnmarshallStopPlaceXml {
 
         @BeforeEach
         fun setUp() {
@@ -69,5 +67,5 @@ class StopPlaceMapperTest {
         }
     }
 
-
+    //TODO MORE TESTS ON THE QUAYMAP
 }

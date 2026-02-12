@@ -8,7 +8,17 @@ common:
     image: <+artifacts.primary.image>
     imagePullPolicy: Always
     cpu: 2
-    memory: 2560 # This is request mem. Limit is 20% higher.
+    memory: 2560
+    volumeMounts:
+      - name: extime-data
+        mountPath: /app/input
+      - name: extime-output
+        mountPath: /app/output
+    volumes:
+      - name: extime-data
+        emptyDir: {}
+      - name: extime-output
+        emptyDir: {}
     probes:
       enabled: true
       spec:
@@ -36,3 +46,37 @@ common:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
+
+  initContainers:
+    - name: extime-data-fetch
+      image: curlimages/curl:latest
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+      volumeMounts:
+        - name: extime-data
+          mountPath: /app/input
+      command:
+        - sh
+        - -c
+        - |
+          echo "Downloading zip file..."
+          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
+          echo "Download complete. Extracting to shared volume..."
+          unzip /tmp/rb_avi-aggregated-netex.zip -d /app/input
+          echo "Extraction complete. Cleaning up zip file..."
+          rm /tmp/rb_avi-aggregated-netex.zip
+          echo "Init container finished. Files in /app/input:"
+          ls -la /app/input/
+      resources:
+        limits:
+          cpu: 1
+          memory: 512Mi
+        requests:
+          cpu: 0.5
+          memory: 256Mi

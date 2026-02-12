@@ -15,14 +15,14 @@ class StopPlaceApiHandler(private val apiService: ApiService) {
     }
 
     /**
-     * Builds url used for StopPlaces [API] from Entur, defaults to 100 airports,
-     * [AIR] transportModes, [AIRPORT] stop place type. Other functions must be expanded to use other modes
-     * @param stopPlaceCount Int, [transportModes] String, [stopPlaceTypes] String
-     * @return String, built url
+     * Builds the URL for the StopPlaces API call with the specified parameters.
+     * @param stopPlaceCount The number of stop places to retrieve, default is 100. If a non-positive number is provided, it defaults to 100.
+     * @return A String representing the complete URL for the API call with query parameters.
      */
-    open fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100): String {
+    fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100): String {
+        require(stopPlaceCount > 0) { "stopPlaceCount must be positive.(was $stopPlaceCount)" }
         return UriComponentsBuilder.fromUriString(StopPlaceApiHandlerConfig.BASE_URL_STOP_PLACES)
-            .queryParam("count", if (stopPlaceCount > 0) stopPlaceCount else 100)
+            .queryParam("count",stopPlaceCount)
             .queryParam("transportModes", StopPlaceApiHandlerConfig.TRANSPORT_MODE_AIR)
             .queryParam("stopPlaceTypes", StopPlaceApiHandlerConfig.STOP_PLACE_TYPE_AIRPORT)
             .build()

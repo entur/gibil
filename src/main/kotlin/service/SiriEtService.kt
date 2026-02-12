@@ -1,9 +1,10 @@
 package service
-import routes.api.AvinorXmlFeedParams
 
+import model.AvinorXmlFeedParams
 import handler.AvinorScheduleXmlHandler
 import java.time.Clock
 import org.entur.siri.validator.SiriValidator
+import org.gibil.service.ApiService
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import siri.SiriETMapper
@@ -25,7 +26,7 @@ class SiriEtService(
     private val siriMapper: SiriETMapper,
     private val siriPublisher: SiriETPublisher,
     private val xsdValidator: XsdValidator,
-    private val clock: Clock
+    private val apiService: ApiService
 ) {
 
     /**
@@ -42,7 +43,7 @@ class SiriEtService(
                 direction = DEPATURE_CODE
             )
         )
-        val xmlData = avinorApi.apiCall(url)
+        val xmlData = apiService.apiCall(url)
 
         val airport = avxh.unmarshallXmlToAirport(xmlData ?: "")
         val siri = siriMapper.mapToSiri(airport, airportCode)

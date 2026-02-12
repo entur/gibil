@@ -1,20 +1,16 @@
 package service
 
-import handler.AvinorScheduleXmlHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import model.avinorApi.Airport
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
-import org.springframework.beans.factory.annotation.Autowired
+import org.gibil.service.ApiService
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
-import routes.api.AvinorXmlFeedParams
+import model.AvinorXmlFeedParams
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -24,14 +20,9 @@ import kotlin.system.measureTimeMillis
 @Service
 class AirportService(
     private val avinorApi: AvinorApiHandler,
-    private val avxh: AvinorScheduleXmlHandler,
+    private val apiService: ApiService,
     private val ioDispatcher: CoroutineDispatcher
 ) {
-    @Autowired
-    constructor(
-        avinorApi: AvinorApiHandler,
-        avxh: AvinorScheduleXmlHandler
-    ) : this(avinorApi, avxh, Dispatchers.IO)
 
     /**
      * Fetches and processes airport data for a list of airport codes read from a text file.
@@ -67,70 +58,12 @@ class AirportService(
             async(ioDispatcher) {
                 delay(REQUEST_DELAY_MS.toLong())
                 println("Sending request for $code")
-                code to avinorApi.apiCall(
+                code to apiService.apiCall(
                     avinorApi.avinorXmlFeedUrlBuilder(
                         AvinorXmlFeedParams(airportCode = code, timeFrom = 2, timeTo = 7)
                     )
                 )
             }
-        }
-
-        val results = deferredResults.awaitAll()
-
-        results.forEach { (code, xmlData) ->
-            if (xmlData != null && "Error" !in xmlData) {
-                try {
-                    val airportObject = avxh.unmarshallXmlToAirport(xmlData)
-                    printFlightDetails(airportObject)
-                } catch (e: Exception) {
-                    println("Could not parse data for $code: ${e.message}")
-                }
-            } else {
-                println("Failed to fetch data for $code")
-            }
-        }
-    }
-
-    /**
-     * Prints flight details for a given airport.
-     * @param airportData Airport object containing flight information.
-     */
-    private fun printFlightDetails(airportData: Airport) {
-        try {
-            println("\n--------------------------------------------------")
-            println("AIRPORT: ${airportData.name}")
-            println("%-10s %-10s %-15s %-10s %-20s".format(
-                "FLIGHT",
-                "DIR",
-                "DEST",
-                "TIME",
-                "STATUS"
-            ))
-            println("\n--------------------------------------------------")
-
-            airportData.flightsContainer?.flight?.forEach { flight ->
-                val direction = if (flight.arrDep == "A") "From(A)" else "To  (D)"
-                val scheduledTime = flight.scheduleTime?.substring(11, 16) ?: "??"
-                val newTime = flight.status?.time?.substring(11, 16)
-
-                val statusText = when(flight.status?.code) {
-                    "A" -> "Arrived ($newTime)"
-                    "D" -> "Departed ($newTime)"
-                    "E" -> "New Time: $newTime"
-                    "C" -> "Cancelled"
-                    else -> ""
-                }
-
-                println("%-10s %-10s %-15s %-10s %-20s".format(
-                    flight.flightId,
-                    direction,
-                    flight.airport,
-                    scheduledTime,
-                    statusText
-                ))
-            }
-        } catch (e: Exception) {
-            println("Error printing flight details: ${e.message}")
         }
     }
 }

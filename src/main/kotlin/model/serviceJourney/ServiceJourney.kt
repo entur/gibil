@@ -1,24 +1,23 @@
 package model.serviceJourney
 
 import jakarta.xml.bind.annotation.*
+import org.gibil.ServiceJourneyModel
 
-const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
-
-@XmlRootElement(name = "ServiceJourney", namespace = NETEX_NAMESPACE)
+@XmlRootElement(name = "ServiceJourney", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
 @XmlAccessorType(XmlAccessType.FIELD)
 data class ServiceJourney(
 
     @field:XmlAttribute(name = "id")
     var serviceJourneyId: String = "",
 
-    @field:XmlElementWrapper(name = "dayTypes", namespace = NETEX_NAMESPACE)
-    @field:XmlElement(name = "DayTypeRef", namespace = NETEX_NAMESPACE)
+    @field:XmlElementWrapper(name = "dayTypes", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
+    @field:XmlElement(name = "DayTypeRef", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     private var dayTypeRefs: MutableList<DayTypeRef> = mutableListOf(),
 
-    @field:XmlElement(name = "PublicCode", namespace = NETEX_NAMESPACE)
+    @field:XmlElement(name = "PublicCode", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     var publicCode: String = "",
 
-    @field:XmlElement(name = "passingTimes", namespace = NETEX_NAMESPACE)
+    @field:XmlElement(name = "passingTimes", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     private var passingTimesWrapper: PassingTimesWrapper? = null
 
 ) {
@@ -43,6 +42,6 @@ data class ServiceJourney(
 
 @XmlAccessorType(XmlAccessType.FIELD)
 data class PassingTimesWrapper(
-    @field:XmlElement(name = "TimetabledPassingTime", namespace = NETEX_NAMESPACE)
+    @field:XmlElement(name = "TimetabledPassingTime", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     var timetabledPassingTimes: MutableList<TimetabledPassingTime> = mutableListOf()
 )

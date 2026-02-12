@@ -256,7 +256,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
             when (statusCode) {
                 "D" -> {
                     call.expectedDepartureTime = statusTime ?: scheduleTime
-                    call.departureStatus = CallStatusEnumeration.DEPARTED
+                    call.departureStatus = CallStatusEnumeration.MISSED
                 }
                 "E" -> {
                     call.expectedDepartureTime = statusTime ?: scheduleTime
@@ -299,8 +299,13 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                     call.arrivalStatus = CallStatusEnumeration.ARRIVED
                 }
                 "E" -> {
-                    call.expectedArrivalTime = statusTime ?: scheduleTime
-                    call.arrivalStatus = CallStatusEnumeration.DELAYED
+                    if (statusTime != null && statusTime.isBefore(scheduleTime)) {
+                        call.expectedArrivalTime = statusTime
+                        call.arrivalStatus = CallStatusEnumeration.EARLY
+                    } else {
+                        call.expectedArrivalTime = statusTime ?: scheduleTime
+                        call.arrivalStatus = CallStatusEnumeration.DELAYED
+                    }
                 }
                 "C" -> {
                     call.arrivalStatus = CallStatusEnumeration.CANCELLED

@@ -23,7 +23,7 @@ class SiriETRepository {
         get() = siriData.values
 
     /**
-     * Adds a new Estimated Vehicle Journey (ET) to the repository and pushed to subscribers.
+     * Adds a new Estimated Vehicle Journey to the repository and pushed to subscribers.
      * The method logs the addition and updates the internal map with the new ET data.
      * It then creates new Siri data using createServiceDelivery and pushes to subscribers.
      * @param element The EstimatedVehicleJourney to be added to the repository.
@@ -36,7 +36,7 @@ class SiriETRepository {
     }
 
     /**
-     * Creates a new Siri object containing the current Estimated Vehicle Journey (ET) data from the repository.
+     * Creates a new Siri object containing the current Estimated Vehicle Journey data from the repository.
      * This method uses the createSiriEtServiceDelivery helper function to generate a Siri object.
      * @return A Siri object containing the current ET data from the repository, ready to be pushed to subscribers.
      */
@@ -45,7 +45,7 @@ class SiriETRepository {
     }
 
     /**
-     * Generates a unique key for an Estimated Vehicle Journey (ET) based on its datedVehicleJourneyRef value.
+     * Generates a unique key for an Estimated Vehicle Journey based on its datedVehicleJourneyRef value.
      * This method ensures that each ET entry in the repository can be uniquely identified and retrieved.
      * @param element The EstimatedVehicleJourney for which to create a unique key.
      * @return A unique string key derived from the datedVehicleJourneyRef value of the ET element,

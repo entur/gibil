@@ -26,9 +26,7 @@ class StopPlaceApiHandlerTest {
         @Test
         fun `stopPlaceApiUrlBuilder with all valid parameters returns url`() {
             val result = stopPlaceApiHandler.stopPlaceApiUrlBuilder(
-                10,
-                "AIR",
-                "AIRPORT"
+                10
             )
             val expectedUrl =
                 "https://api.entur.io/stop-places/v1/read/stop-places?count=10&transportModes=AIR&stopPlaceTypes=AIRPORT"

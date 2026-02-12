@@ -9,7 +9,6 @@ import java.time.ZonedDateTime
 import org.gibil.AvinorApiConfig
 import model.AvinorXmlFeedParams
 import org.springframework.web.util.UriComponentsBuilder
-import java.net.URI
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.

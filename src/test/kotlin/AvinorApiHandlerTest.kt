@@ -46,6 +46,7 @@ class AvinorApiHandlerTest() {
         }
     }
 
+    @Test
     fun `avinorXmlFeedUrlBuilder constructs correct URL with all parameters`() {
         // Arrange
         val params = AvinorXmlFeedParams(
@@ -82,7 +83,7 @@ class AvinorApiHandlerTest() {
             airportCode = "OSL",
             timeFrom = 1,
             timeTo = 7,
-            direction = "" // Empty direction
+            direction = null
         )
 
         // Act

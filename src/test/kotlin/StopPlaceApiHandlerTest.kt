@@ -1,4 +1,6 @@
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.gibil.routes.api.StopPlaceApiHandler
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.BeforeEach
@@ -60,8 +62,27 @@ class StopPlaceApiHandlerTest {
     @Nested
     inner class FetchAirportStopPlaces {
 
-        fun `fetchAirportStopPlaces returns valid xml`() {
+        @Test
+        fun `fetchAirportStopPlaces should call apiService with correct url and content type`() {
+            val expectedUrl =
+                "https://api.entur.io/stop-places/v1/read/stop-places?count=100&transportModes=AIR&stopPlaceTypes=AIRPORT"
+            val expectedResponse =
+                "<xml>stopPlaces</xml>"
+            every { apiService.apiCall(expectedUrl, "application/xml") } returns expectedResponse
 
+            stopPlaceApiHandler.fetchAirportStopPlaces()
+
+            verify { apiService.apiCall(expectedUrl, "application/xml") }
+        }
+
+        @Test
+        fun `fetchAiportStopPlaces should return valid XML response`() {
+            val expectedResponse = "<xml><stopPlaces><stopPlace>Oslo Lufthavn</stopPlace></stopPlaces></xml></xml>"
+            every { apiService.apiCall(any(), "application/xml") } returns expectedResponse
+
+            val response = stopPlaceApiHandler.fetchAirportStopPlaces()
+
+            assertEquals(expectedResponse, response)
         }
     }
 }

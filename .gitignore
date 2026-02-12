@@ -44,3 +44,4 @@ build/
 /**/src/main/kotlin/filter/input
 /**/src/main/kotlin/filter/output
 /**/src/test/resources/extime/output
+/**/src/test/resources/extime/lineSelectorTestOutput

@@ -92,22 +92,4 @@ class Endpoint(
     }
      */
 
-    @GetMapping("/service-journeys", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun serviceJourneysEndpoint(
-        @RequestParam(required = false) lineIds: Set<String>?
-    ): List<ServiceJourney> {
-
-        val filter = FilterExtimeAndFindServiceJourney()
-
-        val lines = lineIds ?: setOf(
-            "AVI:Line:SK_OSL-BGO",
-            "AVI:Line:DY_OSL-TRD"
-        )
-
-        filter.filterExtimeAndWriteResults(lines)
-
-        val result = filter.findServiceJourney()
-
-        return result
-    }
 }

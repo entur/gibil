@@ -8,7 +8,7 @@ import uk.org.siri.siri21.EstimatedVehicleJourney
 import uk.org.siri.siri21.Siri
 
 /**
- * Repository for managing Estimated Vehicle Journey (ET) data in SIRI format.
+ * Repository for managing Estimated Vehicle Journey data in SIRI format.
  * It allows adding new ET data and retrieving all stored ET data.
  * When new ET data is added, it pushes the updated SIRI data to all subscribers via the SubscriptionManager.
  * The repository uses a simple in-memory map to store the ET data, keyed by a unique identifier derived from the ET data itself.

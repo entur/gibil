@@ -11,6 +11,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
+
+/**
+ * Manages SIRI subscriptions, including adding, terminating, and pushing updates to subscribers.
+ */
 @Repository
 class SubscriptionManager(
     @param:Autowired private val siriETRepository: SiriETRepository,
@@ -20,6 +24,12 @@ class SubscriptionManager(
     private val subscriptionFailCounter: MutableMap<String, Int> = HashMap()
     private val heartbeatExecutors: MutableMap<String, ScheduledExecutorService> = HashMap()
 
+    /**
+     * Pushes SIRI data to all subscribers that are subscribed to the relevant data type.
+     * If a push fails, it increments the failure counter for that subscription and logs a warning.
+     * If the failure counter exceeds a predefined threshold, the subscription is terminated.
+     * @param siri The SIRI data to be pushed to subscribers.
+     */
     fun pushSiriToSubscribers(siri: Siri) {
         LOG.info("Pushing data to {} subscribers.", subscriptions.size)
         if (siri.serviceDelivery.estimatedTimetableDeliveries.isNotEmpty()) {
@@ -44,6 +54,11 @@ class SubscriptionManager(
         }
     }
 
+    /**
+     * Adds a new subscription and initializes a heartbeat for it. It also sends an initial delivery of SIRI data to the subscriber.
+     * If the initial delivery fails, it logs a warning but does not terminate the subscription immediately.
+     * @param subscription The subscription to be added. Based on subscription.kt model.
+     */
     fun addSubscription(subscription: Subscription) {
         LOG.info("Adding subscription: {}", subscription)
         subscriptions[subscription.subscriptionId] = subscription
@@ -61,6 +76,11 @@ class SubscriptionManager(
         LOG.info("Added subscription: {}, now have {} subscriptions", subscription, subscriptions.size)
     }
 
+    /**
+     * Terminates a subscription by its ID, removing it from the active subscriptions and stopping its heartbeat.
+     * It also resets the failure counter for that subscription.
+     * @param subscriptionId The ID of the subscription to be terminated as a string.
+     */
     fun terminateSubscription(subscriptionId: String) {
         subscriptions.remove(subscriptionId)
         subscriptionFailCounter.remove(subscriptionId)
@@ -68,11 +88,23 @@ class SubscriptionManager(
         LOG.info("Subscription terminated: {}", subscriptionId)
     }
 
+    /**
+     * Stops the heartbeat for a given subscription ID by shutting down the associated executor service
+     * and removing it from the map.
+     * @param subscriptionId The ID of the subscription for which to stop the heartbeat as a string.
+     */
     private fun stopHeartbeat(subscriptionId: String) {
         heartbeatExecutors[subscriptionId]?.shutdown()
         heartbeatExecutors.remove(subscriptionId)
     }
 
+    /**
+     * Initializes a heartbeat for a subscription by scheduling a task that periodically
+     * sends a heartbeat message to the subscriber's address.
+     * If the heartbeat fails, it increments the failure counter for that subscription and logs a warning.
+     * If the failure counter exceeds a predefined threshold, the subscription is terminated.
+     * @param subscription The subscription for which to initialize the heartbeat. Based on subscription.kt model
+     */
     private fun initHeartbeat(subscription: Subscription) {
         val heartbeatExecutorService = Executors.newSingleThreadScheduledExecutor()
         heartbeatExecutorService.scheduleAtFixedRate(
@@ -105,11 +137,23 @@ class SubscriptionManager(
         heartbeatExecutors[subscription.subscriptionId] = heartbeatExecutorService
     }
 
+    /**
+     * Increments the failure counter for a given subscription.
+     * This method is called when a push or heartbeat attempt fails.
+     * @param subscription The subscription for which to mark a failure. Based on subscription.kt model.
+     */
     private fun markFailed(subscription: Subscription) {
         val failedCounter = subscriptionFailCounter.getOrDefault(subscription.subscriptionId, 0)
         subscriptionFailCounter[subscription.subscriptionId] = failedCounter + 1
     }
 
+    /**
+     * Checks if a subscription has exceeded the maximum allowed failures.
+     * If the failure counter for the subscription is greater than or equal to the predefined threshold,
+     * this method returns true, indicating that the subscription should be considered failed and potentially terminated.
+     * @param subscription The subscription to check for failure status. Based on subscription.kt model.
+     * @return true if the subscription has failed too many times, false otherwise.
+     */
     private fun hasFailed(subscription: Subscription): Boolean {
         val failedCounter = subscriptionFailCounter.getOrDefault(subscription.subscriptionId, 0)
         return failedCounter >= MAX_FAILED_COUNTER

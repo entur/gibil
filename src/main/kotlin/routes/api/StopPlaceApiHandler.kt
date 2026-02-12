@@ -20,10 +20,10 @@ class StopPlaceApiHandler(private val apiService: ApiService) {
      */
     fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100): String {
         require(stopPlaceCount > 0) { "stopPlaceCount must be positive.(was $stopPlaceCount)" }
-        return UriComponentsBuilder.fromUriString(StopPlaceApiHandlerConfig.BASE_URL_STOP_PLACES)
+        return UriComponentsBuilder.fromUriString(BASE_URL_STOP_PLACES)
             .queryParam("count",stopPlaceCount)
-            .queryParam("transportModes", StopPlaceApiHandlerConfig.TRANSPORT_MODE_AIR)
-            .queryParam("stopPlaceTypes", StopPlaceApiHandlerConfig.STOP_PLACE_TYPE_AIRPORT)
+            .queryParam("transportModes", TRANSPORT_MODE_AIR)
+            .queryParam("stopPlaceTypes", STOP_PLACE_TYPE_AIRPORT)
             .build()
             .toUriString()
     }

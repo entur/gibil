@@ -50,7 +50,7 @@ common:
   initContainers:
     - name: extime-data-fetch
       image: curlimages/curl:latest
-      securityCo  ntext:
+      securityContext:
         allowPrivilegeEscalation: false
         runAsNonRoot: true
         runAsUser: 65534

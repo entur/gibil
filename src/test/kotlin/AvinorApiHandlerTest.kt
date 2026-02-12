@@ -10,6 +10,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.net.URI
 
 class AvinorApiHandlerTest() {
     val spyApiService = SpyApiService()
@@ -43,6 +44,53 @@ class AvinorApiHandlerTest() {
                 }
             }
         }
+    }
+
+    @Test
+    fun `avinorXmlFeedUrlBuilder constructs correct URL with all parameters`() {
+        // Arrange
+        val params = AvinorXmlFeedParams(
+            airportCode = "OSL",
+            timeFrom = 1,
+            timeTo = 7,
+            direction = "D"
+        )
+
+        // Act
+        val resultUrl = apiHandler.avinorXmlFeedUrlBuilder(params)
+
+        // Assert
+        assertNotNull(resultUrl)
+
+        // Verify it is a valid URI
+        assertDoesNotThrow { URI.create(resultUrl) }
+
+        // Verify query parameters exist (order might vary, so checking containment is safer)
+        assertTrue(resultUrl.contains("airport=OSL"), "URL should contain airport param")
+        assertTrue(resultUrl.contains("TimeFrom=1"), "URL should contain TimeFrom param")
+        assertTrue(resultUrl.contains("TimeTo=7"), "URL should contain TimeTo param")
+        assertTrue(resultUrl.contains("direction=D"), "URL should contain direction param")
+    }
+
+    @Test
+    fun `avinorXmlFeedUrlBuilder excludes direction when not provided`() {
+        // Arrange (Assuming params allows null/empty direction or you pass a neutral one)
+        // If your new Model enforces direction logic, use a case where direction is ignored or optional.
+        // Based on your code, it only adds param if direction is "A" or "D".
+        // Let's pass a param that SHOULD be ignored if logic allows, or create a specific case.
+
+        val params = AvinorXmlFeedParams(
+            airportCode = "OSL",
+            timeFrom = 1,
+            timeTo = 7,
+            direction = null
+        )
+
+        // Act
+        val resultUrl = apiHandler.avinorXmlFeedUrlBuilder(params)
+
+        // Assert
+        assertFalse(resultUrl.contains("direction="), "URL should NOT contain direction param for empty input")
     }
 
     @Test

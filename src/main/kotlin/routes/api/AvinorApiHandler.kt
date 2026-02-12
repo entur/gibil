@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
 import org.gibil.AvinorApiConfig
 import model.AvinorXmlFeedParams
+import org.springframework.web.util.UriComponentsBuilder
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
@@ -24,21 +25,21 @@ open class AvinorApiHandler(private val apiService: ApiService) {
      * @param AvinorXmlFeedParams, makes use of [airportCode], [timeFrom], [timeTo], [direction]
      * @return finished AvinorXmlFeed url String
      */
-    open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String = buildString {
-        append(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
-
+    open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String {
         require(airportCodeValidator(params.airportCode)) {
             "Invalid airport code: ${params.airportCode}"
         }
-        append("?airport=${params.airportCode.uppercase()}")
 
-        // Time parameters are validated in AvinorXmlFeedParams init block
-        append("&TimeFrom=${params.timeFrom}")
-        append("&TimeTo=${params.timeTo}")
+        val builder = UriComponentsBuilder.fromUriString(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
+            .queryParam("airport", params.airportCode.uppercase())
+            .queryParam("TimeFrom", params.timeFrom)
+            .queryParam("TimeTo", params.timeTo)
 
         if(params.direction == "A" || params.direction == "D") {
-            append("&direction=${params.direction}")
+            builder.queryParam("direction", params.direction)
         }
+
+        return builder.build().toUriString()
     }
 
 

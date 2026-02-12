@@ -38,7 +38,7 @@ class Logger {
             val randomNumbers = Random.nextInt(100000000, 999999999).toString()
             val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
             val randomFileName = "${date}_${randomNumbers}.txt"
-            val file = File(filePath, randomFileName)
+            val file = File(filePathBase, randomFileName)
             file.writeText(message)
             println("Logged to fallback: ${file.absolutePath}")
         }

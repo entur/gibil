@@ -10,6 +10,7 @@ import org.gibil.service.AirportQuayService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
 import kotlin.test.assertEquals
 
 class AirportQuayServiceTest {
@@ -94,6 +95,36 @@ class AirportQuayServiceTest {
     @Nested
     inner class GetQuayId {
 
+        @BeforeEach
+        fun setUp() {
+            val validXml = "<xml>stopPlaces</xml>"
+            val stopPlaces = StopPlaces()
+            val expectedMap = mapOf(
+                "OSL" to listOf("NSR:Quay:1173"),
+                "BGO" to listOf("NSR:Quay:1213")
+            )
+            every { handler.fetchAirportStopPlaces() } returns validXml
+            every { mapper.unmarhsallStopPlaceXml(validXml)} returns stopPlaces
+            every { mapper.makeIataToQuayMap(stopPlaces) } returns expectedMap
+
+            airportQuayService.refreshQuayMapping()
+        }
+
+        @Test
+        fun `getQuayId returns expected value`() {
+            val resultOSL = airportQuayService.getQuayId("OSL")
+            val resultBGO = airportQuayService.getQuayId("BGO")
+
+            assertEquals("NSR:Quay:1173", resultOSL)
+            assertEquals("NSR:Quay:1213", resultBGO)
+        }
+
+        @Test
+        fun `getQuayId returns null when airport does not have a quay`() {
+            val result = airportQuayService.getQuayId("KRS")
+
+            assertNull(result)
+        }
 
 
     }

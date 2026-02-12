@@ -1,15 +1,14 @@
-package org.gibil
+package service
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.gibil.service.ApiService
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import java.io.File
 import routes.api.AvinorApiHandler
 import routes.api.AvinorXmlFeedParams
-import service.AirportService
+import java.io.File
 import java.util.Collections
 
 /**
@@ -61,7 +60,7 @@ class AirportServiceTest {
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
         // Check that the API was called
-        assertTrue(spyApi.capturedRequests.contains("OSL"), "API should have been called for OSL")
+        Assertions.assertTrue(spyApi.capturedRequests.contains("OSL"), "API should have been called for OSL")
     }
 
     @Test
@@ -80,6 +79,6 @@ class AirportServiceTest {
         service.fetchAndProcessAirports(tempFile.absolutePath)
 
         // API was called
-        assertTrue(spyApi.capturedRequests.contains("BGO"))
+        Assertions.assertTrue(spyApi.capturedRequests.contains("BGO"))
     }
 }

@@ -15,8 +15,27 @@ import kotlin.test.Test
 public class LineSelectorIntegrationTest {
     val pathBase = "src/test/resources/extime/"
     val outputDir = File("$pathBase/lineSelectorTestOutput")
-    val exampleFiles = listOf("AVI_AVI-Line-DY_OSL-BGO_Oslo-Bergen.xml", "AVI_AVI-Line-DY_OSL-TRD_Oslo-Trondheim.xml", "AVI_AVI-Line-SK_OSL-BGO_Oslo-Bergen.xml", "AVI_AVI-Line-SK_OSL-SVG_Oslo-Stavanger.xml", "AVI_AVI-Line-SK_OSL-TRD_Oslo-Trondheim.xml")
-
+    val exampleFiles = listOf(
+        "AVI_AVI-Line-DY_OSL-BGO_Oslo-Bergen.xml",
+        "AVI_AVI-Line-DY_OSL-TRD_Oslo-Trondheim.xml",
+        "AVI_AVI-Line-SK_OSL-BGO_Oslo-Bergen.xml",
+        "AVI_AVI-Line-SK_OSL-SVG_Oslo-Stavanger.xml",
+        "AVI_AVI-Line-SK_OSL-TRD_Oslo-Trondheim.xml")
+    val filesWithoutMatch = listOf(
+        "AVI_AVI-Line-DY_OSL-BGO_Oslo-Bergen.xml",
+        "AVI_AVI-Line-DY_OSL-TRD_Oslo-Trondheim.xml",
+        "AVI_AVI-Line-SK_OSL-BGO_Oslo-Bergen.xml",
+        "AVI_AVI-Line-SK_OSL-TRD_Oslo-Trondheim.xml"
+    )
+    val serviceJourneyTagsExpected = listOf(
+        "<dayTypes>",
+        "<DayTypeRef",
+        "ServiceJourney",
+        "<PublicCode>",
+        "<ArrivalTime>",
+        "<DepartureTime>",
+        "<TimetabledPassingTime"
+    )
 
     @BeforeAll
     fun runFilteringProcess() {
@@ -61,9 +80,8 @@ public class LineSelectorIntegrationTest {
             val outputFile = outputDir.resolve(fileName)
             val content = outputFile.readText()
             //check if all different structural elements are present in the output file
-            assertTrue(content.contains("PublicationDelivery"), "Should preserve frame structure")
-            assertTrue(content.contains("CompositeFrame"), "Should preserve frame structure")
-            assertTrue(content.contains("ServiceFrame"), "Should preserve frame structure")
+            assertTrue(content.contains("PublicationDelivery"), "Should preserve PublicationDelivery, frame structure")
+            assertTrue(content.contains("CompositeFrame"), "Should preserve CompositeFrame, frame structure")
         }
     }
 
@@ -71,9 +89,9 @@ public class LineSelectorIntegrationTest {
     fun `Example file with matched lineid should contain servicejourneys`(){ "AVI:Line:SK_OSL-SVG"
         val outputFile = outputDir.resolve("AVI_AVI-Line-SK_OSL-SVG_Oslo-Stavanger.xml")
         val content = outputFile.readText()
-        //check if all different structural elements are present in the output file
-        assertTrue(content.contains("AVI:Line:SK_OSL-SVG"), "Should contain correct lineid")
-        assertTrue(content.contains("ServiceJourney"), "Should contain servicejourney")
+        serviceJourneyTagsExpected.forEach { tag ->
+            assertTrue(content.contains(tag), "Should contain expected tag: $tag")
+        }
     }
 
     @Test
@@ -88,6 +106,29 @@ public class LineSelectorIntegrationTest {
 
             assertNotNull(doc, "Should be valid XML")
             assertEquals("PublicationDelivery", doc.documentElement.localName)
+        }
+    }
+
+    @Test
+    fun `Example files shouldn't keep prunable elements`(){
+        exampleFiles.forEach { fileName ->
+            val outputFile = outputDir.resolve(fileName)
+            val content = outputFile.readText()
+            val tagsNotExpected = listOf("</PointOnRoute>", "<ServiceFrame", "<validityConditions>", "<validityConditions>", "<codespaces>", )
+            tagsNotExpected.forEach { tag ->
+                assertTrue(!(content.contains(tag)), "Should not contain tag: $tag")
+            }
+        }
+    }
+
+    @Test
+    fun `Example files without matching line shouldn't keep servicejourney elements`(){
+        filesWithoutMatch.forEach { fileName ->
+            val outputFile = outputDir.resolve(fileName)
+            val content = outputFile.readText()
+            serviceJourneyTagsExpected.forEach { tag ->
+                assertTrue(!(content.contains(tag)), "Should not contain tag: $tag")
+            }
         }
     }
 }

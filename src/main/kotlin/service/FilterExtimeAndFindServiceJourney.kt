@@ -35,7 +35,7 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
 
         val filterConfig = FilterConfig(
             entitySelectors = listOf(LineSelector(lineIds)),
-            preserveComments = true,
+            preserveComments = false,
             pruneReferences = true,
             referencesToExcludeFromPruning = setOf(
                 "DayType",
@@ -47,7 +47,11 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             ),
             unreferencedEntitiesToPrune = setOf(
                 "DayTypeAssignment",
-                "JourneyPattern", "Route", "PointOnRoute", "DestinationDisplay"
+                "JourneyPattern",
+                "Route",
+                "PointOnRoute",
+                "DestinationDisplay",
+                "ServiceFrame"
             )
         )
         FilterNetexApp(

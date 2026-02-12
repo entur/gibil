@@ -90,7 +90,6 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
          */
         val frameTypes = setOf(
             "CompositeFrame",
-            "ServiceFrame",
             "TimetableFrame",
             "ResourceFrame",
             "GeneralFrame",
@@ -143,7 +142,9 @@ class LineSelector(private val lineIds: Set<String>) : EntitySelector {
 
         //parenting correction, follow the parenting chain, ensure structure
         entity.parent?.let { parentEntity ->
-            addEntityAndRelated(parentEntity, model, selectionMap, visited)
+            if (parentEntity.type != "ServiceFrame") {
+                addEntityAndRelated(parentEntity, model, selectionMap, visited)
+            }
         }
 
         //follow up the hierarchy: get entities that refer to this entity

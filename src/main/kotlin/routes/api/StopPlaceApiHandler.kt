@@ -4,11 +4,10 @@ import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder
 
-
 @Component
 class StopPlaceApiHandler(private val apiService: ApiService) {
 
-    object StopPlaceApiHandlerConfig {
+    companion object {
         const val BASE_URL_STOP_PLACES = "https://api.entur.io/stop-places/v1/read/stop-places"
         const val TRANSPORT_MODE_AIR = "AIR"
         const val STOP_PLACE_TYPE_AIRPORT = "AIRPORT"

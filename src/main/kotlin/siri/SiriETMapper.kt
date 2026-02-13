@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import filter.LineSelector
-
+import service.FilterExtimeAndFindServiceJourney
 
 
 @Component
@@ -154,7 +154,25 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
-        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-01-${routeCodeId}"
+        try {
+            val filterSearchController = FilterExtimeAndFindServiceJourney()
+            filterSearchController.filterExtimeAndWriteResults(setOf(lineRef.value))
+            val findFlightSequence =
+                filterSearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
+
+            framedVehicleJourneyRef.datedVehicleJourneyRef =
+                if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
+                    findFlightSequence
+                } else {
+                    "FANT IKKE VehicleJourneyRef $VEHICLE_JOURNEY_PREFIX = $findFlightSequence (${VEHICLE_JOURNEY_PREFIX in findFlightSequence}), $flight.flightId = $findFlightSequence (${flight.flightId!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+                }
+        } catch (e: Exception) {
+            println("Error finding VehicleJourneyRef for flight ${flight.flightId}: ${e.message}")
+            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR_FINDING_VEHICLE_JOURNEY_REF"
+        }
+
+
+        //framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-${flightSequence}-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE

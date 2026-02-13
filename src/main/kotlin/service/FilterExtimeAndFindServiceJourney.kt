@@ -11,6 +11,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.gibil.FilterExtimeAFSJ
+import java.time.ZoneId
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
@@ -104,8 +105,14 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
         val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
 
-        //finding all service journeys and searching through them for a match
         val serviceJourneys = findServiceJourney()
+
+        val filename = "${flightCode}_${dateInfo[0].replace(":", "-")}.txt"
+
+        // Write each item on a new line
+        File(filename).writeText(serviceJourneys.joinToString("\n"))
+
+        //finding all service journeys and searching through them for a match
         serviceJourneys.forEach { journey ->
             val dayTypeMatch = journey.dayTypes.any { dayType ->
                 dateInfo[1] in dayType
@@ -135,6 +142,12 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             //parse parameter into a ZonedDateTime object
             val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
 
+            // Norwegian timezone
+            val norwayZone = ZoneId.of("Europe/Oslo")
+
+            // Convert to Norwegian timezone
+            val norwayDateTime = dateTimeWithZone.withZoneSameInstant(norwayZone)
+
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", FilterExtimeAFSJ.LOCALE)
             val formatMonth = DateTimeFormatter.ofPattern("MMM", FilterExtimeAFSJ.LOCALE)
@@ -148,7 +161,9 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
 
             val dayType = "${month}_${dayName}_${day}"
 
-            return listOf(dateTimeWithZone.format(formatFull), dayType)
+            val norwegianDepartureTime = dateTimeWithZone.format(formatFull)
+
+            return listOf(norwegianDepartureTime, dayType)
         } catch (e: Exception) {
             throw IllegalArgumentException("Invalid date-time format: $dateTimeWithZone. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }

@@ -80,6 +80,7 @@ class LoggerTest {
         //check if file exists
         baseDir.listFiles { file -> file.extension.lowercase() == "txt" }?.forEach { logFile ->
             val content = logFile.readText()
+            println("Found file: ${logFile.name}, content: $content")
              if (content.contains(randomMessage)){
                  messageFound = true
              }

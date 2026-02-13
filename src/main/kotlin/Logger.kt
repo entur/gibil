@@ -44,6 +44,8 @@ class Logger {
 
                 val file = File(filePathStandard, "$fileName.txt")
                 file.writeText(message)
+
+                println("Logged to fallback: ${file.absolutePath}")
             } catch (e: Exception) {
                 //if that also fails, rerun with a random filename and base folder
                 println("Error: ${e.message}")

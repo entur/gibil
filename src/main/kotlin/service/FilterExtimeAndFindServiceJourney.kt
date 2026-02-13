@@ -11,13 +11,19 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.gibil.FilterExtimeAFSJ
+import org.gibil.Logger
 import java.time.ZoneId
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
 val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
+val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
 class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
+
+    val serviceJourneyList = findServiceJourney()
+
+
     val pathBase = if (unitTest) {
         "src/test/resources/extime"
     } else {
@@ -87,7 +93,7 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         if (debugPrinting) {
             println("=== Parsing folder ===")
         }
-        val journeysFromFolder = parser.parseFolder("$pathBase/output")
+        val journeysFromFolder = parser.parseFolder("$pathBase/input")
         if (debugPrinting) {
             println("Total: ${journeysFromFolder.size} service journeys\n")
         }
@@ -105,12 +111,15 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
         val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
 
-        val serviceJourneys = findServiceJourney()
+        val serviceJourneys = serviceJourneyList
 
-        val filename = "${flightCode}_${dateInfo[0].replace(":", "-")}.txt"
+        val logger = Logger()
+        val filename = "${flightCode}_${dateInfo[0].replace(":", "-")}"
 
-        // Write each item on a new line
-        File(filename).writeText(serviceJourneys.joinToString("\n"))
+        // Log the service journeys
+        if (loggingEvents) {
+            logger.logMessage(serviceJourneys.joinToString("\n"), filename, "serviceJourneys")
+        }
 
         //finding all service journeys and searching through them for a match
         serviceJourneys.forEach { journey ->
@@ -161,7 +170,7 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
 
             val dayType = "${month}_${dayName}_${day}"
 
-            val norwegianDepartureTime = dateTimeWithZone.format(formatFull)
+            val norwegianDepartureTime = norwayDateTime.format(formatFull)
 
             return listOf(norwegianDepartureTime, dayType)
         } catch (e: Exception) {

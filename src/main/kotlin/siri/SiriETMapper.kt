@@ -17,6 +17,8 @@ import service.FilterExtimeAndFindServiceJourney
 
 @Component
 class SiriETMapper(private val airportQuayService: AirportQuayService) {
+    val filterSearchController = FilterExtimeAndFindServiceJourney()
+
     companion object {
         // Constants for SIRI mapping
         private const val PRODUCER_REF = "AVINOR"
@@ -27,6 +29,8 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         private const val VEHICLE_JOURNEY_PREFIX = "AVI:DatedVehicleJourneyRef:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
     }
+
+
 
     //Create SIRI element, populate header and add EstimatedTimetableDelivery to SIRI response
     fun mapToSiri(
@@ -155,8 +159,8 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
         try {
-            val filterSearchController = FilterExtimeAndFindServiceJourney()
-            filterSearchController.filterExtimeAndWriteResults(setOf(lineRef.value))
+            //val filterSearchController = FilterExtimeAndFindServiceJourney()
+            //filterSearchController.filterExtimeAndWriteResults(setOf(lineRef.value))
             val findFlightSequence =
                 filterSearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
 
@@ -164,7 +168,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                 if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
                     findFlightSequence
                 } else {
-                    "FANT IKKE VehicleJourneyRef $VEHICLE_JOURNEY_PREFIX = $findFlightSequence (${VEHICLE_JOURNEY_PREFIX in findFlightSequence}), $flight.flightId = $findFlightSequence (${flight.flightId!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+                    "FANT IKKE VehicleJourneyRef $flight.flightId = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
                 }
         } catch (e: Exception) {
             println("Error finding VehicleJourneyRef for flight ${flight.flightId}: ${e.message}")

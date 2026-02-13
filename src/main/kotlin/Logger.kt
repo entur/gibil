@@ -19,11 +19,12 @@ class Logger {
      * @return creates a .txt file with the given message in it
      * example usage:
      *     val logger = Logger()
-     *     logger.logMessage("Hello World", "importantLog.txt")
-     *     logger.logMessage("Hello World", "importantLog.txt", "/secrets")
+     *     logger.logMessage("Hello World", "importantLog")
+     *     logger.logMessage("Hello World", "importantLog", "secrets")
      */
     fun logMessage(message: String, fileName: String, folder: String = "general") {
         val filePath = "$filePathBase/$folder"  // Combine base + folder
+        val filePathStandard = "$filePathBase/general"
         val folderFile = File(filePath)
         folderFile.mkdirs()
 
@@ -32,15 +33,24 @@ class Logger {
             file.writeText(message)
 
         } catch (e: Exception){
-            println("Error: ${e.message}")
+            try {
+                //attempts rerun in base folder
+                println("Error: ${e.message}")
 
-            // Fallback to random filename
-            val randomNumbers = Random.nextInt(100000000, 999999999).toString()
-            val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-            val randomFileName = "${date}_${randomNumbers}.txt"
-            val file = File(filePathBase, randomFileName)
-            file.writeText(message)
-            println("Logged to fallback: ${file.absolutePath}")
+                val file = File(filePathStandard, "$fileName.txt")
+                file.writeText(message)
+            } catch (e: Exception) {
+                //if that also fails, rerun with a random filename and base folder
+                println("Error: ${e.message}")
+
+                // Fallback to random filename
+                val randomNumbers = Random.nextInt(100000000, 999999999).toString()
+                val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                val randomFileName = "${date}_${randomNumbers}.txt"
+                val file = File(filePathStandard, randomFileName)
+                file.writeText(message)
+                println("Logged to fallback: ${file.absolutePath}")
+            }
         }
     }
 }

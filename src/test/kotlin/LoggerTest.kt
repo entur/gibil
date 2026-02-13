@@ -42,8 +42,6 @@ class LoggerTest {
         //check text inside file
         val content = outputFile.readText()
         assertTrue(content.contains(randomMessage), "Logfile should contain the logged message")
-
-    //logger.logMessage("Hello World", "importantLog.txt", "/secrets")
     }
 
     @Test

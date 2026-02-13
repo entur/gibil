@@ -57,8 +57,10 @@ class LoggerTest {
         val randomMessage = generateRandomString(50)
         logger.logMessage(randomMessage, "BadFile", ":::___>:>>>;>:_;>_>;>:```^^**^`")
 
+        val logsRoot = File("logs")
+
         // Find any .txt file containing our message
-        val loggedFile = baseDir.walk()
+        val loggedFile = logsRoot.walk()
             .filter { it.extension == "txt" && it.name.contains("BadFile") }
             .firstOrNull { it.readText().contains(randomMessage) }
 

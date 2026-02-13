@@ -1,0 +1,34 @@
+package subscription
+
+import model.avinorApi.Flight
+import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
+
+@Component
+class FlightStateCache {
+
+    private val flightStateMap = ConcurrentHashMap<String, Int>()
+
+    fun hasChanged(flight: Flight): Boolean {
+        val flightId = flight.flightId ?: return false
+        val currentHash = computeFlightHash(flight)
+        val previousHash = flightStateMap.put(flightId, currentHash)
+        return previousHash == null || previousHash != currentHash
+    }
+
+    fun filterChanged(flights: Collection<Flight>): List<Flight> {
+        return flights.filter { hasChanged(it) }
+    }
+
+    private fun computeFlightHash(flight: Flight): Int {
+        return listOf(
+            flight.status?.code,
+            flight.status?.time,
+            flight.departureStatus?.code,
+            flight.departureStatus?.time,
+            flight.arrivalStatus?.code,
+            flight.arrivalStatus?.time,
+            flight.gate,
+        ).hashCode()
+    }
+}

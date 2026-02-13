@@ -17,7 +17,7 @@ import uk.org.siri.siri21.Siri
  */
 @Repository
 class SiriETRepository {
-    protected val siriData: MutableMap<String, EstimatedVehicleJourney> = HashMap()
+    val siriData: MutableMap<String, EstimatedVehicleJourney> = HashMap()
 
     val all: MutableCollection<EstimatedVehicleJourney>
         get() = siriData.values

@@ -1,4 +1,4 @@
-package model.avinorApi
+package model.xmlFeedApi
 
 import jakarta.xml.bind.annotation.XmlAccessType
 import jakarta.xml.bind.annotation.XmlAccessorType

@@ -1,8 +1,8 @@
 package siri
 
-import model.avinorApi.Airport
-import model.avinorApi.Flight
-import model.avinorApi.FlightsContainer
+import model.xmlFeedApi.Airport
+import model.xmlFeedApi.Flight
+import model.xmlFeedApi.FlightsContainer
 import okhttp3.OkHttpClient
 import org.gibil.StopPlaceMapper
 import org.gibil.routes.api.StopPlaceApiHandler

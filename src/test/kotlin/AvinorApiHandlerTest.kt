@@ -14,7 +14,7 @@ import java.net.URI
 
 class AvinorApiHandlerTest() {
     val spyApiService = SpyApiService()
-    val apiHandler = AvinorApiHandler(spyApiService)
+    val apiHandler = AvinorApiHandler(spyApiService).also { it.init() }
     val clock: Clock = Clock.systemUTC()
 
     /**
@@ -35,8 +35,8 @@ class AvinorApiHandlerTest() {
             // Return appropriate response based on which API is being called
             return when {
                 url.contains("airportNames") -> {
-                    // Simulate airport names API response format
-                    """<airportNames><airportName code="$airportCode" name="Airport"/></airportNames>"""
+                    // Return all known airport codes used in tests
+                    """<airportNames><airportName code="OSL" name="Oslo Lufthavn"/><airportName code="BGO" name="Bergen Lufthavn"/></airportNames>"""
                 }
                 else -> {
                     // Default response for other APIs

@@ -1,5 +1,6 @@
 package routes.api
 
+import jakarta.annotation.PostConstruct
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -8,7 +9,11 @@ import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
 import org.gibil.AvinorApiConfig
 import model.AvinorXmlFeedParams
+import model.airportNames.AirportNames
+import org.gibil.AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES
 import org.springframework.web.util.UriComponentsBuilder
+import util.SharedJaxbContext
+import java.io.StringReader
 
 /**
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
@@ -16,8 +21,38 @@ import org.springframework.web.util.UriComponentsBuilder
 @Component
 open class AvinorApiHandler(private val apiService: ApiService) {
 
+    private var airportIATASet = emptySet<String>()
+
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    }
+
+    @PostConstruct
+    internal fun init() {
+        refreshAirportNameSet()
+    }
+
+    /**
+     * Makes call to Avinors airportNames api, unmarshalls XML return into [AirportNames].
+     * Makes set of IATAS in the [airportIATASet]
+     */
+    private fun refreshAirportNameSet() {
+        val xml = apiService.apiCall(BASE_URL_AVINOR_AIRPORT_NAMES) ?: return
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
+        val airportNames = unmarshaller.unmarshal(StringReader(xml)) as AirportNames
+        airportIATASet = airportNames.airportName
+            .mapNotNull { it.code?.uppercase() }
+            .toSet()
+    }
+
+    /**
+     * Validates an airport code against the cached set of known Avinor airport codes.
+     * The set is populated once at startup via [refreshAirportNameSet].
+     * @param airportCode String, a three letter IATA airport code
+     * @return true if the airport code exists in Avinor's system
+     */
+    private fun airportCodeValidator(airportCode: String): Boolean {
+        return airportCode.uppercase() in airportIATASet
     }
 
     /**
@@ -40,32 +75,6 @@ open class AvinorApiHandler(private val apiService: ApiService) {
         }
 
         return builder.build().toUriString()
-    }
-
-
-    /**
-     * Uses airportNames api from avinor to check if the airportcode is in their db, and thus valid for their main api-call
-     *  expected response from this api being used, when OSL is the param:
-     *  <airportNames>
-     *      <airportName code="OSL" name="Oslo"/>
-     *  </airportNames>
-     *  @param airportCodeParam a three letter string of the airportcode
-     *  @return returns a true if the airportcode is found in the api-call, returns a false if it isn't
-     */
-    private fun airportCodeValidator(airportCode: String): Boolean {
-
-        if(airportCode.length != 3) return false
-
-        val upperCode = airportCode.uppercase()
-        val url = "${AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES}?airport=${upperCode}"
-
-        //calls the api
-        val response = apiService.apiCall(url)
-
-        //a snippet of what's expected in the api-response
-        val expectedInResponse = "code=\"${upperCode}\""
-
-        return response != null && expectedInResponse in response
     }
 
     /**

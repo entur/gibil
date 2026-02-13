@@ -1,6 +1,6 @@
 package handler
 
-import model.avinorApi.Airport
+import model.xmlFeedApi.Airport
 import org.springframework.stereotype.Component
 import util.SharedJaxbContext
 import java.io.StringReader

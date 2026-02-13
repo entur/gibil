@@ -1,8 +1,8 @@
 package siri
 
 import util.AirportSizeClassification.orderAirportBySize
-import model.avinorApi.Airport
-import model.avinorApi.Flight
+import model.xmlFeedApi.Airport
+import model.xmlFeedApi.Flight
 import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
@@ -11,8 +11,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
-import filter.LineSelector
-
 
 
 @Component

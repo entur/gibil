@@ -1,7 +1,7 @@
 package org.gibil
 
 import handler.AvinorScheduleXmlHandler
-import model.avinorApi.Airport
+import model.xmlFeedApi.Airport
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows

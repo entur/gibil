@@ -20,10 +20,6 @@ val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
 val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
 class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
-
-    val serviceJourneyList = findServiceJourney()
-
-
     val pathBase = if (unitTest) {
         "src/test/resources/extime"
     } else {
@@ -32,6 +28,20 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             "/app"
         } else {
             "src/main/kotlin/filter"
+        }
+    }
+    val serviceJourneyList = findServiceJourney()
+
+    init {
+        // This runs after the class is constructed
+        logServiceJourneys()
+    }
+
+    fun logServiceJourneys() {
+        val logger = Logger()
+        serviceJourneyList.forEach { journey ->
+            val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_')}_${journey.serviceJourneyId.replace(':', '_')}"
+            logger.logMessage(journey.toString(), filename, "serviceJourneys")
         }
     }
 
@@ -116,10 +126,12 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         val logger = Logger()
         val filename = "${flightCode}_${dateInfo[0].replace(":", "-")}"
 
+
+        /*
         // Log the service journeys
         if (loggingEvents) {
             logger.logMessage(serviceJourneys.joinToString("\n"), filename, "serviceJourneys")
-        }
+        }*/
 
         //finding all service journeys and searching through them for a match
         serviceJourneys.forEach { journey ->

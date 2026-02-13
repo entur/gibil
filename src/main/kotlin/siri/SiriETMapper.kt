@@ -13,11 +13,12 @@ import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import filter.LineSelector
 import service.FilterExtimeAndFindServiceJourney
+import java.util.Objects.isNull
 
 
 @Component
 class SiriETMapper(private val airportQuayService: AirportQuayService) {
-    val filterSearchController = FilterExtimeAndFindServiceJourney()
+    private val filterSearchController = FilterExtimeAndFindServiceJourney()
 
     companion object {
         // Constants for SIRI mapping
@@ -161,6 +162,10 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         try {
             //val filterSearchController = FilterExtimeAndFindServiceJourney()
             //filterSearchController.filterExtimeAndWriteResults(setOf(lineRef.value))
+            if (isNull(flight.scheduledDepartureTime) || isNull(flight.flightId)) {
+                framedVehicleJourneyRef.datedVehicleJourneyRef = "Missing required flight data for VehicleJourneyRef: scheduledDepartureTime=${flight.scheduledDepartureTime}, flightId=${flight.flightId}"
+            } else{
+
             val findFlightSequence =
                 filterSearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
 
@@ -170,9 +175,10 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                 } else {
                     "FANT IKKE VehicleJourneyRef $flight.flightId = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
                 }
+            }
         } catch (e: Exception) {
             println("Error finding VehicleJourneyRef for flight ${flight.flightId}: ${e.message}")
-            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR_FINDING_VEHICLE_JOURNEY_REF"
+            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR_FINDING_VEHICLE_JOURNEY_REF ${flight.flightId}: ${e.message}"
         }
 
 

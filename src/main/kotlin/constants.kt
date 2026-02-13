@@ -39,7 +39,7 @@ object LineSelector {
 object FilterExtimeAFSJ {
     val DEBUG_PRINTING_FEAFSJ = false
     val LOCALE = Locale.ENGLISH
-    val LOGGING_EVENTS_FEAFSJ = false
+    val LOGGING_EVENTS_FEAFSJ = true
 }
 
 object ServiceJourneyModel {

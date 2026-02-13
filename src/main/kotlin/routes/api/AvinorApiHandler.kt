@@ -28,7 +28,7 @@ open class AvinorApiHandler(private val apiService: ApiService) {
     }
 
     @PostConstruct
-    private fun init() {
+    internal fun init() {
         refreshAirportNameSet()
     }
 

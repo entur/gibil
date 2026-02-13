@@ -2,7 +2,7 @@ name: Build, push, and deploy
 on:
   push:
     branches:
-      - main
+      - httpHelper-fixed
   pull_request:
     branches:
       - main
@@ -54,7 +54,7 @@ jobs:
     uses: entur/gha-docker/.github/workflows/lint.yml@v1
 
   docker-build:
-    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/httpHelper-fixed'
     needs: [maven-verify, Docker-Lint]
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
 import java.util.concurrent.TimeUnit
+import kotlin.code
 
 /**
  * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.
@@ -56,9 +57,6 @@ class HttpHelper(
         }
 
         return try {
-            val body = xmlData?.toRequestBody(XML_MEDIA_TYPE)
-                ?: "".toRequestBody(XML_MEDIA_TYPE)
-
             val requestBuilder = Request.Builder()
                 .url(url)
 
@@ -66,18 +64,25 @@ class HttpHelper(
                 val body = xmlData.toRequestBody(XML_MEDIA_TYPE)
                 requestBuilder.post(body)
             } else {
-                // Send a POST request without a body when xmlData is null
-                requestBuilder.method("POST", null)
+                // If no XML data, don't send the request
+                logger.warn("No XML data provided, skipping POST to {}", url)
+                return -1
             }
 
             val request = requestBuilder.build()
 
             httpClient.newCall(request).execute().use { response ->
-                logger.info("POST request completed with response {}", response.code)
+                if (!response.isSuccessful) {
+                    val errorBody = response.body?.string() ?: "No error body"
+                    logger.error("POST request to {} failed with code {}. Error body: {}", url, response.code, errorBody)
+                } else {
+                    logger.info("POST request to {} completed with response {}", url, response.code)
+                }
                 response.code
             }
+
         } catch (e: Exception) {
-            logger.error("POST request failed", e)
+            logger.error("POST request failed: {}", e.message, e)
             -1
         }
     }

@@ -24,6 +24,7 @@ class HttpHelper(
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
         .writeTimeout(5, TimeUnit.SECONDS)
+        .callTimeout(30, TimeUnit.SECONDS)
         .build()
 
     companion object {
@@ -58,17 +59,25 @@ class HttpHelper(
             val body = xmlData?.toRequestBody(XML_MEDIA_TYPE)
                 ?: "".toRequestBody(XML_MEDIA_TYPE)
 
-            val request = Request.Builder()
+            val requestBuilder = Request.Builder()
                 .url(url)
-                .post(body)
-                .build()
+
+            if (xmlData != null) {
+                val body = xmlData.toRequestBody(XML_MEDIA_TYPE)
+                requestBuilder.post(body)
+            } else {
+                // Send a POST request without a body when xmlData is null
+                requestBuilder.method("POST", null)
+            }
+
+            val request = requestBuilder.build()
 
             httpClient.newCall(request).execute().use { response ->
                 logger.info("POST request completed with response {}", response.code)
                 response.code
             }
         } catch (e: Exception) {
-            logger.error("POST request failed: ${e.message}")
+            logger.error("POST request failed", e)
             -1
         }
     }

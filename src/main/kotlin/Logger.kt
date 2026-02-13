@@ -26,9 +26,14 @@ class Logger {
         val filePath = "$filePathBase/$folder"  // Combine base + folder
         val filePathStandard = "$filePathBase/general"
         val folderFile = File(filePath)
-        folderFile.mkdirs()
+
+        if (!(File(filePathStandard).exists() && File(filePathStandard).isDirectory)){
+            // Ensure the base "general" folder exists
+            File(filePathStandard).mkdirs()
+        }
 
         try {
+            folderFile.mkdirs()
             val file = File(filePath, "$fileName.txt")
             file.writeText(message)
 

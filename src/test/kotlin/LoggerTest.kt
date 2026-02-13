@@ -1,17 +1,9 @@
 package org.gibil
 
-import filter.LineSelector
-import org.entur.netex.tools.cli.app.FilterNetexApp
-import org.entur.netex.tools.lib.config.CliConfig
-import org.entur.netex.tools.lib.config.FilterConfig
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.TestInstance
+
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.random.Random
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class LoggerTest {

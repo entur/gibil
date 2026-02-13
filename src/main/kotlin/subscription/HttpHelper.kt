@@ -1,17 +1,17 @@
 package subscription
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
-import io.ktor.http.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
+import java.util.concurrent.TimeUnit
 
 /**
  * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.
- * It uses Ktor's HttpClient with the CIO engine to perform HTTP operations.
+ * It uses OkHttp3 HttpClient to perform HTTP operations.
  */
 @Component
 class HttpHelper(
@@ -20,12 +20,14 @@ class HttpHelper(
     private val logger = LoggerFactory.getLogger(HttpHelper::class.java)
     val publisher = SiriETPublisher()
 
-    private val httpClient = HttpClient(CIO) {
-        install(HttpTimeout) {
-            connectTimeoutMillis = CONN_TIMEOUT
-            requestTimeoutMillis = CONN_TIMEOUT
-            socketTimeoutMillis = SOCKET_TIMEOUT
-        }
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(5, TimeUnit.SECONDS)
+        .build()
+
+    companion object {
+        private val XML_MEDIA_TYPE = "application/xml; charset=utf-8".toMediaType()
     }
 
     /**
@@ -35,7 +37,7 @@ class HttpHelper(
      * @param requestorRef The reference identifier for the requester, used in the heartbeat notification.
      * @return The HTTP status code of the response, or -1 if the request fails
      */
-    suspend fun postHeartbeat(address: String, requestorRef: String): Int {
+    fun postHeartbeat(address: String, requestorRef: String): Int {
         val siri = SiriHelper.createHeartbeatNotification(requestorRef)
         return postData(address, publisher.toXml(siri))
     }
@@ -47,20 +49,24 @@ class HttpHelper(
      * @param xmlData The XML data to be included in the body of the POST request. If null, no body will be sent.
      * @return The HTTP status code of the response, or -1 if the request fails
      */
-    suspend fun postData(url: String, xmlData: String?): Int {
+    fun postData(url: String, xmlData: String?): Int {
         if (verbose && xmlData != null) {
             logger.info(xmlData)
         }
 
         return try {
-            val response = httpClient.post(url) {
-                if (xmlData != null) {
-                    contentType(ContentType.Application.Xml)
-                    setBody(xmlData)
-                }
+            val body = xmlData?.toRequestBody(XML_MEDIA_TYPE)
+                ?: "".toRequestBody(XML_MEDIA_TYPE)
+
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .build()
+
+            httpClient.newCall(request).execute().use { response ->
+                logger.info("POST request completed with response {}", response.code)
+                response.code
             }
-            logger.info("POST request completed with response {}", response.status.value)
-            response.status.value
         } catch (e: Exception) {
             logger.error("POST request failed: ${e.message}")
             -1
@@ -72,11 +78,6 @@ class HttpHelper(
      * This should be called when the HttpHelper is no longer needed to ensure proper cleanup.
      */
     fun close() {
-        httpClient.close()
-    }
-
-    companion object {
-        private const val SOCKET_TIMEOUT = 5000L
-        private const val CONN_TIMEOUT = 10000L
+        httpClient.connectionPool.evictAll()
     }
 }

@@ -21,7 +21,7 @@ import java.io.StringReader
 @Component
 open class AvinorApiHandler(private val apiService: ApiService) {
 
-    private var airportNameSet = emptySet<String>()
+    private var airportIATASet = emptySet<String>()
 
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -32,11 +32,15 @@ open class AvinorApiHandler(private val apiService: ApiService) {
         refreshAirportNameSet()
     }
 
+    /**
+     * Makes call to Avinors airportNames api, unmarshalls XML return into [AirportNames].
+     * Makes set of IATAS in the [airportIATASet]
+     */
     private fun refreshAirportNameSet() {
         val xml = apiService.apiCall(BASE_URL_AVINOR_AIRPORT_NAMES) ?: return
         val unmarshaller = SharedJaxbContext.createUnmarshaller()
         val airportNames = unmarshaller.unmarshal(StringReader(xml)) as AirportNames
-        airportNameSet = airportNames.airportName
+        airportIATASet = airportNames.airportName
             .mapNotNull { it.code?.uppercase() }
             .toSet()
     }
@@ -48,7 +52,7 @@ open class AvinorApiHandler(private val apiService: ApiService) {
      * @return true if the airport code exists in Avinor's system
      */
     private fun airportCodeValidator(airportCode: String): Boolean {
-        return airportCode.uppercase() in airportNameSet
+        return airportCode.uppercase() in airportIATASet
     }
 
     /**

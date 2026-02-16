@@ -18,6 +18,7 @@ class SiriEndpointTest {
     @BeforeEach
     fun setup(){
         subscriptionManager = mockk(relaxed = false)
+        endpoint = SiriEndpoint(subscriptionManager)
     }
 
     @Test

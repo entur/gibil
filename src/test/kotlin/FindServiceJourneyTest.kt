@@ -54,4 +54,12 @@ public class FindServiceJourneyTest {
         val outputFile = baseDir.resolve("SK4011_Mar_Mon_30__SK4011-01-358551288.txt")
         assertTrue(outputFile.exists(), "Output file should exist")
     }
+
+    @Test
+    fun `FormatDateTimeZoneToTime should return correct formats`() {
+        val formattedDates = service.formatDateTimeZoneToTime(exampleFlightSasSVG[0])
+
+        assertTrue(formattedDates[0] == "08:00:00", "First returned item in list should be HH:mm:ss")
+        assertTrue(formattedDates[1] == "May_Tue_05", "Second returned item in list should be english MMM_E_dd format")
+    }
 }

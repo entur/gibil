@@ -15,7 +15,7 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
 val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
 val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
-class FindServiceJourney(val unitTest: Boolean = false) {
+class FindServiceJourney(unitTest: Boolean = false) {
     val pathBase = if (unitTest) {
         "src/test/resources/extimeData"
     } else {
@@ -68,7 +68,7 @@ class FindServiceJourney(val unitTest: Boolean = false) {
         if (debugPrinting) {
             println("=== Parsing folder $pathBase ===")
         }
-        val journeysFromFolder = parser.parseFolder("$pathBase")
+        val journeysFromFolder = parser.parseFolder(pathBase)
         if (debugPrinting) {
             println("Total: ${journeysFromFolder.size} service journeys\n")
         }
@@ -101,7 +101,7 @@ class FindServiceJourney(val unitTest: Boolean = false) {
                 return journey.serviceJourneyId
             } else {
                 if (debugPrinting) {
-                    println("${journey.departureTime} == ${dateInfo[0]} (${journey.departureTime == dateInfo[0]}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == ${flightCode} (${journey.publicCode == flightCode})")
+                    println("${journey.departureTime} == ${dateInfo[0]} (${journey.departureTime == dateInfo[0]}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == $flightCode (${journey.publicCode == flightCode})")
                 }
             }
         }

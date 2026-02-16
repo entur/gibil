@@ -134,8 +134,8 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         //Set lineRef
         val lineRef = LineRef()
-        val route = routeBuilder(requestingAirportCode, flight)
-        lineRef.value = "$LINE_PREFIX$route"
+        val orderedRoute = routeBuilder(requestingAirportCode, flight, true)
+        lineRef.value = "$LINE_PREFIX$orderedRoute"
         estimatedVehicleJourney.lineRef = lineRef
 
         //Set directionRef - for merged flights, check if departure airport matches context
@@ -155,9 +155,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         val fullRoute = routeBuilder(requestingAirportCode, flight, false)
         val routeCodeId = fullRoute.idHash(10)
-
-        //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
-        // The sequence comes from a hash map and is difficult to replicate
 
         val logger = Logger()
 
@@ -200,8 +197,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE
-        //TODO! Find out what to do with ExtraJourney
-        //estimatedVehicleJourney.extraJourney(false)
         estimatedVehicleJourney.isCancellation
 
         val operatorRef = OperatorRefStructure()
@@ -389,28 +384,30 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
     }
 
     /**
-     * Function that builds the routes used for LineRef and DatedVehicleJourneyRef
-     * Can be ordered by size priority or not depending on usecase
+     * Function that builds the routes used for LineRef made from the depature and arrival airports,
+     * and DatedVehicleJourneyRef made out of fullRoute of departure, arrival and [viaAirports] list.
+     * Can be ordered by size priority, if ordered by size it returns only departure and arrival meant for use in LineRef.
+     * Full route with viaAirport cannot be ordered by size.
      *
-     * @param requestingAirportCode String. The airport code used in the API call
-     * @param flight Flight. The specified flight that is routed to. Provides airline and depature/arriving airport
-     * @param wantOrdered Boolean. Specifies if you want the route ordered by size priority, default value false
-     * @return String. Route code, "airline_firstAirport-SecondAirport" either ordered by largest first or requestingAirportCode first depends on param choice.
+     * @param requestingIATACode String. The airport IATA code used in the API call
+     * @param flight Flight. The specified flight that is routed to. Provides airline, [departureAirport] [arrivingAirport] and [viaAirports] list.
+     * @param wantOrdered Boolean. Specifies if you want the route ordered by size priority
+     * @return String. Route code, "airline_depAirport-viaAirports-arrAirport" either ordered by largest first or requestingAirportCode. viaAirports only added if unordered.
      *
      */
      private fun routeBuilder(
-        requestingAirportCode: String,
+        requestingIATACode: String,
         flight: Flight,
-        wantOrdered: Boolean = true
+        wantOrdered: Boolean
      ): String {
 
         val airline = flight.airline
 
         // For merged flights, use departureAirport/arrivalAirport; otherwise use original fields
         val depAirport = flight.departureAirport
-            ?: if (flight.isDeparture()) requestingAirportCode else flight.airport
+            ?: if (flight.isDeparture()) requestingIATACode else flight.airport
         val arrAirport = flight.arrivalAirport
-            ?: if (flight.isArrival()) requestingAirportCode else flight.airport
+            ?: if (flight.isArrival()) requestingIATACode else flight.airport
 
         val allAirports = if(!wantOrdered && flight.viaAirports.isNotEmpty()) {
             listOfNotNull(depAirport) + flight.viaAirports + listOfNotNull(arrAirport)

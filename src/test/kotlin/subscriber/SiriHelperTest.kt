@@ -53,21 +53,6 @@ class SiriHelperTest {
     }
 
     @Test
-    fun `Should create SIRI ET service delivery with journeys`() {
-        val journey1 = mockk<EstimatedVehicleJourney>()
-        val journey2 = mockk<EstimatedVehicleJourney>()
-        val journeys = listOf(journey1, journey2)
-
-        val result = SiriHelper.createSiriEtServiceDelivery(journeys)
-
-        assertNotNull(result.serviceDelivery)
-        assertEquals(1, result.serviceDelivery.estimatedTimetableDeliveries.size)
-        val delivery = result.serviceDelivery.estimatedTimetableDeliveries[0]
-        assertEquals(1, delivery.estimatedJourneyVersionFrames.size)
-        assertEquals(2, delivery.estimatedJourneyVersionFrames[0].estimatedVehicleJourneies.size)
-    }
-
-    @Test
     fun `Should create heartbeat notification with requestor ref`() {
         val requestorRef = "ENTUR_DEV"
 

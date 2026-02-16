@@ -153,8 +153,8 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
 
-        val orderedRoute = routeBuilder(requestingAirportCode, flight, true)
-        val routeCodeId = orderedRoute.idHash(10)
+        val fullRoute = routeBuilder(requestingAirportCode, flight, false)
+        val routeCodeId = fullRoute.idHash(10)
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
@@ -412,7 +412,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         val arrAirport = flight.arrivalAirport
             ?: if (flight.isArrival()) requestingAirportCode else flight.airport
 
-        val allAirports = if(!wantOrdered && !flight.viaAirports.isNotEmpty()) {
+        val allAirports = if(!wantOrdered && flight.viaAirports.isNotEmpty()) {
             listOfNotNull(depAirport) + flight.viaAirports + listOfNotNull(arrAirport)
         } else {
             listOfNotNull(depAirport) + listOfNotNull(arrAirport)

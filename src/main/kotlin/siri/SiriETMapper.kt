@@ -11,10 +11,15 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
+import filter.LineSelector
+import service.FilterExtimeAndFindServiceJourney
+import java.util.Objects.isNull
 
 
 @Component
 class SiriETMapper(private val airportQuayService: AirportQuayService) {
+    private val filterSearchController = FilterExtimeAndFindServiceJourney()
+
     companion object {
         // Constants for SIRI mapping
         private const val PRODUCER_REF = "AVINOR"
@@ -152,7 +157,30 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
-        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-01-${routeCodeId}"
+        try {
+            //val filterSearchController = FilterExtimeAndFindServiceJourney()
+            //filterSearchController.filterExtimeAndWriteResults(setOf(lineRef.value))
+            if (isNull(flight.scheduledDepartureTime) || isNull(flight.flightId)) {
+                framedVehicleJourneyRef.datedVehicleJourneyRef = "Missing required flight data for VehicleJourneyRef: scheduledDepartureTime=${flight.scheduledDepartureTime}, flightId=${flight.flightId}"
+            } else{
+
+            val findFlightSequence =
+                filterSearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
+
+            framedVehicleJourneyRef.datedVehicleJourneyRef =
+                if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
+                    findFlightSequence
+                } else {
+                    "FANT IKKE VehicleJourneyRef $flight.flightId = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+                }
+            }
+        } catch (e: Exception) {
+            println("Error finding VehicleJourneyRef for flight ${flight.flightId}: ${e.message}")
+            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR_FINDING_VEHICLE_JOURNEY_REF ${flight.flightId}: ${e.message}"
+        }
+
+
+        //framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-${flightSequence}-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE

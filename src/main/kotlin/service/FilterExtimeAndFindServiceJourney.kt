@@ -11,10 +11,13 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.gibil.FilterExtimeAFSJ
+import org.gibil.Logger
+import java.time.ZoneId
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
 val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
+val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
 class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
     val pathBase = if (unitTest) {
@@ -25,6 +28,20 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             "/app"
         } else {
             "src/main/kotlin/filter"
+        }
+    }
+    val serviceJourneyList = findServiceJourney()
+
+    init {
+        // This runs after the class is constructed
+        logServiceJourneys()
+    }
+
+    fun logServiceJourneys() {
+        val logger = Logger()
+        serviceJourneyList.forEach { journey ->
+            val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_')}_${journey.serviceJourneyId.replace(':', '_')}"
+            logger.logMessage(journey.toString(), filename, "serviceJourneys")
         }
     }
 
@@ -86,7 +103,7 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         if (debugPrinting) {
             println("=== Parsing folder ===")
         }
-        val journeysFromFolder = parser.parseFolder("$pathBase/output")
+        val journeysFromFolder = parser.parseFolder("$pathBase/input")
         if (debugPrinting) {
             println("Total: ${journeysFromFolder.size} service journeys\n")
         }
@@ -104,8 +121,19 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
         val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
 
+        val serviceJourneys = serviceJourneyList
+
+        val logger = Logger()
+        val filename = "${flightCode}_${dateInfo[0].replace(":", "-")}"
+
+
+        /*
+        // Log the service journeys
+        if (loggingEvents) {
+            logger.logMessage(serviceJourneys.joinToString("\n"), filename, "serviceJourneys")
+        }*/
+
         //finding all service journeys and searching through them for a match
-        val serviceJourneys = findServiceJourney()
         serviceJourneys.forEach { journey ->
             val dayTypeMatch = journey.dayTypes.any { dayType ->
                 dateInfo[1] in dayType
@@ -135,6 +163,12 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
             //parse parameter into a ZonedDateTime object
             val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
 
+            // Norwegian timezone
+            val norwayZone = ZoneId.of("Europe/Oslo")
+
+            // Convert to Norwegian timezone
+            val norwayDateTime = dateTimeWithZone.withZoneSameInstant(norwayZone)
+
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", FilterExtimeAFSJ.LOCALE)
             val formatMonth = DateTimeFormatter.ofPattern("MMM", FilterExtimeAFSJ.LOCALE)
@@ -148,7 +182,9 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
 
             val dayType = "${month}_${dayName}_${day}"
 
-            return listOf(dateTimeWithZone.format(formatFull), dayType)
+            val norwegianDepartureTime = norwayDateTime.format(formatFull)
+
+            return listOf(norwegianDepartureTime, dayType)
         } catch (e: Exception) {
             throw IllegalArgumentException("Invalid date-time format: $dateTimeWithZone. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }

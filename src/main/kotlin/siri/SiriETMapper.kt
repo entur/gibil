@@ -383,6 +383,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         return airportQuayService.getQuayId(airportCode) ?: "$STOP_POINT_REF_PREFIX${airportCode}"
     }
 
+    //TODO WHEN MULTI-LEG IS FULLY IMPLEMENTED MAKE SURE THE ROUTES STAY CORRECTED
     /**
      * Function that builds the routes used for LineRef made from the depature and arrival airports,
      * and DatedVehicleJourneyRef made out of fullRoute of departure, arrival and [viaAirports] list.

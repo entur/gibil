@@ -3,6 +3,7 @@ package siri
 import util.AirportSizeClassification.orderAirportBySize
 import model.avinorApi.Airport
 import model.avinorApi.Flight
+import org.gibil.Logger
 import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
@@ -11,14 +12,14 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
-import filter.LineSelector
-import service.FilterExtimeAndFindServiceJourney
+import service.FindServiceJourney
 import java.util.Objects.isNull
+import org.gibil.Dates
 
 
 @Component
 class SiriETMapper(private val airportQuayService: AirportQuayService) {
-    private val filterSearchController = FilterExtimeAndFindServiceJourney()
+    private val filterSearchController = FindServiceJourney()
 
     companion object {
         // Constants for SIRI mapping
@@ -159,26 +160,41 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
         // The sequence comes from a hash map and is difficult to replicate
+
+        val logger = Logger()
+
+        //datevehiclejourneyref fetching and evaluation
         try {
-            //val filterSearchController = FilterExtimeAndFindServiceJourney()
-            //filterSearchController.filterExtimeAndWriteResults(setOf(lineRef.value))
+            // Check for null values before calling matchServiceJourney
             if (isNull(flight.scheduledDepartureTime) || isNull(flight.flightId)) {
                 framedVehicleJourneyRef.datedVehicleJourneyRef = "Missing required flight data for VehicleJourneyRef: scheduledDepartureTime=${flight.scheduledDepartureTime}, flightId=${flight.flightId}"
             } else{
 
+            //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
+                //if none is found an exception will be thrown, which is caught in the catch
             val findFlightSequence =
                 filterSearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
 
-            framedVehicleJourneyRef.datedVehicleJourneyRef =
-                if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
-                    findFlightSequence
-                } else {
-                    "FANT IKKE VehicleJourneyRef $flight.flightId = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
-                }
+            //a match was found
+            if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
+                //match was validated by routecode and flightId
+                framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
+            } else {
+                //match was not validated
+                framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: ${flight.flightId.toString()} = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+
+                //log the failed match attempt
+                logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
+            }
             }
         } catch (e: Exception) {
-            println("Error finding VehicleJourneyRef for flight ${flight.flightId}: ${e.message}")
-            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR_FINDING_VEHICLE_JOURNEY_REF ${flight.flightId}: ${e.message}"
+            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR finding VJR-ID or no match found ${flight.flightId.toString()}: ${e.message}"
+
+            // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
+            println(framedVehicleJourneyRef.datedVehicleJourneyRef)
+
+            //log the failed match attempt
+            logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
         }
 
 

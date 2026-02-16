@@ -1,11 +1,14 @@
 package org.gibil
 
 import java.util.Locale
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * Project-wide constants.
  * You can define top-level constants using `const val` or group them in an object.
  */
+
 
 //AirportService
 const val BATCH_SIZE = 5
@@ -39,10 +42,16 @@ object LineSelector {
 object FilterExtimeAFSJ {
     val DEBUG_PRINTING_FEAFSJ = false
     val LOCALE = Locale.ENGLISH
-    val LOGGING_EVENTS_FEAFSJ = true
+    val LOGGING_EVENTS_FEAFSJ = false
 }
 
 object ServiceJourneyModel {
     const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
     val DEBUG_PRINTING_SJM = false
+}
+
+object Dates {
+    //current date
+    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+    val CURRENT_DATE = LocalDate.now().format(formatter)
 }

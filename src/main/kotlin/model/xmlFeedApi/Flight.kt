@@ -33,6 +33,9 @@ class Flight {
     @XmlElement(name = "via_airport")
     var viaAirport: String? = null
 
+    val viaAirports: List<String>
+        get() = viaAirport?.split(",")?.map { it.trim() } ?: emptyList()
+
     @XmlElement(name = "check_in")
     var checkIn: String? = null
 

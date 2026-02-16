@@ -26,18 +26,21 @@ class FindServiceJourney(val unitTest: Boolean = false) {
             "src/main/resources/extimeData"
         }
     }
-    val serviceJourneyList = findServiceJourney()
 
     init {
-        // This runs after the class is constructed
-        if (loggingEvents) {
-            logServiceJourneys()
-        }
+        //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
         if (pathBase == "src/main/resources/extimeData") {
             val zipHandling = ZipHandling()
             zipHandling.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData")
         }
+
+        // This runs after the class is constructed
+        if (loggingEvents) {
+            logServiceJourneys()
+        }
     }
+
+    val serviceJourneyList = findServiceJourney()
 
     fun logServiceJourneys() {
         val logger = Logger()

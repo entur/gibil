@@ -37,51 +37,44 @@ class AirportSizeClassificationTest {
 
         @Test
         fun `should return requesting airport first when it is larger`() {
-            val result = AirportSizeClassification.orderAirportBySize("OSL", "BGO")
+            val result = AirportSizeClassification.orderAirportsBySize(listOf("OSL", "BGO"))
 
-            assertEquals("OSL" to "BGO", result)
+            assertEquals(listOf("OSL", "BGO"), result)
         }
 
         @Test
         fun `should return flight airport first when it is larger`() {
-            val result = AirportSizeClassification.orderAirportBySize("BGO", "OSL")
+            val result = AirportSizeClassification.orderAirportsBySize(listOf("BGO", "OSL"))
 
-            assertEquals("OSL" to "BGO", result)
+            assertEquals(listOf("OSL", "BGO"), result)
         }
 
         @Test
         fun `should return requesting airport first when both are same size`() {
-            val result = AirportSizeClassification.orderAirportBySize("BGO", "SVG")
+            val result = AirportSizeClassification.orderAirportsBySize(listOf("BGO", "SVG"))
 
-            assertEquals("BGO" to "SVG", result)
-        }
-
-        @Test
-        fun `should return requesting airport first when both are large`() {
-            val result = AirportSizeClassification.orderAirportBySize("OSL", "OSL")
-
-            assertEquals("OSL" to "OSL", result)
+            assertEquals(listOf("BGO", "SVG"), result)
         }
 
         @Test
         fun `should return requesting airport first when both are small`() {
-            val result = AirportSizeClassification.orderAirportBySize("AES", "TOS")
+            val result = AirportSizeClassification.orderAirportsBySize(listOf("AES", "TOS"))
 
-            assertEquals("AES" to "TOS", result)
+            assertEquals(listOf("AES", "TOS"), result)
         }
 
         @Test
         fun `should handle medium airport larger than small airport`() {
-            val result = AirportSizeClassification.orderAirportBySize("AES", "BGO")
+            val result = AirportSizeClassification.orderAirportsBySize(listOf("AES", "BGO"))
 
-            assertEquals("BGO" to "AES", result)
+            assertEquals(listOf("BGO", "AES"), result)
         }
 
         @Test
         fun `should handle large airport with small airport`() {
-            val result = AirportSizeClassification.orderAirportBySize("AES", "OSL")
+            val result = AirportSizeClassification.orderAirportsBySize(listOf("AES", "OSL"))
 
-            assertEquals("OSL" to "AES", result)
+            assertEquals(listOf("OSL", "AES"), result)
         }
     }
 }

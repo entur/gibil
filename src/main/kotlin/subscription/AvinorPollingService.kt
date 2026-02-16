@@ -15,12 +15,13 @@ class AvinorPollingService(
 ) {
     private val logger = LoggerFactory.getLogger(AvinorPollingService::class.java)
 
-    @Scheduled(fixedRate = 120000, initialDelay = 5000)
+    @Scheduled(fixedRate = 120000, initialDelay = 360000)
     fun pollAndPushUpdates() {
         logger.info("Starting Avinor data poll cycle")
 
         try {
             val allFlights = flightAggregationService.fetchAndMergeAllFlights()
+            logger.info("Avinor data size: ${allFlights.size}")
             val changedFlights = flightStateCache.filterChanged(allFlights.values)
 
             if (changedFlights.isNotEmpty()) {

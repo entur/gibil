@@ -1,17 +1,13 @@
 package service
 
-import org.entur.netex.tools.cli.app.FilterNetexApp
-import org.entur.netex.tools.lib.config.CliConfig
-import org.entur.netex.tools.lib.config.FilterConfig
 import java.io.File
-import filter.LineSelector
 import model.serviceJourney.ServiceJourney
 import model.serviceJourney.ServiceJourneyParser
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import org.gibil.FilterExtimeAFSJ
 import org.gibil.Logger
+import org.gibil.util.ZipHandling
 import java.time.ZoneId
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
@@ -19,7 +15,7 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
 val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
 val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
-class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
+class FindServiceJourney(val unitTest: Boolean = false) {
     val pathBase = if (unitTest) {
         "src/test/resources/extime"
     } else {
@@ -27,64 +23,30 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         if (File("/app").exists()) {
             "/app"
         } else {
-            "src/main/kotlin/filter"
+            "src/main/resources/extimeData"
         }
     }
-    val serviceJourneyList = findServiceJourney()
 
     init {
+        //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
+        if (pathBase == "src/main/resources/extimeData") {
+            val zipHandling = ZipHandling()
+            zipHandling.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData")
+        }
+
         // This runs after the class is constructed
-        logServiceJourneys()
+        if (loggingEvents) {
+            logServiceJourneys()
+        }
     }
+
+    val serviceJourneyList = findServiceJourney()
 
     fun logServiceJourneys() {
         val logger = Logger()
         serviceJourneyList.forEach { journey ->
             val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_')}_${journey.serviceJourneyId.replace(':', '_')}"
             logger.logMessage(journey.toString(), filename, "serviceJourneys")
-        }
-    }
-
-    /**
-     * Initializes the filter that filters through extime files to only include the lines we need, and writes the results to a specified output folder.
-     * @param lineIds A set of strings representing the line IDs to filter for (e.g., "AVI:Line:SK_OSL-BGO", "AVI:Line:WF_BGO-EVE").
-     * @return nothing, but it creates filtered XML files in the specified output folder.
-     */
-    fun filterExtimeAndWriteResults(lineIds: Set<String>) {
-        if (debugPrinting){
-            println("Filtering for lines: $lineIds\n")
-        }
-
-        val filterConfig = FilterConfig(
-            entitySelectors = listOf(LineSelector(lineIds)),
-            preserveComments = false,
-            pruneReferences = true,
-            referencesToExcludeFromPruning = setOf(
-                "DayType",
-                "DayTypeAssignment",
-                "DayTypeRef",
-                "TimetabledPassingTime",
-                "passingTimes",
-                "StopPointInJourneyPatternRef"
-            ),
-            unreferencedEntitiesToPrune = setOf(
-                "DayTypeAssignment",
-                "JourneyPattern",
-                "Route",
-                "PointOnRoute",
-                "DestinationDisplay",
-                "ServiceFrame"
-            )
-        )
-        FilterNetexApp(
-            cliConfig = CliConfig(alias = mapOf()),
-            filterConfig = filterConfig,
-            input = File("$pathBase/input"),
-            target = File("$pathBase/output")
-        ).run()
-
-        if (debugPrinting) {
-            println("\n=== FILTERING FERDIG ===")
         }
     }
 
@@ -103,7 +65,7 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         if (debugPrinting) {
             println("=== Parsing folder ===")
         }
-        val journeysFromFolder = parser.parseFolder("$pathBase/input")
+        val journeysFromFolder = parser.parseFolder("$pathBase")
         if (debugPrinting) {
             println("Total: ${journeysFromFolder.size} service journeys\n")
         }
@@ -122,16 +84,6 @@ class FilterExtimeAndFindServiceJourney(val unitTest: Boolean = false) {
         val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
 
         val serviceJourneys = serviceJourneyList
-
-        val logger = Logger()
-        val filename = "${flightCode}_${dateInfo[0].replace(":", "-")}"
-
-
-        /*
-        // Log the service journeys
-        if (loggingEvents) {
-            logger.logMessage(serviceJourneys.joinToString("\n"), filename, "serviceJourneys")
-        }*/
 
         //finding all service journeys and searching through them for a match
         serviceJourneys.forEach { journey ->

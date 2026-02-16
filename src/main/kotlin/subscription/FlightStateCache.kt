@@ -20,6 +20,14 @@ class FlightStateCache {
         return flights.filter { hasChanged(it) }
     }
 
+    fun populateCache(flights: Collection<Flight>) {
+        flights.forEach { flight ->
+            val flightId = flight.flightId ?: return@forEach
+            flightStateMap[flightId] = computeFlightHash(flight)
+
+        }
+    }
+
     private fun computeFlightHash(flight: Flight): Int {
         return listOf(
             flight.status?.code,

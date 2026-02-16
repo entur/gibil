@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit
 class SubscriptionManager(
     @param:Autowired private val httpHelper: HttpHelper,
     @param:Autowired private val siriETMapper: SiriETMapper,
-    @param:Autowired private val flightAggregationService: FlightAggregationService
+    @param:Autowired private val flightAggregationService: FlightAggregationService,
+    @param:Autowired private val flightStateCache: FlightStateCache
 ) {
     private val subscriptions: MutableMap<String, Subscription> = HashMap()
     private val subscriptionFailCounter: MutableMap<String, Int> = HashMap()
@@ -69,6 +70,7 @@ class SubscriptionManager(
         val initialDelivery: Siri? = when (subscription.subscriptionType) {
             SiriDataType.ESTIMATED_TIMETABLE -> {
                 val initialData = flightAggregationService.fetchAndMergeAllFlights()
+                flightStateCache.populateCache(initialData.values)
                 siriETMapper.mapMergedFlightsToSiri(initialData.values)
             }
         }

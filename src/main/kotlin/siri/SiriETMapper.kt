@@ -1,11 +1,11 @@
 package siri
 
-import util.AirportSizeClassification.orderAirportBySize
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
+import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -368,13 +368,19 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         val arrAirport = flight.arrivalAirport
             ?: if (flight.isArrival()) requestingAirportCode else flight.airport
 
-        val(firstAirport, secondAirport) = if(wantOrdered) {
-            orderAirportBySize(depAirport.toString(), arrAirport.toString())
+        val allAirports = if(!wantOrdered && !flight.viaAirports.isNotEmpty()) {
+            listOfNotNull(depAirport) + flight.viaAirports + listOfNotNull(arrAirport)
         } else {
-            depAirport.toString() to arrAirport.toString()
+            listOfNotNull(depAirport) + listOfNotNull(arrAirport)
         }
 
-        return "${airline}_${firstAirport}-${secondAirport}"
+        val orderedAirports = if (wantOrdered) {
+            orderAirportsBySize(allAirports)
+        } else {
+            allAirports
+        }
+
+        return "${airline}_${orderedAirports.joinToString("-")}"
     }
 
     /**

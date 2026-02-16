@@ -11,7 +11,6 @@ class AvinorPollingService(
     private val flightAggregationService: FlightAggregationService,
     private val flightStateCache: FlightStateCache,
     private val siriETMapper: SiriETMapper,
-    private val siriETRepository: SiriETRepository,
     private val subscriptionManager: SubscriptionManager
 ) {
     private val logger = LoggerFactory.getLogger(AvinorPollingService::class.java)
@@ -28,13 +27,6 @@ class AvinorPollingService(
                 logger.info("Detected ${changedFlights.size} changed flights")
 
                 val siri = siriETMapper.mapMergedFlightsToSiri(changedFlights)
-
-                // Update repository and push to subscribers
-                siri.serviceDelivery?.estimatedTimetableDeliveries?.firstOrNull()
-                    ?.estimatedJourneyVersionFrames?.firstOrNull()
-                    ?.estimatedVehicleJourneies?.forEach { evj ->
-                        siriETRepository.siriData[evj.datedVehicleJourneyRef?.value ?: return@forEach] = evj
-                    }
 
                 subscriptionManager.pushSiriToSubscribers(siri)
             } else {

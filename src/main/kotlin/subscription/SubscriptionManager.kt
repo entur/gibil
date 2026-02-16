@@ -7,18 +7,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import uk.org.siri.siri21.Siri
 import kotlinx.coroutines.runBlocking
+import service.FlightAggregationService
+import siri.SiriETMapper
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-
 
 /**
  * Manages SIRI subscriptions, including adding, terminating, and pushing updates to subscribers.
  */
 @Repository
 class SubscriptionManager(
-    @param:Autowired private val siriETRepository: SiriETRepository,
-    @param:Autowired private val httpHelper: HttpHelper
+    @param:Autowired private val httpHelper: HttpHelper,
+    @param:Autowired private val siriETMapper: SiriETMapper,
+    @param:Autowired private val flightAggregationService: FlightAggregationService
 ) {
     private val subscriptions: MutableMap<String, Subscription> = HashMap()
     private val subscriptionFailCounter: MutableMap<String, Int> = HashMap()
@@ -65,7 +67,10 @@ class SubscriptionManager(
         initHeartbeat(subscription)
 
         val initialDelivery: Siri? = when (subscription.subscriptionType) {
-            SiriDataType.ESTIMATED_TIMETABLE -> SiriHelper.createSiriEtServiceDelivery(siriETRepository.all)
+            SiriDataType.ESTIMATED_TIMETABLE -> {
+                val initialData = flightAggregationService.fetchAndMergeAllFlights()
+                siriETMapper.mapMergedFlightsToSiri(initialData.values)
+            }
         }
 
         try {

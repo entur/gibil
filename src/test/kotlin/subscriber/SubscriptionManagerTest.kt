@@ -18,13 +18,15 @@ class SubscriptionManagerTest {
     private lateinit var httpHelper: HttpHelper
     private lateinit var siriETMapper: SiriETMapper
     private lateinit var flightAggregationService: FlightAggregationService
+    private lateinit var flightStateCache: FlightStateCache
 
     @BeforeEach
     fun setup() {
         httpHelper = mockk()
         siriETMapper = mockk()
         flightAggregationService = mockk()
-        subscriptionManager = SubscriptionManager(httpHelper, siriETMapper, flightAggregationService)
+        flightStateCache = mockk(relaxed = true)
+        subscriptionManager = SubscriptionManager(httpHelper, siriETMapper, flightAggregationService, flightStateCache)
     }
 
     @Test

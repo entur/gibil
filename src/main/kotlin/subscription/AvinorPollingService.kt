@@ -18,13 +18,15 @@ class AvinorPollingService(
     @Scheduled(fixedRate = 120000, initialDelay = 420000)
     fun pollAndPushUpdates() {
         logger.info("Starting Avinor data poll cycle")
+        logger.info("Starting poll cycle. Cache size: {}", flightStateCache.getCacheSize())
 
         try {
             val allFlights = flightAggregationService.fetchAndMergeAllFlights()
+            logger.info("Fetched {} flights", allFlights.size)
             val changedFlights = flightStateCache.filterChanged(allFlights.values)
 
             if (changedFlights.isNotEmpty()) {
-                logger.info("Detected ${changedFlights.size} changed flights")
+                logger.info("Detected {} changed flights out of {}", changedFlights.size, allFlights.size)
 
                 val siri = siriETMapper.mapMergedFlightsToSiri(changedFlights)
 

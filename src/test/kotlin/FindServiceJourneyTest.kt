@@ -7,17 +7,15 @@ import service.ServiceJourneyNotFoundException
 import java.io.File
 import kotlin.test.Test
 
-public class FindServiceJourneyTest {
+class FindServiceJourneyTest {
     val service = FindServiceJourney(true)
     //correct information
     val exampleFlightSasSVG = listOf("2026-05-05T06:00:00Z", "SK4011")
     val exampleFlightNorwegian = listOf("2026-03-02T17:25:00Z", "DY628")
-    val exampleFlightSasTRD = listOf("2026-05-10T18:55:00Z", "SK349")
-    val exampleLines = setOf("AVI:Line:DY_OSL-BGO", "AVI:Line:SK_OSL-SVG", "AVI:Line:SK_OSL-TRD")
+    //val exampleFlightSasTRD = listOf("2026-05-10T18:55:00Z", "SK349")
 
     //wrong information
     val exampleNanFlightcode = listOf("2026-03-05T08:00:00Z", "Flyet mitt er ikke gult")
-
     val exampleNanDate = "imorgen klokka 12"
 
     @Test

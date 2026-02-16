@@ -37,4 +37,8 @@ object AirportSizeClassification {
             flight to requestingAirportCode
         }
     }
+
+    fun orderAirportsBySize(airports: List<String>): List<String> {
+        return airports.sortedByDescending { getSizePriority(it) }
+    }
 }

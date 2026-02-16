@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
 import java.util.concurrent.TimeUnit
-import kotlin.code
 
 /**
  * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.

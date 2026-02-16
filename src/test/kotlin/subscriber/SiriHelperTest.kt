@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.*
 import subscription.SiriDataType
 import subscription.SiriHelper
 import uk.org.siri.siri21.*
-import io.mockk.mockk
 
 class SiriHelperTest {
 

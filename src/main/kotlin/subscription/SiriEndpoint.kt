@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.org.siri.siri21.EstimatedVehicleJourney
 import uk.org.siri.siri21.Siri
 import java.time.Duration
 

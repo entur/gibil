@@ -170,22 +170,22 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                 framedVehicleJourneyRef.datedVehicleJourneyRef = "Missing required flight data for VehicleJourneyRef: scheduledDepartureTime=${flight.scheduledDepartureTime}, flightId=${flight.flightId}"
             } else{
 
-            //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
-                //if none is found an exception will be thrown, which is caught in the catch
-            val findFlightSequence =
-                ServiceJourneySearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
+                //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
+                    //if none is found an exception will be thrown, which is caught in the catch
+                val findFlightSequence =
+                    ServiceJourneySearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
 
-            //a match was found
-            if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
-                //match was validated by routecode and flightId
-                framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
-            } else {
-                //match was not validated
-                framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: ${flight.flightId.toString()} = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+                //a match was found
+                if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
+                    //match was validated by routecode and flightId
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
+                } else {
+                    //match was not validated
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: ${flight.flightId.toString()} = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
 
-                //log the failed match attempt
-                logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
-            }
+                    //log the failed match attempt
+                    logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
+                }
             }
         } catch (e: Exception) {
             framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR finding VJR-ID or no match found ${flight.flightId.toString()}: ${e.message}"

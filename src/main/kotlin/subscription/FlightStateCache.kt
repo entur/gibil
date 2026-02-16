@@ -12,14 +12,13 @@ class FlightStateCache {
     private val logger = LoggerFactory.getLogger(FlightStateCache::class.java)
 
     fun hasChanged(flight: Flight): Boolean {
-        val flightId = flight.flightId ?: return false
         val currentHash = computeFlightHash(flight)
-        val previousHash = flightStateMap.put(flightId, currentHash)
+        val previousHash = flightStateMap.put(flight.uniqueID, currentHash)
         val changed = previousHash == null || previousHash != currentHash
 
         if (changed){
             logger.debug("Flight {} changed: previousHash={}, currentHash={}",
-                flightId, previousHash, currentHash)
+                flight.uniqueID, previousHash, currentHash)
         }
         return changed
     }
@@ -31,8 +30,7 @@ class FlightStateCache {
     fun populateCache(flights: Collection<Flight>) {
         logger.info("Populating cache with {} flights", flights.size)
         flights.forEach { flight ->
-            val flightId = flight.flightId ?: return@forEach
-            flightStateMap[flightId] = computeFlightHash(flight)
+            flightStateMap[flight.uniqueID] = computeFlightHash(flight)
         }
         logger.info("Cache now contains {} entries", flightStateMap.size)
     }

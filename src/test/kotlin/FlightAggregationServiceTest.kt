@@ -1,12 +1,12 @@
-package service
+package org.gibil
 
 import handler.AvinorScheduleXmlHandler
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import model.avinorApi.Airport
-import model.avinorApi.Flight
-import model.avinorApi.FlightStatus
-import model.avinorApi.FlightsContainer
+import model.xmlFeedApi.Airport
+import model.xmlFeedApi.Flight
+import model.xmlFeedApi.FlightStatus
+import model.xmlFeedApi.FlightsContainer
 import model.AvinorXmlFeedParams
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.AfterEach
@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import service.FlightAggregationService
 
 class FlightAggregationServiceTest {
 
@@ -180,7 +181,7 @@ class FlightAggregationServiceTest {
         }
 
         @Test
-        fun  `should handle API errors gracefully`() = runBlocking {
+        fun `should handle API errors gracefully`() = runBlocking {
             every { avinorApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
             every { apiService.apiCall(any()) } returns "Error: API unavailable"
             mockAirportsList(listOf("OSL"))
@@ -258,5 +259,4 @@ class FlightAggregationServiceTest {
         } returns airportsText.byteInputStream()
     }
 }
-
 

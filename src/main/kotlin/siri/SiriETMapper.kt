@@ -412,8 +412,11 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         val arrAirport = flight.arrivalAirport
             ?: if (flight.isArrival()) requestingAirportCode else flight.airport
 
-        val allAirports = if(!wantOrdered && flight.viaAirports.isNotEmpty()) {
-            listOfNotNull(depAirport) + flight.viaAirports + listOfNotNull(arrAirport)
+        //TODO POTENTIALLY TOO STRICT FILTERING IF AIRPORTS ARE MUTLTIPLE TIMES IN VIA_AIRPORT
+        val viaFiltered = flight.viaAirports.filter { it != depAirport && it != arrAirport }
+
+        val allAirports = if(!wantOrdered && viaFiltered.isNotEmpty()) {
+            listOfNotNull(depAirport) + viaFiltered + listOfNotNull(arrAirport)
         } else {
             listOfNotNull(depAirport) + listOfNotNull(arrAirport)
         }

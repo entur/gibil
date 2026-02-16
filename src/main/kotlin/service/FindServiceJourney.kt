@@ -17,7 +17,7 @@ val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
 class FindServiceJourney(val unitTest: Boolean = false) {
     val pathBase = if (unitTest) {
-        "src/test/resources/extime"
+        "src/test/resources/extimeData"
     } else {
         // Check if /app exists, otherwise use local path
         if (File("/app").exists()) {
@@ -42,10 +42,13 @@ class FindServiceJourney(val unitTest: Boolean = false) {
 
     val serviceJourneyList = findServiceJourney()
 
+    /**
+     * logs all servicejourneys in serviceJourneyList to individual .txt files in the logs/serviceJourneys folder, with the filename format: "publicCode_dayType_serviceJourneyId.txt"
+     */
     fun logServiceJourneys() {
         val logger = Logger()
         serviceJourneyList.forEach { journey ->
-            val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_')}_${journey.serviceJourneyId.replace(':', '_')}"
+            val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_').takeLast(10)}_${journey.serviceJourneyId.replace(':', '_').removePrefix("AVI_ServiceJourney")}"
             logger.logMessage(journey.toString(), filename, "serviceJourneys")
         }
     }
@@ -63,7 +66,7 @@ class FindServiceJourney(val unitTest: Boolean = false) {
     fun findServiceJourney(): List<ServiceJourney> {
         val parser = ServiceJourneyParser()
         if (debugPrinting) {
-            println("=== Parsing folder ===")
+            println("=== Parsing folder $pathBase ===")
         }
         val journeysFromFolder = parser.parseFolder("$pathBase")
         if (debugPrinting) {

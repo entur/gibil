@@ -19,7 +19,6 @@
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <start-class>org.gibil.MainKt</start-class>
         <sonar.organization>enturas-github</sonar.organization>
-        <ktor.version>3.3.3</ktor.version>
     </properties>
 
     <repositories>
@@ -86,16 +85,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-core-jvm</artifactId>
-            <version>${ktor.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-cio-jvm</artifactId>
-            <version>${ktor.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.entur.ror</groupId>
             <artifactId>netex-tools-lib</artifactId>
             <version>0.0.37</version>
@@ -133,6 +122,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
                 <executions>
                     <execution>
                         <id>compile</id>

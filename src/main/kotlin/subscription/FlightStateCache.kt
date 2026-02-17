@@ -1,6 +1,6 @@
 package subscription
 
-import model.avinorApi.Flight
+import model.xmlFeedApi.Flight
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap

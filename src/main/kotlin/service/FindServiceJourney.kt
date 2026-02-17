@@ -7,7 +7,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import org.gibil.FilterExtimeAFSJ
 import org.gibil.Logger
-import org.gibil.util.ZipHandling
+import org.gibil.service.ApiService
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
+import org.gibil.util.ZipUtil
 import java.time.ZoneId
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
@@ -15,23 +18,18 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
 val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
 val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
-class FindServiceJourney(unitTest: Boolean = false) {
-    val pathBase = if (unitTest) {
-        "src/test/resources/extimeData"
-    } else {
-        // Check if /app exists, otherwise use local path
-        if (File("/app").exists()) {
-            "/app"
-        } else {
-            "src/main/resources/extimeData"
-        }
-    }
+@Component
+class FindServiceJourney(
+    private val apiService: ApiService,
+    @Value("\${gibil.extime.path:#{null}}") private val configuredPath: String?
+) {
+    val pathBase = configuredPath ?: if (File("/app").exists()) "/app" else "src/main/resources/extimeData"
 
     init {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
         if (pathBase == "src/main/resources/extimeData") {
-            val zipHandling = ZipHandling()
-            zipHandling.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData")
+
+            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData", apiService)
         }
 
         // This runs after the class is constructed

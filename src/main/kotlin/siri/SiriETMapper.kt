@@ -18,8 +18,10 @@ import org.gibil.Dates
 
 
 @Component
-class SiriETMapper(private val airportQuayService: AirportQuayService) {
-    private val serviceJourneySearchController = FindServiceJourney()
+class SiriETMapper(
+    private val airportQuayService: AirportQuayService,
+    private val findServiceJourney: FindServiceJourney
+) {
 
     companion object {
         // Constants for SIRI mapping
@@ -31,8 +33,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         private const val VEHICLE_JOURNEY_PREFIX = "AVI:DatedVehicleJourneyRef:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
     }
-
-
 
     //Create SIRI element, populate header and add EstimatedTimetableDelivery to SIRI response
     fun mapToSiri(
@@ -169,7 +169,8 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
                 //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
                     //if none is found an exception will be thrown, which is caught in the catch
-                val findFlightSequence = serviceJourneySearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
+                val findFlightSequence =
+                    findServiceJourney.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
 
                 //a match was found
                 if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {

@@ -17,6 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <kotlin.version>2.2.21</kotlin.version>
         <start-class>org.gibil.MainKt</start-class>
         <sonar.organization>enturas-github</sonar.organization>
     </properties>

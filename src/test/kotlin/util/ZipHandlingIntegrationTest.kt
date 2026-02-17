@@ -59,7 +59,7 @@ class ZipHandlingIntegrationTest {
         val outputDir = tempDir.resolve("output").toString()
 
         // Test malformed URL
-        assertDoesNotThrow {
+        Assertions.assertThrows(ZipHandlingFailure::class.java) {
             zipHandling.downloadAndUnzip("not-a-valid-url", outputDir)
         }
     }
@@ -73,7 +73,7 @@ class ZipHandlingIntegrationTest {
         val fileUrl = "file:///${corruptedZip.toString().replace("\\", "/")}"
 
         // Should handle error gracefully
-        assertDoesNotThrow {
+        Assertions.assertThrows(ZipHandlingFailure::class.java) {
             zipHandling.downloadAndUnzip(fileUrl, outputDir)
         }
     }

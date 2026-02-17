@@ -158,9 +158,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         val orderedRoute = routeBuilder(requestingAirportCode, flight, true)
         val routeCodeId = orderedRoute.idHash(10)
 
-        //TODO! flightSequence is hardcoded "-01-" for testing. Needs to follow timetable version in extime
-        // The sequence comes from a hash map and is difficult to replicate
-
         val logger = Logger()
 
         //datevehiclejourneyref fetching and evaluation

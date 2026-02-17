@@ -12,7 +12,7 @@ open class AirportQuayService(private val handler: StopPlaceApiHandler, private 
 
 
     @PostConstruct
-    fun init() {
+    internal fun init() {
         refreshQuayMapping()
     }
 

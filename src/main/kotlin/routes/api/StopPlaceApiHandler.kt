@@ -2,27 +2,30 @@ package org.gibil.routes.api
 
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
+import org.springframework.web.util.UriComponentsBuilder
 
 @Component
 class StopPlaceApiHandler(private val apiService: ApiService) {
 
-    object StopPlaceApiHandlerConfig {
+    companion object {
         const val BASE_URL_STOP_PLACES = "https://api.entur.io/stop-places/v1/read/stop-places"
+        const val TRANSPORT_MODE_AIR = "AIR"
+        const val STOP_PLACE_TYPE_AIRPORT = "AIRPORT"
     }
 
     /**
-     * Builds url used for StopPlaces [API] from Entur, defaults to 100 airports,
-     * [AIR] transportModes, [AIRPORT] stop place type. Other functions must be expanded to use other modes
-     * @param stopPlaceCount Int, [transportModes] String, [stopPlaceTypes] String
-     * @return String, built url
+     * Builds the URL for the StopPlaces API call with the specified parameters.
+     * @param stopPlaceCount The number of stop places to retrieve, default is 100. If a non-positive number is provided, it defaults to 100.
+     * @return A String representing the complete URL for the API call with query parameters.
      */
-    fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100, transportModes: String = "AIR", stopPlaceTypes: String = "AIRPORT"): String = buildString {
-        append(StopPlaceApiHandlerConfig.BASE_URL_STOP_PLACES)
-        if(stopPlaceCount > 0){
-            append("?count=$stopPlaceCount")
-        }
-        append("&transportModes=$transportModes")
-        append("&stopPlaceTypes=$stopPlaceTypes")
+    fun stopPlaceApiUrlBuilder(stopPlaceCount: Int = 100): String {
+        require(stopPlaceCount > 0) { "stopPlaceCount must be positive.(was $stopPlaceCount)" }
+        return UriComponentsBuilder.fromUriString(BASE_URL_STOP_PLACES)
+            .queryParam("count",stopPlaceCount)
+            .queryParam("transportModes", TRANSPORT_MODE_AIR)
+            .queryParam("stopPlaceTypes", STOP_PLACE_TYPE_AIRPORT)
+            .build()
+            .toUriString()
     }
 
     /**

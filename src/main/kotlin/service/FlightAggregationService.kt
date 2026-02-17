@@ -8,7 +8,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import model.avinorApi.Flight
+import model.xmlFeedApi.Flight
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
 import org.gibil.service.ApiService

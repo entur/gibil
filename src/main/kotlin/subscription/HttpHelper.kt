@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
  */
 @Component
 class HttpHelper(
-    private val verbose: Boolean = true
 ) {
     private val logger = LoggerFactory.getLogger(HttpHelper::class.java)
     val publisher = SiriETPublisher()
@@ -51,9 +50,6 @@ class HttpHelper(
      * @return The HTTP status code of the response, or -1 if the request fails
      */
     fun postData(url: String, xmlData: String?): Int {
-        //if (verbose && xmlData != null) {
-        //    logger.info(xmlData)
-        //}
 
         return try {
             val requestBuilder = Request.Builder()

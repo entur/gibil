@@ -35,6 +35,16 @@ class FlightStateCache {
         logger.info("Cache now contains {} entries", flightStateMap.size)
     }
 
+    fun cleanCache(currentFlightIds: Set<String>){
+        val beforeSize = flightStateMap.size
+        flightStateMap.keys.retainAll(currentFlightIds)
+        val removed = beforeSize - flightStateMap.size
+        if (removed > 0) {
+            logger.info("Cleaned cache: removed {} entries, current size {}", removed, flightStateMap.size)
+        }
+
+    }
+
     fun getCacheSize(): Int = flightStateMap.size
 
     private fun computeFlightHash(flight: Flight): Int {

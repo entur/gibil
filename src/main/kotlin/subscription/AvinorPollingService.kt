@@ -23,6 +23,7 @@ class AvinorPollingService(
         try {
             val allFlights = flightAggregationService.fetchAndMergeAllFlights()
             logger.info("Fetched {} flights", allFlights.size)
+            flightStateCache.cleanCache(allFlights.keys)
             val changedFlights = flightStateCache.filterChanged(allFlights.values)
 
             if (changedFlights.isNotEmpty()) {

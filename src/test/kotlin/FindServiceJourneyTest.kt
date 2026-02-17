@@ -20,12 +20,11 @@ class FindServiceJourneyTest {
 
     @Test
     fun `FindServiceJourney should find service journey match to example flights`() {
-        val foundMatch = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1])
-        val foundMatch3 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1])
+        val foundMatch1 = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1])
+        val foundMatch2 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1])
 
-        println(foundMatch)
-        assertTrue { "SK4011-01-358551288" in foundMatch }
-        assertTrue { "DY628-01-523288933" in foundMatch3 }
+        assertTrue { "SK4011-01-358551288" in foundMatch1 }
+        assertTrue { "DY628-01-523288933" in foundMatch2 }
     }
 
     @Test

@@ -19,7 +19,7 @@ import org.gibil.Dates
 
 @Component
 class SiriETMapper(private val airportQuayService: AirportQuayService) {
-    private val ServiceJourneySearchController = FindServiceJourney()
+    private val serviceJourneySearchController = FindServiceJourney()
 
     companion object {
         // Constants for SIRI mapping
@@ -169,8 +169,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
                 //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
                     //if none is found an exception will be thrown, which is caught in the catch
-                val findFlightSequence =
-                    ServiceJourneySearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
+                val findFlightSequence = serviceJourneySearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
 
                 //a match was found
                 if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
@@ -178,7 +177,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
                     framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
                 } else {
                     //match was not validated
-                    framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: ${flight.flightId.toString()} = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: ${flight.flightId.toString()} = $findFlightSequence (${flight.flightId.toString() in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
 
                     //log the failed match attempt
                     logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
@@ -194,8 +193,6 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
             logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
         }
 
-
-        //framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-${flightSequence}-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE

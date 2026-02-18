@@ -161,38 +161,6 @@ class SiriETMapper(
         val logger = Logger()
 
         //datevehiclejourneyref fetching and evaluation
-        try {
-            // Check for null values before calling matchServiceJourney
-            if (isNull(flight.scheduledDepartureTime) || isNull(flight.flightId)) {
-                framedVehicleJourneyRef.datedVehicleJourneyRef = "Missing required flight data for VehicleJourneyRef: scheduledDepartureTime=${flight.scheduledDepartureTime}, flightId=${flight.flightId}"
-            } else{
-
-            //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
-                //if none is found an exception will be thrown, which is caught in the catch
-            val findFlightSequence =
-                ServiceJourneySearchController.matchServiceJourney(flight.scheduledDepartureTime!!, flight.flightId!!)
-
-            //a match was found
-            if (flight.flightId!! in findFlightSequence && routeCodeId in findFlightSequence) {
-                //match was validated by routecode and flightId
-                framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
-            } else {
-                //match was not validated
-                framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: ${flight.flightId.toString()} = $findFlightSequence (${flight.flightId.toString()!! in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
-
-                //log the failed match attempt
-                logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
-            }
-            }
-        } catch (e: Exception) {
-            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR finding VJR-ID or no match found ${flight.flightId.toString()}: ${e.message}"
-
-            // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
-            println(framedVehicleJourneyRef.datedVehicleJourneyRef)
-
-        val logger = Logger()
-
-        //datevehiclejourneyref fetching and evaluation
         val flightId = flight.flightId
         val scheduledDepartureTime = flight.scheduledDepartureTime
         try {
@@ -471,5 +439,5 @@ class SiriETMapper(
         val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
         return abs(hashcode).toString().take(length)
     }
-
+        
 }

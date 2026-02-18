@@ -69,6 +69,7 @@ common:
           mkdir -p /app/logs/general
           mkdir -p /app/logs/secrets
           mkdir -p /app/logs/serviceJourneys
+          chmod -R 777 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
     - name: extime-data-fetch

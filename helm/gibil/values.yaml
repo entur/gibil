@@ -9,6 +9,8 @@ common:
     imagePullPolicy: Always
     cpu: 2
     memory: 2560
+    securityContext:
+      fsGroup: 1000
     volumeMounts:
       - name: extime-data
         mountPath: /app/extimeData
@@ -50,17 +52,11 @@ common:
   initContainers:
     - name: create-log-dirs
       image: busybox:latest
-      securityContext:
-        allowPrivilegeEscalation: false
-        runAsNonRoot: true
-        runAsUser: 65534
-        capabilities:
-          drop: [ "ALL" ]
-        seccompProfile:
-          type: RuntimeDefault
       volumeMounts:
         - name: logs
           mountPath: /app/logs
+      securityContext:
+        runAsUser: 0
       command:
         - sh
         - -c
@@ -70,6 +66,7 @@ common:
           mkdir -p /app/logs/secrets
           mkdir -p /app/logs/serviceJourneys
           chmod -R 777 /app/logs
+          chown -R 1000:1000 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
     - name: extime-data-fetch

@@ -23,6 +23,7 @@ class SiriETMapper(
 ) {
 
     companion object {
+        private const val SIRI_VERSION_DELIVERY = "2.1"
         // Constants for SIRI mapping
         private const val PRODUCER_REF = "AVINOR"
         private const val DATA_SOURCE = "AVINOR"
@@ -71,7 +72,7 @@ class SiriETMapper(
         serviceDelivery.producerRef = producerRef
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = "2.1"
+        delivery.version = SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         val estimatedVersionFrame = EstimatedVersionFrameStructure()
@@ -98,7 +99,7 @@ class SiriETMapper(
     ): EstimatedTimetableDeliveryStructure {
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = "2.1"
+        delivery.version = SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         // create EstimatedJourneyVersionFrame element

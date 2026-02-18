@@ -9,7 +9,7 @@ import kotlin.random.Random
  * a simple logger class with the logMessage method in it
  */
 class Logger {
-    val filePathBase = "logs"
+    val filePathBase = if (File("/app").exists()) "/app" else "logs"
 
     /**
      * A logger method, meant for when println isn't the best solution

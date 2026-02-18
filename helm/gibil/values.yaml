@@ -12,8 +12,12 @@ common:
     volumeMounts:
       - name: extime-data
         mountPath: /app/extimeData
+      - name: logs
+        mountPath: /app/logs
     volumes:
       - name: extime-data
+        emptyDir: {}
+      - name: logs
         emptyDir: {}
     probes:
       enabled: true
@@ -44,6 +48,29 @@ common:
           failureThreshold: 3
 
   initContainers:
+    - name: create-log-dirs
+      image: busybox:latest
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop: [ "ALL" ]
+        seccompProfile:
+          type: RuntimeDefault
+      volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /app/logs/errors
+          mkdir -p /app/logs/general
+          mkdir -p /app/logs/secrets
+          mkdir -p /app/logs/serviceJourneys
+          echo "Log directories created:"
+          ls -la /app/logs/
     - name: extime-data-fetch
       image: curlimages/curl:latest
       securityContext:

@@ -18,6 +18,8 @@ const val REQUEST_DELAY_MS = 50
 val LARGE_AIRPORTS = setOf("OSL")
 val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 
+val SIRI_VERSION_DELIVERY = "2.1"
+
 object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36

@@ -14,6 +14,7 @@ import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import service.FindServiceJourney
 import org.gibil.Dates
+import org.gibil.SIRI_VERSION_DELIVERY
 
 
 @Component
@@ -23,7 +24,6 @@ class SiriETMapper(
 ) {
 
     companion object {
-        private const val SIRI_VERSION_DELIVERY = "2.1"
         // Constants for SIRI mapping
         private const val PRODUCER_REF = "AVINOR"
         private const val DATA_SOURCE = "AVINOR"

@@ -18,6 +18,10 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
 val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
 val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
 
+/**
+ * @param apiService used to download NeTEx data when running locally
+ * @param configuredPath optional override for the NeTEx data directory, set via `gibil.extime.path`
+ */
 @Component
 class FindServiceJourney(
     private val apiService: ApiService,

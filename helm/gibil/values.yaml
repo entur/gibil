@@ -10,6 +10,8 @@ common:
     cpu: 2
     memory: 2560
     securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
       fsGroup: 1000
     volumeMounts:
       - name: extime-data
@@ -56,7 +58,14 @@ common:
         - name: logs
           mountPath: /app/logs
       securityContext:
-        runAsUser: 0
+        runAsUser: 1000
+        runAsGroup: 1000
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
       command:
         - sh
         - -c
@@ -65,8 +74,7 @@ common:
           mkdir -p /app/logs/general
           mkdir -p /app/logs/secrets
           mkdir -p /app/logs/serviceJourneys
-          chmod -R 777 /app/logs
-          chown -R 1000:1000 /app/logs
+          chmod -R 755 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
     - name: extime-data-fetch

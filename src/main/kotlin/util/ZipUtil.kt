@@ -1,6 +1,7 @@
 package org.gibil.util
 
 import org.gibil.service.ApiService
+import org.slf4j.LoggerFactory
 import java.io.*
 import java.util.zip.ZipInputStream
 import java.nio.file.Files
@@ -13,6 +14,8 @@ import java.nio.file.StandardCopyOption
  * for service journey parsing.
  */
 object ZipUtil {
+
+    private val LOG = LoggerFactory.getLogger(ZipUtil::class.java)
 
     /**
      * Extracts a ZIP archive to the specified output directory.
@@ -63,7 +66,9 @@ object ZipUtil {
             apiService.apiCallToFile(url, tempFile)
             unzipFile(tempFile.path, outputDir)
         } finally {
-            tempFile.delete()
+            if(!tempFile.delete()) {
+                LOG.warn("Failed to delete temp file: {}", tempFile.path)
+            }
         }
     }
 }

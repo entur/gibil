@@ -1,5 +1,6 @@
 package subscription
 
+import org.gibil.SIRI_VERSION_DELIVERY
 import uk.org.siri.siri21.*
 import java.time.Instant
 import java.time.ZoneId
@@ -15,51 +16,6 @@ import java.util.*
 object SiriHelper {
     //Simple indication of when server was started
     private val serverStartTime: Instant = Instant.now()
-
-    /**
-     * Creates a SIRI Service Delivery object containing the provided EstimatedVehicleJourney elements.
-     * This method constructs the necessary structure of the
-     * SIRI Service Delivery, including EstimatedTimetableDelivery and EstimatedVersionFrame,
-     * and populates it with the given EstimatedVehicleJourney elements.
-     * @param elements A collection of EstimatedVehicleJourney elements to include in the Service Delivery.
-     * @return A Siri object containing the constructed Service Delivery with the provided EstimatedVehicleJourney elements
-     */
-    fun createSiriEtServiceDelivery(elements: Collection<EstimatedVehicleJourney?>): Siri {
-        val siri = createSiriServiceDelivery()
-        siri.serviceDelivery
-            .estimatedTimetableDeliveries
-            .add(EstimatedTimetableDeliveryStructure())
-
-        siri.serviceDelivery
-            .estimatedTimetableDeliveries[0]
-            .estimatedJourneyVersionFrames
-            .add(EstimatedVersionFrameStructure())
-
-        siri.serviceDelivery
-            .estimatedTimetableDeliveries[0]
-            .estimatedJourneyVersionFrames[0]
-            .estimatedVehicleJourneies
-            .addAll(elements)
-
-
-        return siri
-    }
-
-    /**
-     * Creates a basic SIRI Service Delivery object with the necessary structure,
-     * but without any EstimatedVehicleJourney elements.
-     * This method is used as a starting point for constructing Service Delivery objects,
-     * allowing other methods to populate it with the appropriate data.
-     * @return A Siri object containing an empty Service Delivery structure
-     * ready to be populated with EstimatedVehicleJourney elements.
-     */
-    private fun createSiriServiceDelivery(): Siri {
-        val siri = createSiriObject()
-        val serviceDelivery = ServiceDelivery()
-
-        siri.setServiceDelivery(serviceDelivery)
-        return siri
-    }
 
     /**
      * Creates a SIRI Heartbeat Notification object, which is used to indicate that the service is alive and functioning.
@@ -97,7 +53,7 @@ object SiriHelper {
      */
     private fun createSiriObject(): Siri {
         val siri = Siri()
-        siri.setVersion("2.1")
+        siri.setVersion(SIRI_VERSION_DELIVERY)
         return siri
     }
 

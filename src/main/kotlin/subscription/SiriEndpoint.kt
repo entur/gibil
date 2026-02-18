@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.org.siri.siri21.EstimatedVehicleJourney
 import uk.org.siri.siri21.Siri
 import java.time.Duration
 
@@ -16,7 +15,6 @@ import java.time.Duration
 @RestController
 class SiriEndpoint(
     @Autowired private val subscriptionManager: SubscriptionManager,
-    @Autowired private val siriETRepository: SiriETRepository
 ) {
 
     /**
@@ -72,13 +70,16 @@ class SiriEndpoint(
         subscriptionManager.terminateSubscription(terminateSubscriptionRequest.subscriptionReves[0].value)
         return SiriHelper.createTerminateSubscriptionResponse(terminateSubscriptionRequest)
     }
+}
 
     /**
      * Handles incoming service requests. It processes the request, retrieves the relevant Estimated Vehicle Journey (ET)
      * data from the SiriETRepository, and generates a service delivery response containing the ET data.
      * @param siriRequest The incoming SIRI service request, expected to be in XML format and deserialized into a Siri object.
      * @return A Siri object representing the service delivery response, which will be serialized back to XML and sent to the requester.
-     */
+
+    @Autowired private val siriETRepository: SiriETRepository
+
     @PostMapping(value = ["/service"], produces = ["application/xml"], consumes = ["application/xml"])
     fun handleServiceRequest(@RequestBody siriRequest: Siri): Siri {
         val serviceRequest = siriRequest.serviceRequest
@@ -89,3 +90,4 @@ class SiriEndpoint(
         return SiriHelper.createSiriEtServiceDelivery(siriEtElements)
     }
 }
+        */

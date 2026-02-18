@@ -13,13 +13,15 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import service.FindServiceJourney
-import java.util.Objects.isNull
 import org.gibil.Dates
+import org.gibil.SIRI_VERSION_DELIVERY
 
 
 @Component
-class SiriETMapper(private val airportQuayService: AirportQuayService) {
-    private val ServiceJourneySearchController = FindServiceJourney()
+class SiriETMapper(
+    private val airportQuayService: AirportQuayService,
+    private val findServiceJourney: FindServiceJourney
+) {
 
     companion object {
         // Constants for SIRI mapping
@@ -70,7 +72,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         serviceDelivery.producerRef = producerRef
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = "2.1"
+        delivery.version = SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         val estimatedVersionFrame = EstimatedVersionFrameStructure()
@@ -97,7 +99,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
     ): EstimatedTimetableDeliveryStructure {
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = "2.1"
+        delivery.version = SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         // create EstimatedJourneyVersionFrame element
@@ -188,12 +190,44 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
             // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
             println(framedVehicleJourneyRef.datedVehicleJourneyRef)
 
+        val logger = Logger()
+
+        //datevehiclejourneyref fetching and evaluation
+        val flightId = flight.flightId
+        val scheduledDepartureTime = flight.scheduledDepartureTime
+        try {
+            // Check for null values before calling matchServiceJourney
+            if (scheduledDepartureTime == null || flightId == null) {
+                framedVehicleJourneyRef.datedVehicleJourneyRef = "Missing required flight data for VehicleJourneyRef: scheduledDepartureTime=$scheduledDepartureTime, flightId=$flightId"
+            } else{
+
+                //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
+                    //if none is found an exception will be thrown, which is caught in the catch
+                val findFlightSequence =
+                    findServiceJourney.matchServiceJourney(scheduledDepartureTime, flightId)
+
+                //a match was found
+                if (flightId in findFlightSequence && routeCodeId in findFlightSequence) {
+                    //match was validated by routecode and flightId
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
+                } else {
+                    //match was not validated
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: $flightId = $findFlightSequence (${flightId in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
+
+                    //log the failed match attempt
+                    logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, "errors/${Dates.CURRENT_DATE}")
+                }
+            }
+        } catch (e: Exception) {
+            framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR finding VJR-ID or no match found $flightId: ${e.message}"
+
+            // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
+            println(framedVehicleJourneyRef.datedVehicleJourneyRef)
+
             //log the failed match attempt
-            logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId.toString(), "errors/${Dates.CURRENT_DATE}")
+            logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flightId.toString(), "errors/${Dates.CURRENT_DATE}")
         }
 
-
-        //framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${flight.flightId}-${flightSequence}-${routeCodeId}"
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE

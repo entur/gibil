@@ -18,8 +18,7 @@ const val REQUEST_DELAY_MS = 50
 val LARGE_AIRPORTS = setOf("OSL")
 val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 
-object Constants {
-}
+val SIRI_VERSION_DELIVERY = "2.1"
 
 object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
@@ -34,15 +33,11 @@ object AvinorApiConfig {
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
 }
 
-object LineSelector {
-    val DEBUG_PRINTING_LINESELECTOR = false
-}
-
-//FilterExtimeAndFindServiceJourney
-object FilterExtimeAFSJ {
-    val DEBUG_PRINTING_FEAFSJ = false
+//FindServiceJourney
+object FindServicejourney {
+    val DEBUG_PRINTING_FIND_SERVICEJ = false
     val LOCALE = Locale.ENGLISH
-    val LOGGING_EVENTS_FEAFSJ = false
+    val LOGGING_EVENTS_FIND_SERVICEJ = false
 }
 
 object ServiceJourneyModel {

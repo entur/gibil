@@ -13,14 +13,12 @@ import java.io.StringReader
 class SiriEndpointTest {
     private lateinit var endpoint: SiriEndpoint
     private lateinit var subscriptionManager: SubscriptionManager
-    private lateinit var siriETRepository: SiriETRepository
     private val jaxbContext = JAXBContext.newInstance(Siri::class.java)
 
     @BeforeEach
     fun setup(){
         subscriptionManager = mockk(relaxed = false)
-        siriETRepository = mockk()
-        endpoint = SiriEndpoint(subscriptionManager, siriETRepository)
+        endpoint = SiriEndpoint(subscriptionManager)
     }
 
     @Test
@@ -91,31 +89,6 @@ class SiriEndpointTest {
         assertEquals(1, response.terminateSubscriptionResponse.terminationResponseStatuses.size)
     }
 
-    @Test
-    fun `Should handle service request and return ET data`(){
-        val siriRequest = createServiceRequest()
-        val mockJourney = mockk<EstimatedVehicleJourney>()
-        every { siriETRepository.all } returns mutableListOf(mockJourney)
-
-        val response = endpoint.handleServiceRequest(siriRequest)
-
-        assertNotNull(response.serviceDelivery)
-        assertNotNull(response.serviceDelivery.estimatedTimetableDeliveries)
-        assertEquals(1, response.serviceDelivery.estimatedTimetableDeliveries.size)
-        verify(exactly = 1) { siriETRepository.all }
-    }
-
-    @Test
-    fun `Should handle service request with empty repository`(){
-        val siriRequest = createServiceRequest()
-        every { siriETRepository.all } returns mutableListOf()
-
-        val response = endpoint.handleServiceRequest(siriRequest)
-
-        assertNotNull(response.serviceDelivery)
-        assertNotNull(response.serviceDelivery.estimatedTimetableDeliveries)
-        verify(exactly = 1) { siriETRepository.all }
-    }
 
     private fun createSubscriptionRequest(): Siri {
         val xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -222,23 +195,6 @@ class SiriEndpointTest {
         <MessageIdentifier>terminate-001</MessageIdentifier>
         <SubscriptionRef>SUBSCRIPTION_ID</SubscriptionRef>
     </TerminateSubscriptionRequest>
-</Siri>""".trimIndent()
-
-        val unmarshaller = jaxbContext.createUnmarshaller()
-        return unmarshaller.unmarshal(StringReader(xml)) as Siri
-    }
-
-    private fun createServiceRequest(): Siri {
-        val xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
-    <ServiceRequest>
-        <RequestTimestamp>2019-12-03T13:00:00+01:00</RequestTimestamp>
-        <RequestorRef>ENTUR_DEV</RequestorRef>
-        <EstimatedTimetableRequest>
-            <RequestTimestamp>2019-12-03T13:00:00+01:00</RequestTimestamp>
-            <PreviewInterval>PT10H</PreviewInterval>
-        </EstimatedTimetableRequest>
-    </ServiceRequest>
 </Siri>""".trimIndent()
 
         val unmarshaller = jaxbContext.createUnmarshaller()

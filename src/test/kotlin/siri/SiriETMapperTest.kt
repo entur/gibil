@@ -9,6 +9,8 @@ import org.gibil.StopPlaceMapper
 import org.gibil.routes.api.StopPlaceApiHandler
 import org.gibil.service.AirportQuayService
 import org.gibil.service.ApiService
+import io.mockk.mockk
+import service.FindServiceJourney
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -24,7 +26,8 @@ class SiriETMapperTest() {
         override fun getQuayId(iataCode: String): String? = null
     }
 
-    private val mapper = SiriETMapper(SpyAirportQuayService())
+    private val findServiceJourney = mockk<FindServiceJourney>(relaxed = true)
+    private val mapper = SiriETMapper(SpyAirportQuayService(), findServiceJourney)
 
 
     @Test

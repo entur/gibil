@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.*
 import subscription.SiriDataType
 import subscription.SiriHelper
 import uk.org.siri.siri21.*
-import io.mockk.mockk
 
 class SiriHelperTest {
 
@@ -50,21 +49,6 @@ class SiriHelperTest {
         val result = SiriHelper.resolveSiriDataType(request)
 
         assertNull(result)
-    }
-
-    @Test
-    fun `Should create SIRI ET service delivery with journeys`() {
-        val journey1 = mockk<EstimatedVehicleJourney>()
-        val journey2 = mockk<EstimatedVehicleJourney>()
-        val journeys = listOf(journey1, journey2)
-
-        val result = SiriHelper.createSiriEtServiceDelivery(journeys)
-
-        assertNotNull(result.serviceDelivery)
-        assertEquals(1, result.serviceDelivery.estimatedTimetableDeliveries.size)
-        val delivery = result.serviceDelivery.estimatedTimetableDeliveries[0]
-        assertEquals(1, delivery.estimatedJourneyVersionFrames.size)
-        assertEquals(2, delivery.estimatedJourneyVersionFrames[0].estimatedVehicleJourneies.size)
     }
 
     @Test

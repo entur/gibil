@@ -2,7 +2,6 @@ package service
 
 import model.AvinorXmlFeedParams
 import handler.AvinorScheduleXmlHandler
-import java.time.Clock
 import org.entur.siri.validator.SiriValidator
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Service
@@ -12,7 +11,7 @@ import siri.SiriETPublisher
 import siri.validator.ValidationResult
 import siri.validator.XsdValidator
 
-private const val DEPATURE_CODE = "" //Empty to show both Departures("D") and Arrivals("A")
+private const val DEPARTURE_CODE = "" //Empty to show both Departures("D") and Arrivals("A")
 
 /**
  * SiriEtService is a service responsible for calling AvinorApi and
@@ -40,7 +39,7 @@ class SiriEtService(
         val url = avinorApi.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParams(
                 airportCode = airportCode,
-                direction = DEPATURE_CODE
+                direction = DEPARTURE_CODE
             )
         )
         val xmlData = apiService.apiCall(url)

@@ -1,12 +1,12 @@
 package siri
 
-import util.AirportSizeClassification.orderAirportBySize
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import org.gibil.Logger
 import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
+import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -136,8 +136,8 @@ class SiriETMapper(
 
         //Set lineRef
         val lineRef = LineRef()
-        val route = routeBuilder(requestingAirportCode, flight)
-        lineRef.value = "$LINE_PREFIX$route"
+        val orderedRoute = routeBuilder(requestingAirportCode, flight, true)
+        lineRef.value = "$LINE_PREFIX$orderedRoute"
         estimatedVehicleJourney.lineRef = lineRef
 
         //Set directionRef - for merged flights, check if departure airport matches context
@@ -155,8 +155,8 @@ class SiriETMapper(
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
 
-        val orderedRoute = routeBuilder(requestingAirportCode, flight, true)
-        val routeCodeId = orderedRoute.idHash(10)
+        val fullRoute = routeBuilder(requestingAirportCode, flight, false)
+        val routeCodeId = fullRoute.idHash(10)
 
         val logger = Logger()
 
@@ -199,8 +199,6 @@ class SiriETMapper(
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         estimatedVehicleJourney.dataSource = DATA_SOURCE
-        //TODO! Find out what to do with ExtraJourney
-        //estimatedVehicleJourney.extraJourney(false)
         estimatedVehicleJourney.isCancellation
 
         val operatorRef = OperatorRefStructure()
@@ -387,37 +385,46 @@ class SiriETMapper(
         return airportQuayService.getQuayId(airportCode) ?: "$STOP_POINT_REF_PREFIX${airportCode}"
     }
 
+    //TODO WHEN MULTI-LEG IS FULLY IMPLEMENTED MAKE SURE THE ROUTES STAY CORRECTED
     /**
-     * Function that builds the routes used for LineRef and DatedVehicleJourneyRef
-     * Can be ordered by size priority or not depending on usecase
+     * Function that builds the routes used for LineRef made from the depature and arrival airports,
+     * and DatedVehicleJourneyRef made out of fullRoute of departure, arrival and [viaAirports] list.
+     * Can be ordered by size priority, if ordered by size it returns only departure and arrival meant for use in LineRef.
+     * Full route with viaAirport cannot be ordered by size.
      *
-     * @param requestingAirportCode String. The airport code used in the API call
-     * @param flight Flight. The specified flight that is routed to. Provides airline and depature/arriving airport
-     * @param wantOrdered Boolean. Specifies if you want the route ordered by size priority, default value false
-     * @return String. Route code, "airline_firstAirport-SecondAirport" either ordered by largest first or requestingAirportCode first depends on param choice.
+     * @param requestingIATACode String. The airport IATA code used in the API call
+     * @param flight Flight. The specified flight that is routed to. Provides airline, [departureAirport] [arrivingAirport] and [viaAirports] list.
+     * @param wantOrdered Boolean. Specifies if you want the route ordered by size priority
+     * @return String. Route code, "airline_depAirport-viaAirports-arrAirport" either ordered by largest first or requestingAirportCode. viaAirports only added if unordered.
      *
      */
      private fun routeBuilder(
-        requestingAirportCode: String,
+        requestingIATACode: String,
         flight: Flight,
-        wantOrdered: Boolean = true
+        wantOrdered: Boolean
      ): String {
 
         val airline = flight.airline
 
         // For merged flights, use departureAirport/arrivalAirport; otherwise use original fields
         val depAirport = flight.departureAirport
-            ?: if (flight.isDeparture()) requestingAirportCode else flight.airport
+            ?: if (flight.isDeparture()) requestingIATACode else flight.airport
         val arrAirport = flight.arrivalAirport
-            ?: if (flight.isArrival()) requestingAirportCode else flight.airport
+            ?: if (flight.isArrival()) requestingIATACode else flight.airport
 
-        val(firstAirport, secondAirport) = if(wantOrdered) {
-            orderAirportBySize(depAirport.toString(), arrAirport.toString())
+        val allAirports = if(!wantOrdered && flight.viaAirports.isNotEmpty()) {
+            listOfNotNull(depAirport) + flight.viaAirports + listOfNotNull(arrAirport)
         } else {
-            depAirport.toString() to arrAirport.toString()
+            listOfNotNull(depAirport) + listOfNotNull(arrAirport)
         }
 
-        return "${airline}_${firstAirport}-${secondAirport}"
+        val orderedAirports = if (wantOrdered) {
+            orderAirportsBySize(allAirports)
+        } else {
+            allAirports
+        }
+
+        return "${airline}_${orderedAirports.joinToString("-")}"
     }
 
     /**
@@ -432,5 +439,5 @@ class SiriETMapper(
         val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
         return abs(hashcode).toString().take(length)
     }
-
+        
 }

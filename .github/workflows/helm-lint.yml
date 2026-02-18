@@ -31,8 +31,6 @@ on:
   push: # on push to any branch
     paths: # only run on changes to the following files
       - 'helm/**'
-    branches-ignore: # ignore on default branch, as it is already checked in PR
-      - "main"
   pull_request: # on pull request to any branch
     paths:
       - 'helm/**'

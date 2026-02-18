@@ -111,13 +111,13 @@ class FindServiceJourney(
 
     /**
      * Formats a date-time string with timezone information into a list containing the time and a partial DayType.
-     * @param dateTimeWithZone ZonedDateTime object format, a string representing a date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
+     * @param dateTimeString string representing a date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
      * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
      */
-    fun formatDateTimeZoneToTime(dateTimeWithZone: String): List<String> {
+    fun formatDateTimeZoneToTime(dateTimeString: String): List<String> {
         try {
             //parse parameter into a ZonedDateTime object
-            val dateTimeWithZone = ZonedDateTime.parse(dateTimeWithZone)
+            val dateTimeWithZone = ZonedDateTime.parse(dateTimeString)
 
             // Norwegian timezone
             val norwayZone = ZoneId.of("Europe/Oslo")
@@ -142,6 +142,6 @@ class FindServiceJourney(
 
             return listOf(norwegianDepartureTime, dayType)
         } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid date-time format: $dateTimeWithZone. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
+            throw IllegalArgumentException("Invalid date-time format: $dateTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
 }

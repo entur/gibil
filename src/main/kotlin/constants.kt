@@ -38,11 +38,11 @@ object LineSelector {
     val DEBUG_PRINTING_LINESELECTOR = false
 }
 
-//FilterExtimeAndFindServiceJourney
-object FilterExtimeAFSJ {
-    val DEBUG_PRINTING_FEAFSJ = false
+//FindServiceJourney
+object FindServicejourney {
+    val DEBUG_PRINTING_FIND_SERVICEJ = false
     val LOCALE = Locale.ENGLISH
-    val LOGGING_EVENTS_FEAFSJ = false
+    val LOGGING_EVENTS_FIND_SERVICEJ = false
 }
 
 object ServiceJourneyModel {

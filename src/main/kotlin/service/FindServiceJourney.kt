@@ -5,7 +5,7 @@ import model.serviceJourney.ServiceJourney
 import model.serviceJourney.ServiceJourneyParser
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import org.gibil.FilterExtimeAFSJ
+import org.gibil.FindServicejourney
 import org.gibil.Logger
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
@@ -15,8 +15,9 @@ import java.time.ZoneId
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
-val debugPrinting = FilterExtimeAFSJ.DEBUG_PRINTING_FEAFSJ
-val loggingEvents = FilterExtimeAFSJ.LOGGING_EVENTS_FEAFSJ
+val debugPrinting = FindServicejourney.DEBUG_PRINTING_FIND_SERVICEJ
+val loggingEvents = FindServicejourney.LOGGING_EVENTS_FIND_SERVICEJ
+val locale = FindServicejourney.LOCALE
 
 /**
  * @param apiService used to download NeTEx data when running locally
@@ -88,10 +89,8 @@ class FindServiceJourney(
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
         val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
 
-        val serviceJourneys = serviceJourneyList
-
         //finding all service journeys and searching through them for a match
-        serviceJourneys.forEach { journey ->
+        serviceJourneyList.forEach { journey ->
             val dayTypeMatch = journey.dayTypes.any { dayType ->
                 dateInfo[1] in dayType
             }
@@ -127,10 +126,10 @@ class FindServiceJourney(
             val norwayDateTime = dateTimeWithZone.withZoneSameInstant(norwayZone)
 
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
-            val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", FilterExtimeAFSJ.LOCALE)
-            val formatMonth = DateTimeFormatter.ofPattern("MMM", FilterExtimeAFSJ.LOCALE)
-            val formatDate = DateTimeFormatter.ofPattern("dd", FilterExtimeAFSJ.LOCALE)
-            val formatDayShortName = DateTimeFormatter.ofPattern("E", FilterExtimeAFSJ.LOCALE)
+            val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", locale)
+            val formatMonth = DateTimeFormatter.ofPattern("MMM", locale)
+            val formatDate = DateTimeFormatter.ofPattern("dd", locale)
+            val formatDayShortName = DateTimeFormatter.ofPattern("E", locale)
 
             // Implement formats onto object and create partial daytyperef-value
             val month = dateTimeWithZone.format(formatMonth)

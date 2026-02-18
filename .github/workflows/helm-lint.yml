@@ -36,20 +36,11 @@ on:
       - 'helm/**'
 
 jobs:
-  helm-lint-dev:
-    name: Helm Lint Dev
+  helm-lint:
+    name: Helm Lint
     uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    strategy:
+      matrix:
+        environment: [dev, tst, prd]
     with:
-      environment: dev
-
-  helm-lint-tst:
-    name: Helm Lint Tst
-    uses: entur/gha-helm/.github/workflows/lint.yml@v1
-    with:
-      environment: tst
-
-  helm-lint-prd:
-    name: Helm Lint Prd
-    uses: entur/gha-helm/.github/workflows/lint.yml@v1
-    with:
-      environment: prd
+      environment: ${{ matrix.environment }}

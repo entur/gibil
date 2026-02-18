@@ -26,17 +26,17 @@ data class ServiceJourney(
         get() = dayTypeRefs.map { it.ref }
 
     // Computed property to get departure time
-    val departureTime: String
+    val departureTime: List<String>
         get() {
             val times = passingTimesWrapper?.timetabledPassingTimes ?: emptyList()
-            return times.firstOrNull { it.departureTime != null }?.departureTime ?: ""
+            return times.mapNotNull { it.departureTime }
         }
 
     // Computed property to get arrival time
-    val arrivalTime: String
+    val arrivalTime: List<String>
         get() {
             val times = passingTimesWrapper?.timetabledPassingTimes ?: emptyList()
-            return times.lastOrNull { it.arrivalTime != null }?.arrivalTime ?: ""
+            return times.mapNotNull { it.arrivalTime }
         }
 }
 

@@ -95,14 +95,14 @@ class FindServiceJourney(
                 dateInfo[1] in dayType
             }
 
-            val dateInfoMatch = journey.departureTime == dateInfo[0] && dayTypeMatch
+            val dateInfoMatch = dateInfo[0] in journey.departureTime && dayTypeMatch
             val flightCodeMatch = journey.publicCode == flightCode
 
             if (dateInfoMatch && flightCodeMatch) {
                 return journey.serviceJourneyId
             } else {
                 if (debugPrinting) {
-                    println("${journey.departureTime} == ${dateInfo[0]} (${journey.departureTime == dateInfo[0]}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == $flightCode (${journey.publicCode == flightCode})")
+                    println("${journey.departureTime} == ${dateInfo[0]} (${dateInfo[0] in journey.departureTime}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == $flightCode (${journey.publicCode == flightCode})")
                 }
             }
         }

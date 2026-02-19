@@ -43,7 +43,6 @@ class FindServiceJourneyTest {
         }
     }
 
-
     @Test
     fun `FormatDateTimeZoneToTime should return correct formats`() {
         val formattedDates = service.formatDateTimeZoneToTime(exampleFlightSasSVG[0])

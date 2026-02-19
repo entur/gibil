@@ -28,7 +28,7 @@ class FindServiceJourney(
     private val apiService: ApiService,
     @Value("\${gibil.extime.path:#{null}}") private val configuredPath: String?
 ) {
-    val pathBase = configuredPath ?: if (File("/app").exists()) "/app" else "src/main/resources/extimeData"
+    val pathBase = configuredPath ?: if (File("/app/extimeData").exists()) "/app/extimeData" else "src/main/resources/extimeData"
 
     init {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data

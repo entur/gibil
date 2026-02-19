@@ -84,16 +84,16 @@ class FindServiceJourney(
 
             if (dateInfoMatch && flightCodeMatch) {
                 return journey.serviceJourneyId
-            } else {
-                LOG.debug(
-                    "No match for {} at {}: timeMatch={}, dayTypeMatch={}, codeMatch={}",
-                    flightCode, dateInfo[0],
-                    dateInfo[0] in journey.departureTime,
-                    dayTypeMatch,
-                    flightCodeMatch
-                )
             }
         }
+
+        val codeMatches = serviceJourneyList.filter { it.publicCode == flightCode }
+        LOG.debug(
+            "No match for {} at {} ({}): {} journeys with same code, departure times: {}",
+            flightCode, dateInfo[0], dateInfo[1],
+            codeMatches.size,
+            codeMatches.map { it.departureTime }
+        )
         throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")
     }
 

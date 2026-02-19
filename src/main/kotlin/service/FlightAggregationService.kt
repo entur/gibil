@@ -61,7 +61,7 @@ class FlightAggregationService(
 
         // Filter out flights where either end is outside the allowed time window
         val filteredFlights = flightMap.filter { (_, flight) ->
-            isWithinTimeWindow(flight, Dates.INSTANT_NOW_ZONEDATETIME)
+            isWithinTimeWindow(flight, Dates.instantNowUtc())
         }
 
         LOG.info("Aggregated {} flights within time window from {} total ({} airports)", filteredFlights.size, flightMap.size, airportCodes.size)

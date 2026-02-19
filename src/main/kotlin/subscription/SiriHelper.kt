@@ -14,7 +14,7 @@ import org.gibil.Dates
  */
 object SiriHelper {
     //Simple indication of when server was started
-    private val serverStartTime = Dates.INSTANT_NOW_SYSTEMDEFAULT
+    private val serverStartTime = Dates.instantNowSystemDefault()
     /**
      * Creates a SIRI Heartbeat Notification object, which is used to indicate that the service is alive and functioning.
      * @param requestorRef An optional reference to the requestor, which can be included in the notification for identification purposes.

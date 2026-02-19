@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.Locale
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -36,15 +37,8 @@ object AvinorApiConfig {
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
 }
 
-//FindServiceJourney
-object FindServicejourney {
-    val DEBUG_PRINTING_FIND_SERVICEJ = false
-    val LOGGING_EVENTS_FIND_SERVICEJ = false
-}
-
 object ServiceJourneyModel {
     const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
-    val DEBUG_PRINTING_SJM = false
 }
 
 object Dates {
@@ -55,11 +49,8 @@ object Dates {
         "yyyy_MM_dd" to DateTimeFormatter.ofPattern("yyyyMMdd", LOCALE)
     )
 
-    val CURRENT_DATE_MMMddyyyy = LocalDate.now().format(formats["MMMM_dd_yyyy"])
+    fun currentDateMMMddyyyy() = LocalDate.now().format(formats["MMMM_dd_yyyy"])
+    fun instantNowUtc(): ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
+    fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.systemDefault())
 
-    val CURRENT_DATE_yyyyMMdd = LocalDate.now().format(formats["yyyy_MM_dd"])
-
-    val INSTANT_NOW_ZONEDATETIME = ZonedDateTime.now(java.time.ZoneOffset.UTC)
-
-    val INSTANT_NOW_SYSTEMDEFAULT = Instant.now().atZone(ZoneId.systemDefault())
 }

@@ -181,7 +181,7 @@ class SiriETMapper(
                     framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: $flightId = $findFlightSequence (${flightId in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
 
                     //log the failed match attempt
-                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.CURRENT_DATE_MMMddyyyy)
+                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.currentDateMMMddyyyy())
                 }
             }
         } catch (e: Exception) {

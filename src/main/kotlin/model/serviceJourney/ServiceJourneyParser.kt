@@ -5,7 +5,6 @@ import jakarta.xml.bind.Unmarshaller
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamReader
 import java.io.File
-import org.gibil.ServiceJourneyModel
 import org.slf4j.LoggerFactory
 
 private val LOG = LoggerFactory.getLogger(ServiceJourneyParser::class.java)

@@ -15,7 +15,9 @@ import kotlin.math.abs
 import service.FindServiceJourney
 import org.gibil.Dates
 import org.gibil.SIRI_VERSION_DELIVERY
+import org.slf4j.LoggerFactory
 
+private val LOG = LoggerFactory.getLogger(Siri::class.java)
 
 @Component
 class SiriETMapper(
@@ -189,11 +191,14 @@ class SiriETMapper(
         } catch (e: Exception) {
             framedVehicleJourneyRef.datedVehicleJourneyRef = "ERROR finding VJR-ID or no match found $flightId: ${e.message}"
 
-            // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
-            println(framedVehicleJourneyRef.datedVehicleJourneyRef)
+            LOG.error("Error finding VJR-ID for flightId {}: {}", flightId, e.message)
 
+            //TODO MUST REMOVE OR CHECK IF NEEDED
+
+            // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
+            //println(framedVehicleJourneyRef.datedVehicleJourneyRef)
             //log the failed match attempt
-            logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flightId.toString(), "errors/${Dates.CURRENT_DATE}")
+            //logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flightId.toString(), "errors/${Dates.CURRENT_DATE}")
         }
 
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef
@@ -370,7 +375,7 @@ class SiriETMapper(
                 java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                     .atZone(java.time.ZoneOffset.UTC)
             } catch (_: DateTimeParseException) {
-                println("Warning: Could not parse timestamp: $timestamp")
+                LOG.error("Warning: Could not parse timestamp: {}", timestamp)
                 null
             }
         }

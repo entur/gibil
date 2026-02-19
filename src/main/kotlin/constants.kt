@@ -51,6 +51,5 @@ object Dates {
 
     fun currentDateMMMddyyyy() = LocalDate.now().format(formats["MMMM_dd_yyyy"])
     fun instantNowUtc(): ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
-    fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.systemDefault())
-
+    fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.of("Europe/Oslo"))
 }

@@ -6,17 +6,17 @@ import model.serviceJourney.ServiceJourneyParser
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import org.gibil.FindServicejourney
-import org.gibil.Logger
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.gibil.util.ZipUtil
+import org.slf4j.LoggerFactory
 import java.time.ZoneId
+
+private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
-val debugPrinting = FindServicejourney.DEBUG_PRINTING_FIND_SERVICEJ
-val loggingEvents = FindServicejourney.LOGGING_EVENTS_FIND_SERVICEJ
 val locale = FindServicejourney.LOCALE
 
 /**
@@ -37,10 +37,7 @@ class FindServiceJourney(
             ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData", apiService)
         }
 
-        // This runs after the class is constructed
-        if (loggingEvents) {
-            logServiceJourneys()
-        }
+        logServiceJourneys()
     }
 
     val serviceJourneyList = findServiceJourney()
@@ -49,10 +46,8 @@ class FindServiceJourney(
      * logs all servicejourneys in serviceJourneyList to individual .txt files in the logs/serviceJourneys folder, with the filename format: "publicCode_dayType_serviceJourneyId.txt"
      */
     fun logServiceJourneys() {
-        val logger = Logger()
         serviceJourneyList.forEach { journey ->
-            val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_').takeLast(10)}_${journey.serviceJourneyId.replace(':', '_').removePrefix("AVI_ServiceJourney")}"
-            logger.logMessage(journey.toString(), filename, "serviceJourneys")
+            LOG.debug("ServiceJourney: {}", journey)
         }
     }
 
@@ -68,14 +63,11 @@ class FindServiceJourney(
      */
     fun findServiceJourney(): List<ServiceJourney> {
         val parser = ServiceJourneyParser()
-        if (debugPrinting) {
-            println("=== Parsing folder $pathBase ===")
-        }
-        val journeysFromFolder = parser.parseFolder(pathBase)
-        if (debugPrinting) {
-            println("Total: ${journeysFromFolder.size} service journeys\n")
-        }
 
+        LOG.debug("Parsing folder: {}", pathBase)
+        val journeysFromFolder = parser.parseFolder(pathBase)
+
+        LOG.debug("Total service journeys found: {}", journeysFromFolder.size)
         return journeysFromFolder
     }
 
@@ -101,9 +93,13 @@ class FindServiceJourney(
             if (dateInfoMatch && flightCodeMatch) {
                 return journey.serviceJourneyId
             } else {
-                if (debugPrinting) {
-                    println("${journey.departureTime} == ${dateInfo[0]} (${dateInfo[0] in journey.departureTime}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == $flightCode (${journey.publicCode == flightCode})")
-                }
+                LOG.debug(
+                    "No match for {} at {}: timeMatch={}, dayTypeMatch={}, codeMatch={}",
+                    flightCode, dateInfo[0],
+                    dateInfo[0] in journey.departureTime,
+                    dayTypeMatch,
+                    flightCodeMatch
+                )
             }
         }
         throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")

@@ -1,7 +1,10 @@
 package org.gibil
 
+import java.time.Instant
 import java.util.Locale
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
@@ -36,7 +39,6 @@ object AvinorApiConfig {
 //FindServiceJourney
 object FindServicejourney {
     val DEBUG_PRINTING_FIND_SERVICEJ = false
-    val LOCALE = Locale.ENGLISH
     val LOGGING_EVENTS_FIND_SERVICEJ = false
 }
 
@@ -46,7 +48,18 @@ object ServiceJourneyModel {
 }
 
 object Dates {
-    //current date
-    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
-    val CURRENT_DATE = LocalDate.now().format(formatter)
+    val LOCALE = Locale.ENGLISH
+
+    val formats = mapOf<String, DateTimeFormatter>(
+        "MMMM_dd_yyyy" to DateTimeFormatter.ofPattern("MMMM dd, yyyy", LOCALE),
+        "yyyy_MM_dd" to DateTimeFormatter.ofPattern("yyyyMMdd", LOCALE)
+    )
+
+    val CURRENT_DATE_MMMddyyyy = LocalDate.now().format(formats["MMMM_dd_yyyy"])
+
+    val CURRENT_DATE_yyyyMMdd = LocalDate.now().format(formats["yyyy_MM_dd"])
+
+    val INSTANT_NOW_ZONEDATETIME = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+    val INSTANT_NOW_SYSTEMDEFAULT = Instant.now().atZone(ZoneId.systemDefault())
 }

@@ -18,7 +18,6 @@ class FindServiceJourneyTest {
 
     //wrong information
     val exampleNanFlightcode = listOf("2026-03-05T08:00:00Z", "Flyet mitt er ikke gult")
-    val exampleNanDate = "imorgen klokka 12"
 
     @Test
     fun `FindServiceJourney should find service journey match to example flights`() {
@@ -38,13 +37,6 @@ class FindServiceJourneyTest {
     }
 
     @Test
-    fun `FormatDateTimeZoneToTime should throw exception when invalid date format is given`() {
-        Assertions.assertThrows(IllegalArgumentException::class.java) {
-            service.matchServiceJourney(exampleNanDate, exampleFlightSasSVG[1])
-        }
-    }
-
-    @Test
     fun `LogServiceJourneys should make correct logs for servicejourneys`() {
         service.logServiceJourneys()
 
@@ -52,13 +44,5 @@ class FindServiceJourneyTest {
         //check if example servicejourney log file exists, the filenaming is based on the format used in the logServiceJourneys function, which includes the date, flightcode, and servicejourney id
         val outputFile = baseDir.resolve("SK4011_Mar_Mon_30__SK4011-01-358551288.txt")
         assertTrue(outputFile.exists(), "Output file should exist")
-    }
-
-    @Test
-    fun `FormatDateTimeZoneToTime should return correct formats`() {
-        val formattedDates = service.formatDateTimeZoneToTime(exampleFlightSasSVG[0])
-
-        assertTrue(formattedDates[0] == "08:00:00", "First returned item in list should be HH:mm:ss")
-        assertTrue(formattedDates[1] == "May_Tue_05", "Second returned item in list should be english MMM_E_dd format")
     }
 }

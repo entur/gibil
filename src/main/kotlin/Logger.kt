@@ -4,6 +4,7 @@ import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
+import org.gibil.Dates
 
 /**
  * a simple logger class with the logMessage method in it
@@ -52,7 +53,7 @@ class Logger {
 
                 // Fallback to random filename
                 val randomNumbers = Random.nextInt(100000000, 999999999).toString()
-                val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                val date = Dates.CURRENT_DATE_yyyyMMdd
                 val randomFileName = "${date}_${randomNumbers}.txt"
                 val file = File(filePathStandard, randomFileName)
                 file.writeText(message)

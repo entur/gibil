@@ -1,4 +1,4 @@
-package org.gibil.util
+package util
 
 import org.gibil.service.ApiService
 import org.slf4j.LoggerFactory

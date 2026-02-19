@@ -11,13 +11,13 @@ import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.Flight
 import org.gibil.BATCH_SIZE
 import org.gibil.REQUEST_DELAY_MS
+import org.gibil.Dates
+import util.DateUtil.parseTimestamp
 import org.gibil.service.ApiService
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import model.AvinorXmlFeedParams
 
 /**
@@ -56,9 +56,8 @@ class FlightAggregationService(
         }
 
         // Filter out flights where either end is outside the allowed time window
-        val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
         val filteredFlights = flightMap.filter { (_, flight) ->
-            isWithinTimeWindow(flight, now)
+            isWithinTimeWindow(flight, Dates.INSTANT_NOW_ZONEDATETIME)
         }
 
         println("Aggregated ${filteredFlights.size} flights within time window from ${flightMap.size} total (${airportCodes.size} airports)")
@@ -90,23 +89,6 @@ class FlightAggregationService(
 
         // Keep flights with missing times (for debugging) or with both times in window
         return true
-    }
-
-    /**
-     * Parses a timestamp string to ZonedDateTime.
-     */
-    private fun parseTimestamp(timestamp: String?): ZonedDateTime? {
-        if (timestamp.isNullOrBlank()) return null
-        return try {
-            ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
-        } catch (_: DateTimeParseException) {
-            try {
-                java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(java.time.ZoneOffset.UTC)
-            } catch (_: DateTimeParseException) {
-                null
-            }
-        }
     }
 
     //Processes a batch of airport codes concurrently.

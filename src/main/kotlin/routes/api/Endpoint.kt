@@ -25,12 +25,13 @@ class Endpoint(
     /**
      * SIRI-ET endpoint that aggregates data from ALL Avinor airports.
      * Merges departure and arrival data for complete EstimatedCalls.
+     * Includes multi-leg flights with calls for every stop in the journey.
      * Warning: Makes ~55 API calls, may take 30-60 seconds.
      */
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
-        val mergedFlights = flightAggregationService.fetchAllMergedFlightsAsList()
-        val siri = siriETMapper.mapMergedFlightsToSiri(mergedFlights)
+        val (directFlights, multiLegFlights) = flightAggregationService.fetchAllFlights()
+        val siri = siriETMapper.mapAllFlightsToSiri(directFlights.values, multiLegFlights)
         return siriETPublisher.toXml(siri)
     }
 

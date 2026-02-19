@@ -14,7 +14,7 @@ data class MultiLegFlight (
     val allStops: List<String> get() = listOf(originAirport) + viaAirports + listOf(destinationAirport)
 
     val originDepartureTime: String? get() = legs.firstOrNull()?.scheduledDepartureTime
-    val destinationArrivalTime: String? get() = legs.lastOrNull()?.scheduledDepartureTime
+    val destinationArrivalTime: String? get() = legs.lastOrNull()?.scheduledArrivalTime
 }
 
 //Represents a single leg of a multi-leg flight

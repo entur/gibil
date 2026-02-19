@@ -16,7 +16,7 @@ import org.gibil.Dates
 import org.gibil.SIRI_VERSION_DELIVERY
 import org.slf4j.LoggerFactory
 
-private val LOG = LoggerFactory.getLogger(Siri::class.java)
+private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
 @Component
 class SiriETMapper(

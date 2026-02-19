@@ -19,12 +19,16 @@ import org.springframework.stereotype.Service
 import routes.api.AvinorApiHandler
 import java.time.ZonedDateTime
 import model.AvinorXmlFeedParams
+import org.slf4j.LoggerFactory
 
 /**
  * Service that fetches flight data from all Avinor airports and merges
  * departure/arrival data for the same flight (matched by uniqueID).
  * Uses coroutines with batching for concurrent API calls.
  */
+
+private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
+
 @Service
 class FlightAggregationService(
     private val avinorApiHandler: AvinorApiHandler,
@@ -49,7 +53,7 @@ class FlightAggregationService(
         val airportCodes = loadAirportCodes()
         val flightMap = mutableMapOf<String, Flight>()
 
-        println("Starting data fetch for ${airportCodes.size} airports...")
+        LOG.info("Starting data fetch for {} airports...", airportCodes.size)
 
         airportCodes.chunked(BATCH_SIZE).forEach { batch ->
             processBatch(batch, flightMap)
@@ -60,7 +64,7 @@ class FlightAggregationService(
             isWithinTimeWindow(flight, Dates.INSTANT_NOW_ZONEDATETIME)
         }
 
-        println("Aggregated ${filteredFlights.size} flights within time window from ${flightMap.size} total (${airportCodes.size} airports)")
+        LOG.info("Aggregated {} flights within time window from {} total ({} airports)", filteredFlights.size, flightMap.size, airportCodes.size)
         filteredFlights
     }
 
@@ -118,15 +122,16 @@ class FlightAggregationService(
             )
             val xmlResponse = apiService.apiCall(url) ?: return emptyList()
 
+            //TODO SHOULD EITHER BE REMOVED OR IMPROVED. CAN CAUSE PROBLEMS
             if ("Error" in xmlResponse) {
-                println("API returned error for $airportCode")
+                LOG.error("API returned error for {}: {}", airportCode, xmlResponse)
                 return emptyList()
             }
 
             val airport = xmlHandler.unmarshallXmlToAirport(xmlResponse)
             airport.flightsContainer?.flight ?: emptyList()
         } catch (e: Exception) {
-            println("Error fetching data for $airportCode: ${e.message}")
+            LOG.error("Error fetching data for {}: {}", airportCode, e.message)
             emptyList()
         }
     }
@@ -163,7 +168,7 @@ class FlightAggregationService(
                 .readLines()
                 .filter { it.isNotBlank() }
         } catch (e: Exception) {
-            println("Error loading airport codes: ${e.message}")
+            LOG.error("Error loading airport codes: {}", e.message)
             emptyList()
         }
     }

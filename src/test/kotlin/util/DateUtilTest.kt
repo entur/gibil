@@ -7,9 +7,6 @@ import util.DateUtil.parseTimestamp
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * Integration tests for ZipUtil using real files and temporary directories.
- */
 class DateUtilTest {
     //example good inputs
     val dateTimeZoneExample = "2026-05-05T06:00:00Z"

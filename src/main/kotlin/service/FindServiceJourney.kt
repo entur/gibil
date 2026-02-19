@@ -6,17 +6,17 @@ import model.serviceJourney.ServiceJourneyParser
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import org.gibil.FindServicejourney
-import org.gibil.Logger
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.gibil.util.ZipUtil
+import org.slf4j.LoggerFactory
 import java.time.ZoneId
+
+private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
-val debugPrinting = FindServicejourney.DEBUG_PRINTING_FIND_SERVICEJ
-val loggingEvents = FindServicejourney.LOGGING_EVENTS_FIND_SERVICEJ
 val locale = FindServicejourney.LOCALE
 
 /**
@@ -33,28 +33,15 @@ class FindServiceJourney(
     init {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
         if (pathBase == "src/main/resources/extimeData") {
-
             ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData", apiService)
         }
-
-        // This runs after the class is constructed
-        if (loggingEvents) {
-            logServiceJourneys()
-        }
     }
 
-    val serviceJourneyList = findServiceJourney()
-
-    /**
-     * logs all servicejourneys in serviceJourneyList to individual .txt files in the logs/serviceJourneys folder, with the filename format: "publicCode_dayType_serviceJourneyId.txt"
-     */
-    fun logServiceJourneys() {
-        val logger = Logger()
-        serviceJourneyList.forEach { journey ->
-            val filename = "${journey.publicCode}_${journey.dayTypes[0].replace(':', '_').takeLast(10)}_${journey.serviceJourneyId.replace(':', '_').removePrefix("AVI_ServiceJourney")}"
-            logger.logMessage(journey.toString(), filename, "serviceJourneys")
-        }
+    //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
+    val serviceJourneyList = findServiceJourney().also { journeys ->
+        journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
     }
+
 
     /**
      * Uses ServiceJourneyParser to find service journeys by parsing XML files in a specified folder and extracting relevant information.
@@ -68,14 +55,11 @@ class FindServiceJourney(
      */
     fun findServiceJourney(): List<ServiceJourney> {
         val parser = ServiceJourneyParser()
-        if (debugPrinting) {
-            println("=== Parsing folder $pathBase ===")
-        }
-        val journeysFromFolder = parser.parseFolder(pathBase)
-        if (debugPrinting) {
-            println("Total: ${journeysFromFolder.size} service journeys\n")
-        }
 
+        LOG.debug("Parsing folder: {}", pathBase)
+        val journeysFromFolder = parser.parseFolder(pathBase)
+
+        LOG.debug("Total service journeys found: {}", journeysFromFolder.size)
         return journeysFromFolder
     }
 
@@ -100,12 +84,16 @@ class FindServiceJourney(
 
             if (dateInfoMatch && flightCodeMatch) {
                 return journey.serviceJourneyId
-            } else {
-                if (debugPrinting) {
-                    println("${journey.departureTime} == ${dateInfo[0]} (${dateInfo[0] in journey.departureTime}) and ${dateInfo[1]} in ${journey.dayTypes} (${dateInfo[1] in journey.dayTypes}) and ${journey.publicCode} == $flightCode (${journey.publicCode == flightCode})")
-                }
             }
         }
+
+        val codeMatches = serviceJourneyList.filter { it.publicCode == flightCode }
+        LOG.debug(
+            "No match for {} at {} ({}): {} journeys with same code, departure times: {}",
+            flightCode, dateInfo[0], dateInfo[1],
+            codeMatches.size,
+            codeMatches.map { it.departureTime }
+        )
         throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")
     }
 

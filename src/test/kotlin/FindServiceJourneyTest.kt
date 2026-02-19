@@ -6,7 +6,6 @@ import io.mockk.mockk
 import org.gibil.service.ApiService
 import service.FindServiceJourney
 import service.ServiceJourneyNotFoundException
-import java.io.File
 import kotlin.test.Test
 
 class FindServiceJourneyTest {
@@ -42,16 +41,6 @@ class FindServiceJourneyTest {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             service.matchServiceJourney(exampleNanDate, exampleFlightSasSVG[1])
         }
-    }
-
-    @Test
-    fun `LogServiceJourneys should make correct logs for servicejourneys`() {
-        service.logServiceJourneys()
-
-        val baseDir = File("logs/serviceJourneys")
-        //check if example servicejourney log file exists, the filenaming is based on the format used in the logServiceJourneys function, which includes the date, flightcode, and servicejourney id
-        val outputFile = baseDir.resolve("SK4011_Mar_Mon_30__SK4011-01-358551288.txt")
-        assertTrue(outputFile.exists(), "Output file should exist")
     }
 
     @Test

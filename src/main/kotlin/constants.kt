@@ -35,14 +35,11 @@ object AvinorApiConfig {
 
 //FindServiceJourney
 object FindServicejourney {
-    val DEBUG_PRINTING_FIND_SERVICEJ = false
     val LOCALE = Locale.ENGLISH
-    val LOGGING_EVENTS_FIND_SERVICEJ = false
 }
 
 object ServiceJourneyModel {
     const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
-    val DEBUG_PRINTING_SJM = false
 }
 
 object Dates {

@@ -49,16 +49,16 @@ class Flight {
     var delayed: String? = null
 
     @XmlElement(name = "codeshareAirlineDesignators")
-    var AirlineDesignators: String? = null
+    var airlineDesignators: String? = null
 
     @XmlElement(name = "codeshareAirlineNames")
-    var AirlineNames: String? = null
+    var airlineNames: String? = null
 
     @XmlElement(name = "codeshareFlightNumbers")
-    var FlightNumbers: String? = null
+    var flightNumbers: String? = null
 
     @XmlElement(name = "codeshareOperationalSuffixs")
-    var OperationalSuffixs: String? = null
+    var operationalSuffixs: String? = null
 
     // These fields are populated when merging flight data from multiple airport queries.
     @XmlTransient
@@ -88,11 +88,6 @@ class Flight {
     //This constructor is not needed, but allows to make own instances
     constructor(uniqueID: String) {
         this.uniqueID = uniqueID
-    }
-
-    constructor(airline: String, airport: String) {
-        this.airline = airline
-        this.airport = airport
     }
 
     fun isDeparture(): Boolean = arrDep == "D"
@@ -138,10 +133,10 @@ class Flight {
             domInt = this@Flight.domInt ?: other.domInt
             viaAirport = this@Flight.viaAirport ?: other.viaAirport
             delayed = this@Flight.delayed ?: other.delayed
-            AirlineDesignators = this@Flight.AirlineDesignators ?: other.AirlineDesignators
-            AirlineNames = this@Flight.AirlineNames ?: other.AirlineNames
-            FlightNumbers = this@Flight.FlightNumbers ?: other.FlightNumbers
-            OperationalSuffixs = this@Flight.OperationalSuffixs ?: other.OperationalSuffixs
+            airlineDesignators = this@Flight.airlineDesignators ?: other.airlineDesignators
+            airlineNames = this@Flight.airlineNames ?: other.airlineNames
+            flightNumbers = this@Flight.flightNumbers ?: other.flightNumbers
+            operationalSuffixs = this@Flight.operationalSuffixs ?: other.operationalSuffixs
 
             // Merge departure data
             departureAirport = this@Flight.departureAirport ?: other.departureAirport

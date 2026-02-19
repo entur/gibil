@@ -16,5 +16,4 @@ class FlightsContainer {
 
     //JAXB needs an empty constructor to populate the fields with the xml data
     constructor()
-
 }

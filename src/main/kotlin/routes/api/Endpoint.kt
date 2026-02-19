@@ -29,9 +29,9 @@ class Endpoint(
      */
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
-    val mergedFlights = flightAggregationService.fetchAllMergedFlightsAsList()
-    val siri = siriETMapper.mapMergedFlightsToSiri(mergedFlights)
-    return siriETPublisher.toXml(siri)
+        val mergedFlights = flightAggregationService.fetchAllMergedFlightsAsList()
+        val siri = siriETMapper.mapMergedFlightsToSiri(mergedFlights)
+        return siriETPublisher.toXml(siri)
     }
 
 
@@ -51,7 +51,7 @@ class Endpoint(
     /**
      * Debug endpoint that fetches and combines raw XML data from all Avinor airports.
      * Warning: This makes ~55 API calls and may take some time.
-     
+
     @GetMapping("/avinor/all", produces = [MediaType.APPLICATION_XML_VALUE])
     fun allAirportsEndpoint(): String {
     val airportCodes = ClassPathResource("airports.txt")

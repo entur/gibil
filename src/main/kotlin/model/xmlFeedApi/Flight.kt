@@ -100,18 +100,33 @@ class Flight {
 
     /**
      * Populates the merged fields based on whether this flight is a departure or arrival.
+     * For departures with via_airport, uses the first via_airport as the immediate destination.
+     * For arrivals with via_airport, uses the last via_airport as the immediate origin.
+     * Handles multiple via_airports separated by commas (e.g., "EVE,ANX").
      * Call this after parsing from XML before merging with other flights.
      * @param queryAirportCode The airport code used in the API query
      */
     fun populateMergedFields(queryAirportCode: String) {
         if (isDeparture()) {
             departureAirport = queryAirportCode
-            arrivalAirport = airport
+            // If via_airport exists, parse it and use the FIRST one as immediate next stop
+            val via = viaAirport
+            arrivalAirport = if (!via.isNullOrBlank()) {
+                via.split(",").firstOrNull()?.trim() ?: airport
+            } else {
+                airport
+            }
             scheduledDepartureTime = scheduleTime
             departureStatus = status
         } else {
             arrivalAirport = queryAirportCode
-            departureAirport = airport
+            // If via_airport exists, parse it (may be comma-separated) and use the LAST one as immediate previous stop
+            val via = viaAirport
+            departureAirport = if (!via.isNullOrBlank()) {
+                via.split(",").lastOrNull()?.trim() ?: airport
+            } else {
+                airport
+            }
             scheduledArrivalTime = scheduleTime
             arrivalStatus = status
         }

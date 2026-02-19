@@ -2,7 +2,6 @@ package siri
 
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
-import org.gibil.Logger
 import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
@@ -160,8 +159,6 @@ class SiriETMapper(
         val fullRoute = routeBuilder(requestingAirportCode, flight, false)
         val routeCodeId = fullRoute.idHash(10)
 
-        val logger = Logger()
-
         //datevehiclejourneyref fetching and evaluation
         val flightId = flight.flightId
         val scheduledDepartureTime = flight.scheduledDepartureTime
@@ -185,7 +182,7 @@ class SiriETMapper(
                     framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: $flightId = $findFlightSequence (${flightId in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
 
                     //log the failed match attempt
-                    logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, "errors/${Dates.CURRENT_DATE}")
+                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.CURRENT_DATE)
                 }
             }
         } catch (e: Exception) {
@@ -193,12 +190,6 @@ class SiriETMapper(
 
             LOG.error("Error finding VJR-ID for flightId {}: {}", flightId, e.message)
 
-            //TODO MUST REMOVE OR CHECK IF NEEDED
-
-            // find servicejourney didn't find a servicejourney match, or some other error happened during the process.
-            //println(framedVehicleJourneyRef.datedVehicleJourneyRef)
-            //log the failed match attempt
-            //logger.logMessage(framedVehicleJourneyRef.datedVehicleJourneyRef, flightId.toString(), "errors/${Dates.CURRENT_DATE}")
         }
 
         estimatedVehicleJourney.framedVehicleJourneyRef = framedVehicleJourneyRef

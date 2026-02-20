@@ -297,7 +297,8 @@ class FlightAggregationService(
     /**
      * Single entry point for fetching all flights.
      * Performs one API sweep and derives both direct and multi-leg flights from it.
-     * first departure and last arrival must be within the time window.
+     * Multi-leg flight IDs are excluded from the direct flights map to avoid duplicates.
+     * First departure and last arrival of a multi-leg flight must be within the time window.
      * @return Pair of (direct flights map, multi-leg flights list)
      */
     fun fetchAllFlights(): Pair<Map<String, Flight>, List<MultiLegFlight>> {
@@ -314,7 +315,12 @@ class FlightAggregationService(
             depWithinTime && arrWithinTime
         }
 
-        val directFlights = mergeRawFlights(rawFlights)
+        // Collect all flight_ids that belong to a confirmed multi-leg flight so their
+        // raw records are not also included as separate direct (two-airport) flights.
+        val multiLegFlightIds = multiLegFlights.map { it.flightId }.toSet()
+        val directRawFlights = rawFlights.filter { it.flightId !in multiLegFlightIds }
+
+        val directFlights = mergeRawFlights(directRawFlights)
         return Pair(directFlights, multiLegFlights)
     }
 }

@@ -12,7 +12,7 @@ import kotlin.math.abs
 import service.FindServiceJourney
 import org.gibil.Dates
 import util.DateUtil.parseTimestamp
-import org.gibil.SIRI_VERSION_DELIVERY
+import org.gibil.SiriConfig
 import org.slf4j.LoggerFactory
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
@@ -72,7 +72,7 @@ class SiriETMapper(
         serviceDelivery.producerRef = producerRef
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = SIRI_VERSION_DELIVERY
+        delivery.version = SiriConfig.SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         val estimatedVersionFrame = EstimatedVersionFrameStructure()
@@ -99,7 +99,7 @@ class SiriETMapper(
     ): EstimatedTimetableDeliveryStructure {
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = SIRI_VERSION_DELIVERY
+        delivery.version = SiriConfig.SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         // create EstimatedJourneyVersionFrame element

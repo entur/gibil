@@ -14,26 +14,30 @@ import java.time.format.DateTimeFormatter
  */
 
 
-//AirportService
-const val BATCH_SIZE = 5
-const val REQUEST_DELAY_MS = 50
-
-object FlightCodes {
-const val DEPARTURE_CODE = "D"
-const val ARRIVAL_CODE = "A"
-const val CANCELLED_CODE = "C"
-const val DELAYED_CODE = "Y"
-
-const val DOMESTIC_CODE = "D"
-const val INTERNATIONAL_CODE = "I"
-const val SCHENGEN_CODE = "S"
+object PollingConfig {
+    const val BATCH_SIZE = 5
+    const val REQUEST_DELAY_MS = 50
 }
 
-//AirportSizeClassification
-val LARGE_AIRPORTS = setOf("OSL")
-val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
+object FlightCodes {
+    const val DEPARTURE_CODE = "D"
+    const val ARRIVAL_CODE = "A"
+    const val CANCELLED_CODE = "C"
+    const val DELAYED_CODE = "Y"
 
-val SIRI_VERSION_DELIVERY = "2.1"
+    const val DOMESTIC_CODE = "D"
+    const val INTERNATIONAL_CODE = "I"
+    const val SCHENGEN_CODE = "S"
+}
+
+object AirportSizeConfig {
+    val LARGE_AIRPORTS = setOf("OSL")
+    val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
+}
+
+object SiriConfig {
+    const val SIRI_VERSION_DELIVERY = "2.1"
+}
 
 object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
@@ -46,11 +50,6 @@ object AvinorApiConfig {
 
     const val BASE_URL_AVINOR_XMLFEED = "https://asrv.avinor.no/XmlFeed/v1.0"
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
-}
-
-//FindServiceJourney
-object FindServicejourney {
-    val LOCALE = Locale.ENGLISH
 }
 
 object ServiceJourneyModel {

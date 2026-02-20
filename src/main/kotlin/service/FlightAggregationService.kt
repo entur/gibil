@@ -9,8 +9,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.Flight
-import org.gibil.BATCH_SIZE
-import org.gibil.REQUEST_DELAY_MS
+import org.gibil.PollingConfig
 import org.gibil.Dates
 import util.DateUtil.parseTimestamp
 import org.gibil.service.ApiService
@@ -55,7 +54,7 @@ class FlightAggregationService(
 
         LOG.info("Starting data fetch for {} airports...", airportCodes.size)
 
-        airportCodes.chunked(BATCH_SIZE).forEach { batch ->
+        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
             processBatch(batch, flightMap)
         }
 
@@ -102,7 +101,7 @@ class FlightAggregationService(
     ) = coroutineScope {
         val deferredResults = batch.map { airportCode ->
             async(ioDispatcher) {
-                delay(REQUEST_DELAY_MS.toLong())
+                delay(PollingConfig.REQUEST_DELAY_MS.toLong())
                 airportCode to fetchFlightsForAirport(airportCode)
             }
         }

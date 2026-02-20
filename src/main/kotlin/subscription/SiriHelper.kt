@@ -1,6 +1,6 @@
 package subscription
 
-import org.gibil.SIRI_VERSION_DELIVERY
+import org.gibil.SiriConfig
 import uk.org.siri.siri21.*
 import java.time.ZonedDateTime
 import java.util.*
@@ -51,7 +51,7 @@ object SiriHelper {
      */
     private fun createSiriObject(): Siri {
         val siri = Siri()
-        siri.setVersion(SIRI_VERSION_DELIVERY)
+        siri.setVersion(SiriConfig.SIRI_VERSION_DELIVERY)
         return siri
     }
 

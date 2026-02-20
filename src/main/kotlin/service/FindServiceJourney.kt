@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
 import util.ZipUtil
 import util.DateUtil.formatDateTimeZoneToTime
 import org.slf4j.LoggerFactory
+import org.gibil.FindServiceJourneyConstants
 
 private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 
@@ -23,12 +24,12 @@ class FindServiceJourney(
     private val apiService: ApiService,
     @Value("\${gibil.extime.path:#{null}}") private val configuredPath: String?
 ) {
-    val pathBase = configuredPath ?: if (File("/app/extimeData").exists()) "/app/extimeData" else "src/main/resources/extimeData"
+    val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.cloudBasePath).exists()) FindServiceJourneyConstants.cloudBasePath else FindServiceJourneyConstants.localBasePath
 
     init {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
-        if (pathBase == "src/main/resources/extimeData") {
-            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData", apiService)
+        if (pathBase == FindServiceJourneyConstants.localBasePath) {
+            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", FindServiceJourneyConstants.localBasePath, apiService)
         }
     }
 

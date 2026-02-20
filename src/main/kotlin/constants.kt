@@ -24,6 +24,13 @@ val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 
 val SIRI_VERSION_DELIVERY = "2.1"
 
+object FindServiceJourneyConstants {
+    //base path when running on a local computer, and not in cloud
+    val localBasePath = "src/main/resources/extimeData"
+
+    val cloudBasePath = "/app/extimeData"
+}
+
 object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36

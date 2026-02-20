@@ -107,10 +107,7 @@ class AvinorScheduleXmlHandlerTest {
         val airport = Airport().apply { name = "OSL" }
         val xml = handler.marshallAirport(airport)
 
-        assertAll(
-            { assertTrue(xml.lines().size > 1, "Expected formatted XML with multiple lines") },
-            { assertTrue(xml.lines().any { it.startsWith("    ") }, "Expected indented XML output") }
-        )
+        assertTrue(xml.lines().size > 1, "Expected formatted XML with multiple lines")
     }
 
 

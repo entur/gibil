@@ -14,6 +14,17 @@ import java.time.format.DateTimeFormatter
 const val BATCH_SIZE = 5
 const val REQUEST_DELAY_MS = 50
 
+object FlightCodes {
+const val DEPARTURE_CODE = "D"
+const val ARRIVAL_CODE = "A"
+const val CANCELLED_CODE = "C"
+const val DELAYED_CODE = "Y"
+
+const val DOMESTIC_CODE = "D"
+const val INTERNATIONAL_CODE = "I"
+const val SCHENGEN_CODE = "S"
+}
+
 //AirportSizeClassification
 val LARGE_AIRPORTS = setOf("OSL")
 val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")

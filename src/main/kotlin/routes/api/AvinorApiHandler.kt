@@ -10,7 +10,6 @@ import java.time.ZonedDateTime
 import org.gibil.AvinorApiConfig
 import model.AvinorXmlFeedParams
 import model.airportNames.AirportNames
-import org.gibil.AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES
 import org.springframework.web.util.UriComponentsBuilder
 import util.SharedJaxbContext
 import java.io.StringReader
@@ -19,7 +18,7 @@ import java.io.StringReader
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  */
 @Component
-open class AvinorApiHandler(private val apiService: ApiService) {
+class AvinorApiHandler(private val apiService: ApiService) {
 
     private var airportIATASet = emptySet<String>()
 
@@ -37,7 +36,7 @@ open class AvinorApiHandler(private val apiService: ApiService) {
      * Makes set of IATAS in the [airportIATASet]
      */
     private fun refreshAirportNameSet() {
-        val xml = apiService.apiCall(BASE_URL_AVINOR_AIRPORT_NAMES) ?: return
+        val xml = apiService.apiCall(AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES) ?: return
         val unmarshaller = SharedJaxbContext.createUnmarshaller()
         val airportNames = unmarshaller.unmarshal(StringReader(xml)) as AirportNames
         airportIATASet = airportNames.airportName
@@ -60,7 +59,7 @@ open class AvinorApiHandler(private val apiService: ApiService) {
      * @param AvinorXmlFeedParams, makes use of [airportCode], [timeFrom], [timeTo], [direction]
      * @return finished AvinorXmlFeed url String
      */
-    open fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String {
+    fun avinorXmlFeedUrlBuilder(params: AvinorXmlFeedParams): String {
         require(airportCodeValidator(params.airportCode)) {
             "Invalid airport code: ${params.airportCode}"
         }

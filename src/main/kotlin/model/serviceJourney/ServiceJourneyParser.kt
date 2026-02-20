@@ -1,18 +1,16 @@
 package model.serviceJourney
 
-import jakarta.xml.bind.JAXBContext
-import jakarta.xml.bind.Unmarshaller
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamReader
 import java.io.File
 import org.slf4j.LoggerFactory
+import util.SharedJaxbContext
 
 private val LOG = LoggerFactory.getLogger(ServiceJourneyParser::class.java)
 
 class ServiceJourneyParser {
 
-    private val jaxbContext = JAXBContext.newInstance(ServiceJourney::class.java)
-    private val unmarshaller: Unmarshaller = jaxbContext.createUnmarshaller()
+    private val unmarshaller = SharedJaxbContext.createUnmarshaller()
     private val xmlInputFactory = XMLInputFactory.newInstance()
 
     /**

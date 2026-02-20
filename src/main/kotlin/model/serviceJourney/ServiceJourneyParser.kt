@@ -52,8 +52,8 @@ class ServiceJourneyParser {
     fun parseFolder(folderPath: String): List<ServiceJourney> {
         val folder = File(folderPath)
 
-        if (!folder.exists() || !folder.isDirectory) {
-            throw IllegalArgumentException("$folderPath is not a valid directory")
+        require(folder.exists() || folder.isDirectory) {
+            "$folderPath is not a valid directory"
         }
 
         //to populate with service journeys found in the folders XML files

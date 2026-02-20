@@ -6,16 +6,10 @@ import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.time.Clock
 import java.util.concurrent.TimeUnit
 
 @Configuration
 class AppConfig {
-
-    @Bean
-    fun clock(): Clock {
-        return Clock.systemUTC()
-    }
 
     @Bean
     fun ioDispatcher(): CoroutineDispatcher = Dispatchers.IO

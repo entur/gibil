@@ -1,7 +1,6 @@
 package service
 
 import handler.AvinorScheduleXmlHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -32,9 +31,10 @@ private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
 class FlightAggregationService(
     private val avinorApiHandler: AvinorApiHandler,
     private val xmlHandler: AvinorScheduleXmlHandler,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val ioDispatcher: CoroutineDispatcher
 ) {
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
 
     companion object {
         // Filter to only include flights within this time window

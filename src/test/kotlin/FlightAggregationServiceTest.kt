@@ -217,7 +217,8 @@ class FlightAggregationServiceTest {
         domInt: String = "D",
         statusCode: String = "N"
     ): Flight {
-        return Flight(uniqueID).apply {
+        return Flight().apply {
+            this.uniqueID = uniqueID
             this.flightId = flightId
             this.airline = airline
             this.arrDep = arrDep

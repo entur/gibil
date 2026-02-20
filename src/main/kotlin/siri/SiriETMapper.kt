@@ -11,6 +11,7 @@ import java.time.ZonedDateTime
 import kotlin.math.abs
 import service.FindServiceJourney
 import org.gibil.Dates
+import org.gibil.FlightCodes
 import util.DateUtil.parseTimestamp
 import org.gibil.SiriConfig
 import org.slf4j.LoggerFactory
@@ -288,15 +289,15 @@ class SiriETMapper(
             call.aimedDepartureTime = scheduleTime
 
             when (statusCode) {
-                "D" -> {
+                FlightCodes.DEPARTED_CODE -> {
                     call.expectedDepartureTime = statusTime ?: scheduleTime
                     call.departureStatus = CallStatusEnumeration.MISSED
                 }
-                "E" -> {
+                FlightCodes.NEW_TIME_CODE -> {
                     call.expectedDepartureTime = statusTime ?: scheduleTime
                     call.departureStatus = CallStatusEnumeration.DELAYED
                 }
-                "C" -> {
+                FlightCodes.CANCELLED_CODE -> {
                     call.departureStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
                 }
@@ -328,11 +329,11 @@ class SiriETMapper(
             call.aimedArrivalTime = scheduleTime
 
             when (statusCode) {
-                "A" -> {
+                FlightCodes.ARRIVED_CODE -> {
                     call.expectedArrivalTime = statusTime ?: scheduleTime
                     call.arrivalStatus = CallStatusEnumeration.ARRIVED
                 }
-                "E" -> {
+                FlightCodes.NEW_TIME_CODE -> {
                     if (statusTime != null && statusTime.isBefore(scheduleTime)) {
                         call.expectedArrivalTime = statusTime
                         call.arrivalStatus = CallStatusEnumeration.EARLY
@@ -341,7 +342,7 @@ class SiriETMapper(
                         call.arrivalStatus = CallStatusEnumeration.DELAYED
                     }
                 }
-                "C" -> {
+                FlightCodes.CANCELLED_CODE -> {
                     call.arrivalStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
                 }

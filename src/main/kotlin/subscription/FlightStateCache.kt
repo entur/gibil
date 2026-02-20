@@ -5,17 +5,17 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
+private val LOG = LoggerFactory.getLogger(FlightStateCache::class.java)
+
 /**
  * Caches the state of flights to determine if there have been changes since the last check.
  * It uses a ConcurrentHashMap to store the hash of the flight's relevant fields, keyed by the flight's unique ID.
  * The cache allows for efficient detection of changes in flight status, departure/arrival status, and gate information.
  */
-
 @Component
 class FlightStateCache {
 
     private val flightStateMap = ConcurrentHashMap<String, Int>()
-    private val logger = LoggerFactory.getLogger(FlightStateCache::class.java)
 
     /**
      * Checks if each flight in the provided collection (all flights from the latest API response) has changed compared to the cached state.
@@ -31,7 +31,7 @@ class FlightStateCache {
         val changed = previousHash == null || previousHash != currentHash
 
         if (changed){
-            logger.debug("Flight {} changed: previousHash={}, currentHash={}",
+            LOG.debug("Flight {} changed: previousHash={}, currentHash={}",
                 flight.uniqueID, previousHash, currentHash)
         }
         return changed
@@ -53,11 +53,11 @@ class FlightStateCache {
      * @param flights A collection of Flight objects to populate the cache with (here its the initial avinor API delivery).
      */
     fun populateCache(flights: Collection<Flight>) {
-        logger.info("Populating cache with {} flights", flights.size)
+        LOG.info("Populating cache with {} flights", flights.size)
         flights.forEach { flight ->
             flightStateMap[flight.uniqueID] = computeFlightHash(flight)
         }
-        logger.info("Cache now contains {} entries", flightStateMap.size)
+        LOG.info("Cache now contains {} entries", flightStateMap.size)
     }
 
     /**
@@ -72,7 +72,7 @@ class FlightStateCache {
         flightStateMap.keys.retainAll(currentFlightIds)
         val removed = beforeSize - flightStateMap.size
         if (removed > 0) {
-            logger.info("Cleaned cache: removed {} entries, current size {}", removed, flightStateMap.size)
+            LOG.info("Cleaned cache: removed {} entries, current size {}", removed, flightStateMap.size)
         }
 
     }

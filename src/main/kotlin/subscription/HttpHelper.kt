@@ -9,14 +9,15 @@ import org.springframework.stereotype.Component
 import siri.SiriETPublisher
 import java.util.concurrent.TimeUnit
 
+private val LOG = LoggerFactory.getLogger(HttpHelper::class.java)
+
 /**
  * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.
  * It uses OkHttp3 HttpClient to perform HTTP operations.
  */
 @Component
-class HttpHelper(
-) {
-    private val logger = LoggerFactory.getLogger(HttpHelper::class.java)
+class HttpHelper() {
+
     val publisher = SiriETPublisher()
 
     private val httpClient = OkHttpClient.Builder()
@@ -60,7 +61,7 @@ class HttpHelper(
                 requestBuilder.post(body)
             } else {
                 // If no XML data, don't send the request
-                logger.warn("No XML data provided, skipping POST to {}", url)
+                LOG.warn("No XML data provided, skipping POST to {}", url)
                 return -1
             }
 
@@ -69,15 +70,15 @@ class HttpHelper(
             httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     val errorBody = response.body?.string() ?: "No error body"
-                    logger.error("POST request to {} failed with code {}. Error body: {}", url, response.code, errorBody)
+                    LOG.error("POST request to {} failed with code {}. Error body: {}", url, response.code, errorBody)
                 } else {
-                    logger.info("POST request to {} completed with response {}", url, response.code)
+                    LOG.info("POST request to {} completed with response {}", url, response.code)
                 }
                 response.code
             }
 
         } catch (e: Exception) {
-            logger.error("POST request failed: {}", e.message, e)
+            LOG.error("POST request failed: {}", e.message, e)
             -1
         }
     }

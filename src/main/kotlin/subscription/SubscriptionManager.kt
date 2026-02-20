@@ -13,6 +13,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
+private val LOG: Logger = LoggerFactory.getLogger(SubscriptionManager::class.java)
+
 /**
  * Manages SIRI subscriptions, including adding, terminating, and pushing updates to subscribers.
  */
@@ -26,6 +28,10 @@ class SubscriptionManager(
     private val subscriptions: MutableMap<String, Subscription> = HashMap()
     private val subscriptionFailCounter: MutableMap<String, Int> = HashMap()
     private val heartbeatExecutors: MutableMap<String, ScheduledExecutorService> = HashMap()
+
+    companion object {
+        private const val MAX_FAILED_COUNTER = 5
+    }
 
     /**
      * Pushes SIRI data to all subscribers that are subscribed to the relevant data type.
@@ -164,10 +170,5 @@ class SubscriptionManager(
     private fun hasFailed(subscription: Subscription): Boolean {
         val failedCounter = subscriptionFailCounter.getOrDefault(subscription.subscriptionId, 0)
         return failedCounter >= MAX_FAILED_COUNTER
-    }
-
-    companion object {
-        private val LOG: Logger = LoggerFactory.getLogger(SubscriptionManager::class.java)
-        private const val MAX_FAILED_COUNTER = 5
     }
 }

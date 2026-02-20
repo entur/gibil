@@ -18,10 +18,4 @@ class Airport {
 
     //JAXB needs an empty constructor to populate the fields with the xml data
     constructor()
-
-    //TODO SHOULD LIKELY BE REMOVED, CHANGE TESTS TO MAKE USE OF MOCKK
-    constructor(name: String, flightsContainer: FlightsContainer? = null) {
-        this.name = name
-        this.flightsContainer = flightsContainer
-    }
 }

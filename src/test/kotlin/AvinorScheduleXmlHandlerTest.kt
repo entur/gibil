@@ -2,8 +2,10 @@ package org.gibil
 
 import handler.AvinorScheduleXmlHandler
 import model.xmlFeedApi.Airport
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -39,7 +41,28 @@ class AvinorScheduleXmlHandlerTest {
         """.trimIndent()
 
         val airport = handler.unmarshallXmlToAirport(validXml)
-        assertNotNull(airport)
+        val flight = airport.flightsContainer?.flight?.firstOrNull()
+
+        assertAll(
+            { assertEquals("OSL", airport.name) },
+            { assertNotNull(airport.flightsContainer) },
+            { assertEquals(1, airport.flightsContainer?.flight?.size) }
+        )
+
+        assertNotNull(flight)
+        assertAll(
+            { assertEquals("1494483548", flight.uniqueID) },
+            { assertEquals("BT", flight.airline) },
+            { assertEquals("BT152", flight.flightId) },
+            { assertEquals("S", flight.domInt) },
+            { assertEquals("2026-01-07T07:30:00Z", flight.scheduleTime) },
+            { assertEquals("D", flight.arrDep) },
+            { assertEquals("RIX", flight.airport) },
+            { assertEquals("E8", flight.gate) },
+            { assertEquals("D", flight.status?.code) },
+            { assertEquals("2026-01-07T08:18:23Z", flight.status?.time) },
+            { assertEquals("Y", flight.delayed) }
+        )
     }
 
     @Test
@@ -69,21 +92,25 @@ class AvinorScheduleXmlHandlerTest {
     @Test
     fun `marshallAirport should convert Airport object to XML string`() {
 
-        val airport = Airport("OSL")
+        val airport = Airport().apply { name = "OSL" }
         val xml = handler.marshallAirport(airport)
 
-        assertNotNull(xml)
-        assertTrue(xml.contains("<?xml"))
-        assertTrue(xml.contains("airport"))
+        assertAll(
+            { assertTrue(xml.contains("<?xml")) },
+            { assertTrue(xml.contains("""name="OSL"""")) }
+        )
     }
 
     @Test
     fun `marshallAirport should produce formatted XML output`() {
 
-        val airport = Airport("OSL")
+        val airport = Airport().apply { name = "OSL" }
         val xml = handler.marshallAirport(airport)
 
-        assertTrue(xml.contains("\n"))
+        assertAll(
+            { assertTrue(xml.lines().size > 1, "Expected formatted XML with multiple lines") },
+            { assertTrue(xml.lines().any { it.startsWith("    ") }, "Expected indented XML output") }
+        )
     }
 
 

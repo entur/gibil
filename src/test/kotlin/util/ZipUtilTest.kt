@@ -1,4 +1,4 @@
-package org.gibil.util
+package util
 
 import io.mockk.every
 import io.mockk.mockk

@@ -1,7 +1,11 @@
 package org.gibil
 
+import java.time.Instant
 import java.util.Locale
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
@@ -33,20 +37,19 @@ object AvinorApiConfig {
     const val BASE_URL_AVINOR_AIRPORT_NAMES = "https://asrv.avinor.no/airportNames/v1.0"
 }
 
-//FindServiceJourney
-object FindServicejourney {
-    val DEBUG_PRINTING_FIND_SERVICEJ = false
-    val LOCALE = Locale.ENGLISH
-    val LOGGING_EVENTS_FIND_SERVICEJ = false
-}
-
 object ServiceJourneyModel {
     const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
-    val DEBUG_PRINTING_SJM = false
 }
 
 object Dates {
-    //current date
-    val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
-    val CURRENT_DATE = LocalDate.now().format(formatter)
+    val LOCALE = Locale.ENGLISH
+
+    val formats = mapOf<String, DateTimeFormatter>(
+        "MMMM_dd_yyyy" to DateTimeFormatter.ofPattern("MMMM dd, yyyy", LOCALE),
+        "yyyy_MM_dd" to DateTimeFormatter.ofPattern("yyyyMMdd", LOCALE)
+    )
+
+    fun currentDateMMMddyyyy() = LocalDate.now().format(formats["MMMM_dd_yyyy"])
+    fun instantNowUtc(): ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
+    fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.of("Europe/Oslo"))
 }

@@ -3,21 +3,16 @@ package service
 import java.io.File
 import model.serviceJourney.ServiceJourney
 import model.serviceJourney.ServiceJourneyParser
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import org.gibil.FindServicejourney
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.gibil.util.ZipUtil
+import util.ZipUtil
+import util.DateUtil.formatDateTimeZoneToTime
 import org.slf4j.LoggerFactory
-import java.time.ZoneId
 
 private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
-
-val locale = FindServicejourney.LOCALE
 
 /**
  * @param apiService used to download NeTEx data when running locally
@@ -95,41 +90,5 @@ class FindServiceJourney(
             codeMatches.map { it.departureTime }
         )
         throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")
-    }
-
-    /**
-     * Formats a date-time string with timezone information into a list containing the time and a partial DayType.
-     * @param dateTimeString string representing a date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
-     * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
-     */
-    fun formatDateTimeZoneToTime(dateTimeString: String): List<String> {
-        try {
-            //parse parameter into a ZonedDateTime object
-            val dateTimeWithZone = ZonedDateTime.parse(dateTimeString)
-
-            // Norwegian timezone
-            val norwayZone = ZoneId.of("Europe/Oslo")
-
-            // Convert to Norwegian timezone
-            val norwayDateTime = dateTimeWithZone.withZoneSameInstant(norwayZone)
-
-            // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
-            val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", locale)
-            val formatMonth = DateTimeFormatter.ofPattern("MMM", locale)
-            val formatDate = DateTimeFormatter.ofPattern("dd", locale)
-            val formatDayShortName = DateTimeFormatter.ofPattern("E", locale)
-
-            // Implement formats onto object and create partial daytyperef-value
-            val month = dateTimeWithZone.format(formatMonth)
-            val dayName = dateTimeWithZone.format(formatDayShortName)
-            val day = dateTimeWithZone.format(formatDate)
-
-            val dayType = "${month}_${dayName}_${day}"
-
-            val norwegianDepartureTime = norwayDateTime.format(formatFull)
-
-            return listOf(norwegianDepartureTime, dayType)
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid date-time format: $dateTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
 }

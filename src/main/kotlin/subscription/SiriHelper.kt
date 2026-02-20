@@ -2,10 +2,9 @@ package subscription
 
 import org.gibil.SIRI_VERSION_DELIVERY
 import uk.org.siri.siri21.*
-import java.time.Instant
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
+import org.gibil.Dates
 
 /**
  * Helper class for creating SIRI objects, such as service deliveries and heartbeat notifications,
@@ -15,8 +14,7 @@ import java.util.*
  */
 object SiriHelper {
     //Simple indication of when server was started
-    private val serverStartTime: Instant = Instant.now()
-
+    private val serverStartTime = Dates.instantNowSystemDefault()
     /**
      * Creates a SIRI Heartbeat Notification object, which is used to indicate that the service is alive and functioning.
      * @param requestorRef An optional reference to the requestor, which can be included in the notification for identification purposes.
@@ -26,7 +24,7 @@ object SiriHelper {
         val siri = createSiriObject()
         val heartbeat = HeartbeatNotificationStructure()
         heartbeat.isStatus = true
-        heartbeat.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()))
+        heartbeat.setServiceStartedTime(serverStartTime)
         heartbeat.setRequestTimestamp(ZonedDateTime.now())
         heartbeat.setProducerRef(createRequestorRef(requestorRef))
         siri.setHeartbeatNotification(heartbeat)
@@ -101,7 +99,7 @@ object SiriHelper {
     fun createSubscriptionResponse(subscriptionRef: String?): Siri {
         val siri = createSiriObject()
         val response = SubscriptionResponseStructure()
-        response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()))
+        response.setServiceStartedTime(serverStartTime)
         response.setRequestMessageRef(createMessageRef())
         response.setResponderRef(createRequestorRef(subscriptionRef))
         response.setResponseTimestamp(ZonedDateTime.now())

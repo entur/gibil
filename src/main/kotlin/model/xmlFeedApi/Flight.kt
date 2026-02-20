@@ -83,12 +83,18 @@ class Flight {
     @XmlTransient
     var isMerged: Boolean = false
 
+    //[Direction] from Avinor
     fun isDeparture(): Boolean = arrDep == FlightCodes.DEPARTURE_CODE
     fun isArrival(): Boolean = arrDep == FlightCodes.ARRIVAL_CODE
 
+    //[Satus Code] from Avinor
     fun isCancelled(): Boolean = status?.code == FlightCodes.CANCELLED_CODE
-    fun isDelayed(): Boolean = delayed == FlightCodes.DELAYED_CODE
+    fun isDeparted(): Boolean = status?.code == FlightCodes.DEPARTED_CODE
+    fun isArrived(): Boolean = status?.code == FlightCodes.ARRIVED_CODE
+    fun isNewTime(): Boolean = status?.code == FlightCodes.NEW_TIME_CODE
+    fun isNewInfo(): Boolean = status?.code == FlightCodes.NEW_INFO_CODE
 
+    //[Dom_int] from Avinor
     fun isDomestic(): Boolean = domInt == FlightCodes.DOMESTIC_CODE
     fun isInternational(): Boolean = domInt == FlightCodes.INTERNATIONAL_CODE
     fun isSchengen(): Boolean = domInt == FlightCodes.SCHENGEN_CODE

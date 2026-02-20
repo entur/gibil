@@ -1,13 +1,14 @@
 package subscription
 
+import jakarta.annotation.PreDestroy
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
-import java.util.concurrent.TimeUnit
 
 private val LOG = LoggerFactory.getLogger(HttpHelper::class.java)
 
@@ -16,16 +17,10 @@ private val LOG = LoggerFactory.getLogger(HttpHelper::class.java)
  * It uses OkHttp3 HttpClient to perform HTTP operations.
  */
 @Component
-class HttpHelper() {
-
-    val publisher = SiriETPublisher()
-
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(5, TimeUnit.SECONDS)
-        .callTimeout(30, TimeUnit.SECONDS)
-        .build()
+class HttpHelper(
+    @Qualifier("subscriberClient") private val httpClient: OkHttpClient,
+    private val publisher: SiriETPublisher
+) {
 
     companion object {
         private val XML_MEDIA_TYPE = "application/xml; charset=utf-8".toMediaType()
@@ -87,6 +82,7 @@ class HttpHelper() {
      * Closes the HttpClient instance to release any resources it holds.
      * This should be called when the HttpHelper is no longer needed to ensure proper cleanup.
      */
+    @PreDestroy
     fun close() {
         httpClient.connectionPool.evictAll()
     }

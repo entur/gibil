@@ -2,12 +2,15 @@ package org.gibil.service
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
 
 @Service
-class ApiService(private val client: OkHttpClient) {
+class ApiService(
+    @Qualifier("avinorClient") private val client: OkHttpClient
+) {
 
     /**
      * A basic api call that returns the raw XML it gets from the call.

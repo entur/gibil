@@ -297,10 +297,12 @@ class SiriETMapper(
                         call.expectedDepartureTime = scheduleTime
                         call.departureStatus = CallStatusEnumeration.ON_TIME
                     } else {
+                        call.expectedDepartureTime = statusTime ?: scheduleTime
                         call.departureStatus = CallStatusEnumeration.DELAYED
                     }
                 }
                 "C" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
                     call.departureStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
                 }
@@ -350,6 +352,7 @@ class SiriETMapper(
                         }
                     }
                 "C" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
                     call.arrivalStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
                 }

@@ -20,11 +20,18 @@ object PollingConfig {
 }
 
 object FlightCodes {
+    //[Direction] from Avinor
     const val DEPARTURE_CODE = "D"
     const val ARRIVAL_CODE = "A"
-    const val CANCELLED_CODE = "C"
-    const val DELAYED_CODE = "Y"
 
+    //[Satus Code] from Avinor
+    const val ARRIVED_CODE = "A"
+    const val CANCELLED_CODE = "C"
+    const val DEPARTED_CODE = "D"
+    const val NEW_TIME_CODE = "E"
+    const val NEW_INFO_CODE = "N"
+
+    //[Dom_int] from Avinor
     const val DOMESTIC_CODE = "D"
     const val INTERNATIONAL_CODE = "I"
     const val SCHENGEN_CODE = "S"

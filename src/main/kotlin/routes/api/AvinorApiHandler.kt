@@ -3,10 +3,6 @@ package routes.api
 import jakarta.annotation.PostConstruct
 import org.gibil.service.ApiService
 import org.springframework.stereotype.Component
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.ZonedDateTime
 import org.gibil.AvinorApiConfig
 import model.AvinorXmlFeedParams
 import model.airportNames.AirportNames
@@ -21,10 +17,6 @@ import java.io.StringReader
 class AvinorApiHandler(private val apiService: ApiService) {
 
     private var airportIATASet = emptySet<String>()
-
-    companion object {
-        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-    }
 
     @PostConstruct
     internal fun init() {
@@ -74,29 +66,5 @@ class AvinorApiHandler(private val apiService: ApiService) {
         }
 
         return builder.build().toUriString()
-    }
-
-    /**
-     * Takes an incoming instant datetime string, parses it, and then converts it into the correct utc for the user
-     * @param datetime is a datetime of java.instant format with timezone information
-     * @return corrected datetime information, sets the utc to be the same as the user has. Returns error message if format is invalid
-     */
-    fun userCorrectDate(datetime: String): String{
-        try {
-            //makes string into time object
-            // Try parsing as ZonedDateTime first, fall back to Instant
-            val datetimeOriginal = try {
-                ZonedDateTime.parse(datetime).toInstant()
-            } catch (e: Exception) {
-                Instant.parse(datetime)
-            }
-
-            //finds user's local timezone and applies to original datetime
-            val datetimeUserCorrect = datetimeOriginal.atZone(ZoneId.systemDefault())
-
-            return datetimeUserCorrect.format(DATE_TIME_FORMATTER)
-        } catch (e: Exception) {
-            return "Error: Date format in '$datetime' invalid; ${e.localizedMessage}"
-        }
     }
 }

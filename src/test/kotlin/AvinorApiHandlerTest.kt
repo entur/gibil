@@ -6,16 +6,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import routes.api.AvinorApiHandler
 import model.AvinorXmlFeedParams
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.net.URI
 
 class AvinorApiHandlerTest() {
     val spyApiService = SpyApiService()
     val apiHandler = AvinorApiHandler(spyApiService).also { it.init() }
-    val clock: Clock = Clock.systemUTC()
 
     /**
      * A fake implementation of ApiService that returns controlled responses
@@ -149,36 +144,5 @@ class AvinorApiHandlerTest() {
                 )
             )
         }
-    }
-
-    @Test
-    fun `userCorrectDate with valid iso timestamp returns localized date string`() {
-        val timeNow: Instant = Instant.now(clock)
-
-        val datetimeUserCorrect = timeNow.atZone(ZoneId.systemDefault())
-
-        var datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("America/Los_Angeles"))
-
-        //if the users timezone is conicidentally america/LA, set something different
-        if (datetimeUserDifferentZone == datetimeUserCorrect) {
-            datetimeUserDifferentZone = timeNow.atZone(ZoneId.of("Europe/Paris"))
-        }
-
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
-        val displayTime = datetimeUserCorrect.format(formatter)
-        val displayTimeWrong = datetimeUserDifferentZone.format(formatter)
-
-        val result = apiHandler.userCorrectDate(datetimeUserDifferentZone.toString())
-
-        assertEquals(displayTime, result)
-    }
-
-    @Test
-    fun `userCorrectDate with invalid date format returns error`() {
-        val datetime = "not a valid date format"
-        val result = apiHandler.userCorrectDate(datetime)
-
-        assertTrue(result.contains("Error: Date format in"))
     }
 }

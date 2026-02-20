@@ -8,11 +8,10 @@ import uk.org.siri.siri21.*
 import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import service.FindServiceJourney
 import org.gibil.Dates
+import util.DateUtil.parseTimestamp
 import org.gibil.SIRI_VERSION_DELIVERY
 import org.slf4j.LoggerFactory
 
@@ -182,7 +181,7 @@ class SiriETMapper(
                     framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: $flightId = $findFlightSequence (${flightId in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
 
                     //log the failed match attempt
-                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.CURRENT_DATE)
+                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.currentDateMMMddyyyy())
                 }
             }
         } catch (e: Exception) {
@@ -353,23 +352,6 @@ class SiriETMapper(
             }
         }
         return call
-    }
-
-    private fun parseTimestamp(timestamp: String?): ZonedDateTime? {
-        if (timestamp.isNullOrBlank()) return null
-
-        return try {
-            ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
-        } catch (_: DateTimeParseException) {
-            try {
-                // Try parsing without timezone (assume UTC)
-                java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(java.time.ZoneOffset.UTC)
-            } catch (_: DateTimeParseException) {
-                LOG.error("Warning: Could not parse timestamp: {}", timestamp)
-                null
-            }
-        }
     }
 
     /**

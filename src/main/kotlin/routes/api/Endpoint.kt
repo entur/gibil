@@ -29,8 +29,8 @@ class Endpoint(
      */
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
-    val mergedFlights = flightAggregationService.fetchAllMergedFlightsAsList()
-    val siri = siriETMapper.mapMergedFlightsToSiri(mergedFlights)
+    val unifiedFlights = flightAggregationService.fetchUnifiedFlights()
+    val siri = siriETMapper.mapUnifiedFlightsToSiri(unifiedFlights)
     return siriETPublisher.toXml(siri)
     }
 

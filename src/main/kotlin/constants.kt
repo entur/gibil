@@ -22,6 +22,9 @@ const val REQUEST_DELAY_MS = 50
 val LARGE_AIRPORTS = setOf("OSL")
 val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 
+// Svalbard is classified as international (domInt="I") by Avinor, but should be treated as domestic
+val SVALBARD_AIRPORTS = setOf("LYR")
+
 val SIRI_VERSION_DELIVERY = "2.1"
 
 object AvinorApiConfig {

@@ -22,6 +22,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class FlightAggregationServiceTest {
@@ -215,6 +216,7 @@ class FlightAggregationServiceTest {
         airline: String = "DY",
         arrDep: String = "D",
         airport: String = "OSL",
+        viaAirport: String? = null,
         scheduleTime: String? = ZonedDateTime.now(ZoneOffset.UTC)
             .plusHours(2)
             .format(DateTimeFormatter.ISO_DATE_TIME),
@@ -227,6 +229,7 @@ class FlightAggregationServiceTest {
             this.airline = airline
             this.arrDep = arrDep
             this.airport = airport
+            this.viaAirport = viaAirport
             this.scheduleTime = scheduleTime
             this.domInt = domInt
             this.status = FlightStatus().apply {
@@ -262,5 +265,204 @@ class FlightAggregationServiceTest {
         every {
             anyConstructed<ClassPathResource>().inputStream
         } returns airportsText.byteInputStream()
+    }
+
+    @Nested
+    inner class FetchUnifiedFlights {
+
+        @Test
+        fun `should stitch direct flight into 2 stops`() = runBlocking {
+            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+            val oslDep = createFlight(
+                uniqueID = "1", flightId = "DY123", airline = "DY",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val bgoArr = createFlight(
+                uniqueID = "2", flightId = "DY123", airline = "DY",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("OSL", listOf(oslDep))
+            mockAirportData("BGO", listOf(bgoArr))
+            mockAirportsList(listOf("OSL", "BGO"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(1, result.size)
+            val flight = result.first()
+            assertEquals("DY123", flight.flightId)
+            assertEquals("OSL", flight.origin)
+            assertEquals("BGO", flight.destination)
+            assertEquals(2, flight.stops.size)
+            assertNotNull(flight.stops.first().departureTime)
+            assertNotNull(flight.stops.last().arrivalTime)
+            Unit
+        }
+
+        @Test
+        fun `should stitch multi-leg flight into 3 stops`() = runBlocking {
+            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+            // TOS -> BOO -> SVJ
+            val tosDep = createFlight(
+                uniqueID = "1", flightId = "WF100", airline = "WF",
+                arrDep = "D", airport = "SVJ", viaAirport = "BOO",
+                scheduleTime = now.plusHours(1).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val booArr = createFlight(
+                uniqueID = "2", flightId = "WF100", airline = "WF",
+                arrDep = "A", airport = "TOS",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val booDep = createFlight(
+                uniqueID = "3", flightId = "WF100", airline = "WF",
+                arrDep = "D", airport = "SVJ",
+                scheduleTime = now.plusHours(2).plusMinutes(15).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val svjArr = createFlight(
+                uniqueID = "4", flightId = "WF100", airline = "WF",
+                arrDep = "A", airport = "BOO",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("TOS", listOf(tosDep))
+            mockAirportData("BOO", listOf(booArr, booDep))
+            mockAirportData("SVJ", listOf(svjArr))
+            mockAirportsList(listOf("TOS", "BOO", "SVJ"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(1, result.size)
+            val flight = result.first()
+            assertEquals("WF100", flight.flightId)
+            assertEquals(3, flight.stops.size)
+            assertEquals("TOS", flight.origin)
+            assertEquals("SVJ", flight.destination)
+            assertTrue(flight.isMultiLeg)
+        }
+
+        @Test
+        fun `should stitch circular flight with origin equal to destination`() = runBlocking {
+            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+            // BOO -> RET -> LKN -> BOO (circular)
+            val booDep = createFlight(
+                uniqueID = "1", flightId = "WF892", airline = "WF",
+                arrDep = "D", airport = "RET", viaAirport = "RET,LKN",
+                scheduleTime = now.plusHours(1).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val retArr = createFlight(
+                uniqueID = "2", flightId = "WF892", airline = "WF",
+                arrDep = "A", airport = "BOO",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val retDep = createFlight(
+                uniqueID = "3", flightId = "WF892", airline = "WF",
+                arrDep = "D", airport = "LKN", viaAirport = "LKN",
+                scheduleTime = now.plusHours(2).plusMinutes(15).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val lknArr = createFlight(
+                uniqueID = "4", flightId = "WF892", airline = "WF",
+                arrDep = "A", airport = "RET",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val lknDep = createFlight(
+                uniqueID = "5", flightId = "WF892", airline = "WF",
+                arrDep = "D", airport = "BOO",
+                scheduleTime = now.plusHours(3).plusMinutes(15).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val booArr = createFlight(
+                uniqueID = "6", flightId = "WF892", airline = "WF",
+                arrDep = "A", airport = "LKN",
+                scheduleTime = now.plusHours(4).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("BOO", listOf(booDep, booArr))
+            mockAirportData("RET", listOf(retArr, retDep))
+            mockAirportData("LKN", listOf(lknArr, lknDep))
+            mockAirportsList(listOf("BOO", "RET", "LKN"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(1, result.size)
+            val flight = result.first()
+            assertEquals("WF892", flight.flightId)
+            assertEquals(4, flight.stops.size)
+            assertEquals("BOO", flight.origin)
+            assertEquals("BOO", flight.destination)
+            assertNotNull(flight.stops.first().departureTime)
+            assertNotNull(flight.stops.last().arrivalTime)
+            Unit
+        }
+
+        @Test
+        fun `should reject chain with gap in stops`() = runBlocking {
+            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+            // OSL departs to BGO, but next stop seen is TRD — gap
+            val oslDep = createFlight(
+                uniqueID = "1", flightId = "DY999", airline = "DY",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = now.plusHours(1).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val trdArr = createFlight(
+                uniqueID = "2", flightId = "DY999", airline = "DY",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("OSL", listOf(oslDep))
+            mockAirportData("TRD", listOf(trdArr))
+            mockAirportsList(listOf("OSL", "TRD"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertFalse(result.any { it.flightId == "DY999" })
+        }
+
+        @Test
+        fun `should infer missing arrival stop from departure target`() = runBlocking {
+            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+            // Only departure from OSL to BGO, no arrival data from BGO
+            val oslDep = createFlight(
+                uniqueID = "1", flightId = "DY200", airline = "DY",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("OSL", listOf(oslDep))
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(1, result.size)
+            val flight = result.first()
+            assertEquals(2, flight.stops.size)
+            assertEquals("OSL", flight.origin)
+            assertEquals("BGO", flight.destination)
+        }
+
+        @Test
+        fun `should include Svalbard flights classified as international`() = runBlocking {
+            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+
+            val oslDep = createFlight(
+                uniqueID = "1", flightId = "DY660", airline = "DY",
+                arrDep = "D", airport = "LYR",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "I"  // Avinor classifies LYR as international
+            )
+
+            mockAirportData("OSL", listOf(oslDep))
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertTrue(result.any { it.flightId == "DY660" })
+        }
     }
 }

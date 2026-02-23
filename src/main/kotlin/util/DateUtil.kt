@@ -68,9 +68,9 @@ object DateUtil {
             val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)
 
             // Implement formats onto object and create partial daytyperef-value
-            val month = dateTimeWithZone.format(formatMonth)
-            val dayName = dateTimeWithZone.format(formatDayShortName)
-            val day = dateTimeWithZone.format(formatDate)
+            val month = norwayDateTime.format(formatMonth)
+            val dayName = norwayDateTime.format(formatDayShortName)
+            val day = norwayDateTime.format(formatDate)
 
             val dayType = "${month}_${dayName}_${day}"
 

@@ -59,4 +59,11 @@ class DateUtilTest {
         //check if response was given the default timezone
         Assertions.assertTrue(response?.zone?.id == "Z")
     }
+
+    @Test
+    fun `ParseTimestamp should return null when input is null`() {
+        val response = parseTimestamp(null)
+
+        Assertions.assertNull(response)
+    }
 }

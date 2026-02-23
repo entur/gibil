@@ -249,6 +249,26 @@
                 </TimetabledPassingTime>
               </passingTimes>
             </ServiceJourney>
+            <ServiceJourney version="1" id="AVI:ServiceJourney:DY9999-01-123456789">
+              <Name></Name>
+              <dayTypes>
+                <DayTypeRef ref="AVI:DayType:2023829901-May_Mon_25"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="AVI:JourneyPattern:123456789" version="1"></JourneyPatternRef>
+              <PublicCode>DY9999</PublicCode>
+              <OperatorRef ref="AVI:Operator:DY"></OperatorRef>
+              <LineRef ref="AVI:Line:DY_OSL-TRD" version="1"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:3349afaa-8251-4902-80e6-b0f307b69dc2">
+                  <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:12345678901" version="1"></StopPointInJourneyPatternRef>
+                  <DepartureTime>00:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:6fe46beb-1a1d-4121-a48d-88ce0fbca9c4">
+                  <StopPointInJourneyPatternRef ref="AVI:StopPointInJourneyPattern:12345678901" version="1"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>02:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
             <ServiceJourney version="1" id="AVI:ServiceJourney:DY760-02-523271305">
               <Name></Name>
               <dayTypes>

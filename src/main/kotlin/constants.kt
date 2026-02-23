@@ -26,9 +26,9 @@ val SIRI_VERSION_DELIVERY = "2.1"
 
 object FindServiceJourneyConstants {
     //base path when running on a local computer, and not in cloud
-    val localBasePath = "src/main/resources/extimeData"
+    val LOCAL_BASEPATH = "src/main/resources/extimeData"
 
-    val cloudBasePath = "/app/extimeData"
+    val CLOUD_BASEPATH = "/app/extimeData"
 }
 
 object AvinorApiConfig {

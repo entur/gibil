@@ -24,12 +24,12 @@ class FindServiceJourney(
     private val apiService: ApiService,
     @Value("\${gibil.extime.path:#{null}}") private val configuredPath: String?
 ) {
-    val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.cloudBasePath).exists()) FindServiceJourneyConstants.cloudBasePath else FindServiceJourneyConstants.localBasePath
+    val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 
     init {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
-        if (pathBase == FindServiceJourneyConstants.localBasePath) {
-            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", FindServiceJourneyConstants.localBasePath, apiService)
+        if (pathBase == FindServiceJourneyConstants.LOCAL_BASEPATH) {
+            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", FindServiceJourneyConstants.LOCAL_BASEPATH, apiService)
         }
     }
 

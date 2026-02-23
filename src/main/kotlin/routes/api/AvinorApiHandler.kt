@@ -2,8 +2,8 @@ package routes.api
 
 import jakarta.annotation.PostConstruct
 import org.gibil.service.ApiService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.gibil.AvinorApiConfig
 import model.AvinorXmlFeedParams
 import model.airportNames.AirportNames
 import org.springframework.web.util.UriComponentsBuilder
@@ -14,7 +14,11 @@ import java.io.StringReader
  * Is the handler for XMLfeed- and airportcode-Api, and also handles converting java time instant-datetimes into correct timezone for user.
  */
 @Component
-class AvinorApiHandler(private val apiService: ApiService) {
+class AvinorApiHandler(
+    private val apiService: ApiService,
+    @Value("\${avinor.api.base-url-xmlfeed}") private val baseUrlXmlFeed: String,
+    @Value("\${avinor.api.base-url-airport-names}") private val baseUrlAirportNames: String
+) {
 
     private var airportIATASet = emptySet<String>()
 
@@ -28,7 +32,7 @@ class AvinorApiHandler(private val apiService: ApiService) {
      * Makes set of IATAS in the [airportIATASet]
      */
     private fun refreshAirportNameSet() {
-        val xml = apiService.apiCall(AvinorApiConfig.BASE_URL_AVINOR_AIRPORT_NAMES) ?: return
+        val xml = apiService.apiCall(baseUrlAirportNames) ?: return
         val unmarshaller = SharedJaxbContext.createUnmarshaller()
         val airportNames = unmarshaller.unmarshal(StringReader(xml)) as AirportNames
         airportIATASet = airportNames.airportName
@@ -56,7 +60,7 @@ class AvinorApiHandler(private val apiService: ApiService) {
             "Invalid airport code: ${params.airportCode}"
         }
 
-        val builder = UriComponentsBuilder.fromUriString(AvinorApiConfig.BASE_URL_AVINOR_XMLFEED)
+        val builder = UriComponentsBuilder.fromUriString(baseUrlXmlFeed)
             .queryParam("airport", params.airportCode.uppercase())
             .queryParam("TimeFrom", params.timeFrom)
             .queryParam("TimeTo", params.timeTo)

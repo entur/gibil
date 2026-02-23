@@ -10,13 +10,13 @@ import java.time.format.DateTimeFormatter
 class DateUtilTest {
     //example good inputs
     val dateTimeZoneExample = "2026-05-05T06:00:00Z"
+    val dateTimeExample = "2026-05-05T06:00:00"
 
     //example bad inputs
     val exampleNanDate = "imorgen klokka 12"
 
     //example expected result
     val parseTimestampExpectedResponse = ZonedDateTime.parse(dateTimeZoneExample, DateTimeFormatter.ISO_DATE_TIME)
-
 
     @Test
     fun `FormatDateTimeZoneToTime should return correct formats`() {
@@ -49,5 +49,14 @@ class DateUtilTest {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             parseTimestamp(exampleNanDate)
         }
+    }
+
+    @Test
+    fun `ParseTimestamp should return correct timestamp when a datetime object is given`() {
+        val response = parseTimestamp(dateTimeExample)
+
+        Assertions.assertNotNull(response)
+        //check if response was given the default timezone
+        Assertions.assertTrue(response?.zone?.id == "Z")
     }
 }

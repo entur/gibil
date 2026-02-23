@@ -1,11 +1,8 @@
-package org.gibil
+package service
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertTrue
 import io.mockk.mockk
 import org.gibil.service.ApiService
-import service.FindServiceJourney
-import service.ServiceJourneyNotFoundException
+import org.junit.jupiter.api.Assertions
 import kotlin.test.Test
 
 class FindServiceJourneyTest {
@@ -29,8 +26,8 @@ class FindServiceJourneyTest {
         val foundMatch1 = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1])
         val foundMatch2 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1])
 
-        assertTrue { "SK4011-01-358551288" in foundMatch1 }
-        assertTrue { "DY628-01-523288933" in foundMatch2 }
+        Assertions.assertTrue { "SK4011-01-358551288" in foundMatch1 }
+        Assertions.assertTrue { "DY628-01-523288933" in foundMatch2 }
     }
 
     @Test
@@ -52,6 +49,6 @@ class FindServiceJourneyTest {
     fun `FindServiceJourney should find ID when flight is around midnight`() {
         val foundMatch = service.matchServiceJourney(exampleMidnight[0], exampleMidnight[1])
 
-        assertTrue { "DY9999-01-123456789" in foundMatch }
+        Assertions.assertTrue { "DY9999-01-123456789" in foundMatch }
     }
 }

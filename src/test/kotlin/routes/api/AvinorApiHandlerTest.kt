@@ -147,4 +147,18 @@ class AvinorApiHandlerTest() {
             )
         }
     }
+
+    @Test
+    fun `avinorXmlFeedUrlBuilder missing airportCode should throw`() {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            apiHandler.avinorXmlFeedUrlBuilder(
+                AvinorXmlFeedParams(
+                    airportCode = "",
+                    timeFrom = 1,
+                    timeTo = 7,
+                    direction = "D",
+                )
+            )
+        }
+    }
 }

@@ -1,45 +1,36 @@
 package org.gibil
 
-import okhttp3.OkHttpClient
+import io.mockk.every
+import io.mockk.mockk
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import routes.api.AvinorApiHandler
 import model.AvinorXmlFeedParams
 import java.net.URI
 
-class AvinorApiHandlerTest() {
-    val spyApiService = SpyApiService()
-    val apiHandler = AvinorApiHandler(spyApiService).also { it.init() }
+@ExtendWith(SpringExtension::class)
+@ContextConfiguration(classes = [AvinorApiHandlerTest.TestConfig::class, AvinorApiHandler::class])
+@TestPropertySource(locations = ["classpath:application.properties"])
+class AvinorApiHandlerTest {
 
-    /**
-     * A fake implementation of ApiService that returns controlled responses
-     * instead of making real HTTP calls.
-     */
-    class SpyApiService : ApiService(OkHttpClient()) {
-        var simulateError = false
-
-        override fun apiCall(url: String, acceptHeader: String?): String? {
-            if (simulateError) {
-                return "Error: 500 Server Error"
-            }
-
-            // Extract airport code from query parameter
-            val airportCode = url.substringAfter("airport=", "").substringBefore("&")
-
-            // Return appropriate response based on which API is being called
-            return when {
-                url.contains("airportNames") -> {
-                    // Return all known airport codes used in tests
-                    """<airportNames><airportName code="OSL" name="Oslo Lufthavn"/><airportName code="BGO" name="Bergen Lufthavn"/></airportNames>"""
-                }
-                else -> {
-                    // Default response for other APIs
-                    "<valid_xml_for_$airportCode>"
-                }
-            }
+    @TestConfiguration
+    class TestConfig {
+        @Bean
+        fun apiService(): ApiService = mockk {
+            every { apiCall(any()) } returns """<airportNames><airportName code="OSL" name="Oslo Lufthavn"/><airportName code="BGO" name="Bergen Lufthavn"/></airportNames>"""
         }
     }
+
+    @Autowired
+    private lateinit var apiHandler: AvinorApiHandler
 
     @Test
     fun `avinorXmlFeedUrlBuilder constructs correct URL with all parameters`() {

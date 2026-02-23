@@ -1,5 +1,6 @@
 package service
 
+import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
 import model.serviceJourney.ServiceJourneyParser
@@ -25,16 +26,18 @@ class FindServiceJourney(
 ) {
     val pathBase = configuredPath ?: if (File("/app/extimeData").exists()) "/app/extimeData" else "src/main/resources/extimeData"
 
-    init {
+    lateinit var serviceJourneyList: List<ServiceJourney>
+
+    @PostConstruct
+    fun init() {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
         if (pathBase == "src/main/resources/extimeData") {
             ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData", apiService)
         }
-    }
-
-    //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
-    val serviceJourneyList = findServiceJourney().also { journeys ->
-        journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
+        //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
+        serviceJourneyList = findServiceJourney().also { journeys ->
+            journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
+        }
     }
 
 

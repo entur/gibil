@@ -9,7 +9,7 @@ import service.ServiceJourneyNotFoundException
 import kotlin.test.Test
 
 class FindServiceJourneyTest {
-    val service = FindServiceJourney(mockk<ApiService>(), "src/test/resources/extimeData")
+    val service = FindServiceJourney(mockk<ApiService>(), "src/test/resources/extimeData").also { it.init() }
     //correct information
     val exampleFlightSasSVG = listOf("2026-05-05T06:00:00Z", "SK4011")
     val exampleFlightNorwegian = listOf("2026-03-02T17:25:00Z", "DY628")

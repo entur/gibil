@@ -1,20 +1,17 @@
 package routes.api
 
 import model.AvinorXmlFeedParams
-import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
-import service.SiriEtService
 import siri.SiriETMapper
 import siri.SiriETPublisher
 import org.gibil.service.ApiService
 
 @RestController
 class Endpoint(
-    private val siriEtService: SiriEtService,
     private val avinorApiHandler: AvinorApiHandler,
     private val flightAggregationService: FlightAggregationService,
     private val siriETMapper: SiriETMapper,

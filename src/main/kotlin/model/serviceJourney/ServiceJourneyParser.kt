@@ -1,18 +1,16 @@
 package model.serviceJourney
 
-import jakarta.xml.bind.JAXBContext
-import jakarta.xml.bind.Unmarshaller
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamReader
 import java.io.File
-import org.gibil.ServiceJourneyModel
+import org.slf4j.LoggerFactory
+import util.SharedJaxbContext
 
-val printLog = ServiceJourneyModel.DEBUG_PRINTING_SJM
+private val LOG = LoggerFactory.getLogger(ServiceJourneyParser::class.java)
 
 class ServiceJourneyParser {
 
-    private val jaxbContext = JAXBContext.newInstance(ServiceJourney::class.java)
-    private val unmarshaller: Unmarshaller = jaxbContext.createUnmarshaller()
+    private val unmarshaller = SharedJaxbContext.createUnmarshaller()
     private val xmlInputFactory = XMLInputFactory.newInstance()
 
     /**
@@ -52,8 +50,8 @@ class ServiceJourneyParser {
     fun parseFolder(folderPath: String): List<ServiceJourney> {
         val folder = File(folderPath)
 
-        if (!folder.exists() || !folder.isDirectory) {
-            throw IllegalArgumentException("$folderPath is not a valid directory")
+        require(folder.exists() || folder.isDirectory) {
+            "$folderPath is not a valid directory"
         }
 
         //to populate with service journeys found in the folders XML files
@@ -61,18 +59,14 @@ class ServiceJourneyParser {
 
         // Get all XML files in the folder
         folder.listFiles { file -> file.extension.lowercase() == "xml" }?.forEach { xmlFile ->
-            if (printLog) {
-                println("Parsing: ${xmlFile.name}")
-            }
+            LOG.info("Parsing: {}", xmlFile.name)
             try {
                 //parse the file and add the found service journeys to the allJourneys list
                 val journeys = parseFile(xmlFile)
                 allJourneys.addAll(journeys)
-                if (printLog) {
-                    println("  Found ${journeys.size} service journeys")
-                }
+                LOG.info("Found {} service journeys in {}", journeys.size, xmlFile.name)
             } catch (e: Exception) {
-                println("  Error parsing ${xmlFile.name}: ${e.message}")
+                LOG.error("Error parsing file {}: {}", xmlFile.name, e.message)
             }
         }
 

@@ -1,10 +1,10 @@
 package subscription
 
+import org.gibil.SiriConfig
 import uk.org.siri.siri21.*
-import java.time.Instant
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
+import org.gibil.Dates
 
 /**
  * Helper class for creating SIRI objects, such as service deliveries and heartbeat notifications,
@@ -14,53 +14,7 @@ import java.util.*
  */
 object SiriHelper {
     //Simple indication of when server was started
-    private val serverStartTime: Instant = Instant.now()
-
-    /**
-     * Creates a SIRI Service Delivery object containing the provided EstimatedVehicleJourney elements.
-     * This method constructs the necessary structure of the
-     * SIRI Service Delivery, including EstimatedTimetableDelivery and EstimatedVersionFrame,
-     * and populates it with the given EstimatedVehicleJourney elements.
-     * @param elements A collection of EstimatedVehicleJourney elements to include in the Service Delivery.
-     * @return A Siri object containing the constructed Service Delivery with the provided EstimatedVehicleJourney elements
-     */
-    fun createSiriEtServiceDelivery(elements: Collection<EstimatedVehicleJourney?>): Siri {
-        val siri = createSiriServiceDelivery()
-        siri.serviceDelivery
-            .estimatedTimetableDeliveries
-            .add(EstimatedTimetableDeliveryStructure())
-
-        siri.serviceDelivery
-            .estimatedTimetableDeliveries[0]
-            .estimatedJourneyVersionFrames
-            .add(EstimatedVersionFrameStructure())
-
-        siri.serviceDelivery
-            .estimatedTimetableDeliveries[0]
-            .estimatedJourneyVersionFrames[0]
-            .estimatedVehicleJourneies
-            .addAll(elements)
-
-
-        return siri
-    }
-
-    /**
-     * Creates a basic SIRI Service Delivery object with the necessary structure,
-     * but without any EstimatedVehicleJourney elements.
-     * This method is used as a starting point for constructing Service Delivery objects,
-     * allowing other methods to populate it with the appropriate data.
-     * @return A Siri object containing an empty Service Delivery structure
-     * ready to be populated with EstimatedVehicleJourney elements.
-     */
-    private fun createSiriServiceDelivery(): Siri {
-        val siri = createSiriObject()
-        val serviceDelivery = ServiceDelivery()
-
-        siri.setServiceDelivery(serviceDelivery)
-        return siri
-    }
-
+    private val serverStartTime = Dates.instantNowSystemDefault()
     /**
      * Creates a SIRI Heartbeat Notification object, which is used to indicate that the service is alive and functioning.
      * @param requestorRef An optional reference to the requestor, which can be included in the notification for identification purposes.
@@ -70,7 +24,7 @@ object SiriHelper {
         val siri = createSiriObject()
         val heartbeat = HeartbeatNotificationStructure()
         heartbeat.isStatus = true
-        heartbeat.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()))
+        heartbeat.setServiceStartedTime(serverStartTime)
         heartbeat.setRequestTimestamp(ZonedDateTime.now())
         heartbeat.setProducerRef(createRequestorRef(requestorRef))
         siri.setHeartbeatNotification(heartbeat)
@@ -97,7 +51,7 @@ object SiriHelper {
      */
     private fun createSiriObject(): Siri {
         val siri = Siri()
-        siri.setVersion("2.1")
+        siri.setVersion(SiriConfig.SIRI_VERSION_DELIVERY)
         return siri
     }
 
@@ -145,7 +99,7 @@ object SiriHelper {
     fun createSubscriptionResponse(subscriptionRef: String?): Siri {
         val siri = createSiriObject()
         val response = SubscriptionResponseStructure()
-        response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()))
+        response.setServiceStartedTime(serverStartTime)
         response.setRequestMessageRef(createMessageRef())
         response.setResponderRef(createRequestorRef(subscriptionRef))
         response.setResponseTimestamp(ZonedDateTime.now())

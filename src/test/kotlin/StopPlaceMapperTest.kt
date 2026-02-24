@@ -46,7 +46,7 @@ class StopPlaceMapperTest {
             every { SharedJaxbContext.createUnmarshaller() } returns unmarshaller
             every { unmarshaller.unmarshal(any<StringReader>()) } returns expectedStopPlaces
 
-            val result = stopPlaceMapper.unmarhsallStopPlaceXml(validXml)
+            val result = stopPlaceMapper.unmarshallStopPlaceXml(validXml)
             assertEquals(expectedStopPlaces, result)
         }
 
@@ -59,7 +59,7 @@ class StopPlaceMapperTest {
             every { unmarshaller.unmarshal(any<StringReader>()) } throws Exception("Parse error")
 
             val exception = assertThrows<RuntimeException> {
-                stopPlaceMapper.unmarhsallStopPlaceXml(invalidXml)
+                stopPlaceMapper.unmarshallStopPlaceXml(invalidXml)
             }
 
             assertEquals("Error parsing StopPlaces", exception.message)

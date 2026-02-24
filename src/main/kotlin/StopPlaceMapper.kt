@@ -14,7 +14,7 @@ class StopPlaceMapper {
      * @param xmlData String, XML StopPlace data fetched from EnTurs stopPlaces API
      * @return [StopPlaces] class containing needed API data
      */
-    fun unmarhsallStopPlaceXml(xmlData: String): StopPlaces {
+    fun unmarshallStopPlaceXml(xmlData: String): StopPlaces {
         try {
             val unmarshaller = SharedJaxbContext.createUnmarshaller()
             return unmarshaller.unmarshal(StringReader(xmlData)) as StopPlaces

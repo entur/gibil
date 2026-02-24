@@ -4,6 +4,7 @@ import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.Marshaller
 import jakarta.xml.bind.Unmarshaller
 import model.airportNames.AirportNames
+import model.serviceJourney.ServiceJourney
 import model.xmlFeedApi.Airport
 import org.gibil.model.stopPlacesApi.StopPlaces
 import uk.org.siri.siri21.Siri
@@ -18,7 +19,8 @@ object SharedJaxbContext {
        Airport::class.java,
        AirportNames::class.java,
        Siri::class.java,
-       StopPlaces::class.java
+       StopPlaces::class.java,
+       ServiceJourney::class.java
    )
 
     /**

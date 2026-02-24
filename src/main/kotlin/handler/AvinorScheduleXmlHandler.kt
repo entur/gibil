@@ -7,9 +7,9 @@ import java.io.StringReader
 import java.io.StringWriter
 
 @Component
-open class AvinorScheduleXmlHandler {
+class AvinorScheduleXmlHandler {
 
-    open fun unmarshallXmlToAirport(xmlData: String): Airport {
+     fun unmarshallXmlToAirport(xmlData: String): Airport {
         try {
             val unmarshaller = SharedJaxbContext.createUnmarshaller()
             return unmarshaller.unmarshal(StringReader(xmlData)) as Airport

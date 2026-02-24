@@ -9,15 +9,19 @@ common:
     imagePullPolicy: Always
     cpu: 2
     memory: 2560
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     volumeMounts:
       - name: extime-data
-        mountPath: /app/input
-      - name: extime-output
-        mountPath: /app/output
+        mountPath: /app/extimeData
+      - name: logs
+        mountPath: /app/logs
     volumes:
       - name: extime-data
         emptyDir: {}
-      - name: extime-output
+      - name: logs
         emptyDir: {}
     probes:
       enabled: true
@@ -48,6 +52,31 @@ common:
           failureThreshold: 3
 
   initContainers:
+    - name: create-log-dirs
+      image: busybox:latest
+      volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /app/logs/errors
+          mkdir -p /app/logs/general
+          mkdir -p /app/logs/secrets
+          mkdir -p /app/logs/serviceJourneys
+          chmod -R 755 /app/logs
+          echo "Log directories created:"
+          ls -la /app/logs/
     - name: extime-data-fetch
       image: curlimages/curl:latest
       securityContext:
@@ -60,7 +89,7 @@ common:
           type: RuntimeDefault
       volumeMounts:
         - name: extime-data
-          mountPath: /app/input
+          mountPath: /app/extimeData
       command:
         - sh
         - -c
@@ -68,11 +97,11 @@ common:
           echo "Downloading zip file..."
           curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
           echo "Download complete. Extracting to shared volume..."
-          unzip /tmp/rb_avi-aggregated-netex.zip -d /app/input
+          unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
           echo "Extraction complete. Cleaning up zip file..."
           rm /tmp/rb_avi-aggregated-netex.zip
-          echo "Init container finished. Files in /app/input:"
-          ls -la /app/input/
+          echo "Init container finished. Files in /app/extimeData:"
+          ls -la /app/extimeData/
       resources:
         limits:
           cpu: 1

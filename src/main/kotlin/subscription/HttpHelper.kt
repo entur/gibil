@@ -1,13 +1,16 @@
 package subscription
 
+import jakarta.annotation.PreDestroy
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
-import java.util.concurrent.TimeUnit
+
+private val LOG = LoggerFactory.getLogger(HttpHelper::class.java)
 
 /**
  * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.
@@ -15,17 +18,9 @@ import java.util.concurrent.TimeUnit
  */
 @Component
 class HttpHelper(
-    private val verbose: Boolean = true
+    @Qualifier("subscriberClient") private val httpClient: OkHttpClient,
+    private val publisher: SiriETPublisher
 ) {
-    private val logger = LoggerFactory.getLogger(HttpHelper::class.java)
-    val publisher = SiriETPublisher()
-
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(5, TimeUnit.SECONDS)
-        .callTimeout(30, TimeUnit.SECONDS)
-        .build()
 
     companion object {
         private val XML_MEDIA_TYPE = "application/xml; charset=utf-8".toMediaType()
@@ -51,14 +46,8 @@ class HttpHelper(
      * @return The HTTP status code of the response, or -1 if the request fails
      */
     fun postData(url: String, xmlData: String?): Int {
-        if (verbose && xmlData != null) {
-            logger.info(xmlData)
-        }
 
         return try {
-            val body = xmlData?.toRequestBody(XML_MEDIA_TYPE)
-                ?: "".toRequestBody(XML_MEDIA_TYPE)
-
             val requestBuilder = Request.Builder()
                 .url(url)
 
@@ -66,18 +55,25 @@ class HttpHelper(
                 val body = xmlData.toRequestBody(XML_MEDIA_TYPE)
                 requestBuilder.post(body)
             } else {
-                // Send a POST request without a body when xmlData is null
-                requestBuilder.method("POST", null)
+                // If no XML data, don't send the request
+                LOG.warn("No XML data provided, skipping POST to {}", url)
+                return -1
             }
 
             val request = requestBuilder.build()
 
             httpClient.newCall(request).execute().use { response ->
-                logger.info("POST request completed with response {}", response.code)
+                if (!response.isSuccessful) {
+                    val errorBody = response.body?.string() ?: "No error body"
+                    LOG.error("POST request to {} failed with code {}. Error body: {}", url, response.code, errorBody)
+                } else {
+                    LOG.info("POST request to {} completed with response {}", url, response.code)
+                }
                 response.code
             }
+
         } catch (e: Exception) {
-            logger.error("POST request failed", e)
+            LOG.error("POST request failed: {}", e.message, e)
             -1
         }
     }
@@ -86,6 +82,7 @@ class HttpHelper(
      * Closes the HttpClient instance to release any resources it holds.
      * This should be called when the HttpHelper is no longer needed to ensure proper cleanup.
      */
+    @PreDestroy
     fun close() {
         httpClient.connectionPool.evictAll()
     }

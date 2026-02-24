@@ -4,11 +4,10 @@ import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightsContainer
 import model.xmlFeedApi.FlightStatus
-import okhttp3.OkHttpClient
-import org.gibil.StopPlaceMapper
-import org.gibil.routes.api.StopPlaceApiHandler
 import org.gibil.service.AirportQuayService
-import org.gibil.service.ApiService
+import io.mockk.every
+import io.mockk.mockk
+import service.FindServiceJourney
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -17,14 +16,11 @@ import java.time.ZonedDateTime
 
 class SiriETMapperTest() {
 
-    class SpyAirportQuayService : AirportQuayService(
-        StopPlaceApiHandler(ApiService(OkHttpClient())),
-        StopPlaceMapper()
-    ) {
-        override fun getQuayId(iataCode: String): String? = null
+    private val airportQuayService = mockk<AirportQuayService> {
+        every { getQuayId(any()) } returns null
     }
-
-    private val mapper = SiriETMapper(SpyAirportQuayService())
+    private val findServiceJourney = mockk<FindServiceJourney>(relaxed = true)
+    private val mapper = SiriETMapper(airportQuayService, findServiceJourney)
 
 
     @Test

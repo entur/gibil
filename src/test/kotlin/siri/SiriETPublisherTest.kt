@@ -3,11 +3,10 @@ package siri
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightsContainer
-import okhttp3.OkHttpClient
-import org.gibil.StopPlaceMapper
-import org.gibil.routes.api.StopPlaceApiHandler
 import org.gibil.service.AirportQuayService
-import org.gibil.service.ApiService
+import io.mockk.every
+import io.mockk.mockk
+import service.FindServiceJourney
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
@@ -16,19 +15,15 @@ import java.time.ZonedDateTime
 
 class SiriETPublisherTest() {
 
-    class SpyAirportQuayService : AirportQuayService(
-        StopPlaceApiHandler(ApiService(OkHttpClient())),
-        StopPlaceMapper()
-    ) {
-        override fun getQuayId(iataCode: String): String? = null
+    private val airportQuayService = mockk<AirportQuayService> {
+        every { getQuayId(any()) } returns null
     }
-
-    private val airportQuayService = SpyAirportQuayService()
+    private val findServiceJourney = mockk<FindServiceJourney>(relaxed = true)
 
     @Test
     fun `should convert SIRI to XML string`() {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService)
+        val mapper = SiriETMapper(airportQuayService, findServiceJourney)
         val siri = mapper.mapToSiri(createValidAirport("OSL"), "OSL")
 
         val xml = publisher.toXml(siri)
@@ -41,7 +36,7 @@ class SiriETPublisherTest() {
     @Test
     fun `should format XML with indentation`() {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService)
+        val mapper = SiriETMapper(airportQuayService, findServiceJourney)
         val siri = mapper.mapToSiri(createValidAirport("OSL"), "OSL")
 
         val formattedXml = publisher.toXml(siri, formatOutput = true)
@@ -54,7 +49,7 @@ class SiriETPublisherTest() {
     @Test
     fun `should write SIRI to file`(@TempDir tempDir: File) {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService)
+        val mapper = SiriETMapper(airportQuayService, findServiceJourney)
         val siri = mapper.mapToSiri(createValidAirport("OSL"), "OSL")
         val outputFile = File(tempDir, "output.xml")
 
@@ -67,7 +62,7 @@ class SiriETPublisherTest() {
     @Test
     fun `should handle multiple flights`() {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService)
+        val mapper = SiriETMapper(airportQuayService, findServiceJourney)
         val airport = createAirport("OSL", listOf(
             createValidFlight("SK4321", "SK"),
             createValidFlight("DY4322", "DY"),

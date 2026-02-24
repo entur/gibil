@@ -1,13 +1,15 @@
-package org.gibil
+package service
 
 import handler.AvinorScheduleXmlHandler
 import io.mockk.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import model.AvinorXmlFeedParams
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightStatus
 import model.xmlFeedApi.FlightsContainer
-import model.AvinorXmlFeedParams
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -15,12 +17,12 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 import routes.api.AvinorApiHandler
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import service.FlightAggregationService
 
 class FlightAggregationServiceTest {
 
@@ -28,14 +30,16 @@ class FlightAggregationServiceTest {
     private lateinit var xmlHandler: AvinorScheduleXmlHandler
     private lateinit var apiService: ApiService
     private lateinit var flightAggregationService: FlightAggregationService
+    private lateinit var ioDispatcher: CoroutineDispatcher
 
     @BeforeEach
     fun init() {
         avinorApiHandler = mockk()
         xmlHandler = mockk()
         apiService = mockk()
+        ioDispatcher = Dispatchers.Unconfined
 
-        flightAggregationService = FlightAggregationService(avinorApiHandler, xmlHandler, apiService)
+        flightAggregationService = FlightAggregationService(avinorApiHandler, xmlHandler, apiService, ioDispatcher)
     }
 
     @AfterEach
@@ -48,7 +52,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should merge departure and arrival data from different airports`() = runBlocking {
-            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             // Setup: Flight OSL -> BGO departing in 2 hours
             val oslFlight = createFlight(
@@ -88,7 +92,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should filter out international flights`() = runBlocking {
-            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             val domesticFlight = createFlight(
                 uniqueID = "12345",
@@ -116,7 +120,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should filter out flights with departure outside time window`() = runBlocking {
-            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             // Flight departed 30 minutes ago (outside 20 min window)
             val oldFlight = createFlight(
@@ -138,7 +142,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should filter out flights with arrival outside time window`() = runBlocking {
-            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             // Flight arrives 8 hours in future (outside 7 hour window)
             val futureFlight = createFlight(
@@ -160,7 +164,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should keep flights within time window`() = runBlocking {
-            val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             // Flight departs in 3 hours (within window)
             val validFlight = createFlight(
@@ -211,13 +215,14 @@ class FlightAggregationServiceTest {
         airline: String = "DY",
         arrDep: String = "D",
         airport: String = "OSL",
-        scheduleTime: String? = ZonedDateTime.now(java.time.ZoneOffset.UTC)
+        scheduleTime: String? = ZonedDateTime.now(ZoneOffset.UTC)
             .plusHours(2)
             .format(DateTimeFormatter.ISO_DATE_TIME),
         domInt: String = "D",
         statusCode: String = "N"
     ): Flight {
-        return Flight(uniqueID).apply {
+        return Flight().apply {
+            this.uniqueID = uniqueID
             this.flightId = flightId
             this.airline = airline
             this.arrDep = arrDep
@@ -259,4 +264,3 @@ class FlightAggregationServiceTest {
         } returns airportsText.byteInputStream()
     }
 }
-

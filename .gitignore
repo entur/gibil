@@ -40,11 +40,8 @@ build/
 ### Mac OS ###
 .DS_Store
 
-## Logs ##
+### Logs ###
 /**/logs
 
-### filter files ###
-/**/src/main/kotlin/filter/input
-/**/src/main/kotlin/filter/output
-/**/src/test/resources/extime/output
-/**/src/test/resources/extime/lineSelectorTestOutput
+### ExtimeData ###
+/**/src/main/resources/extimeData

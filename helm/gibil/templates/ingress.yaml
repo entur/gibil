@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   labels:
-    traffic-type: internal
+    traffic-type: public
     {{- include "gibil.common.labels" . | indent 4 }}
   annotations:
     kubernetes.io/ingress.class: traefik

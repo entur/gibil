@@ -54,7 +54,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       resources: {}
-   volumes:
+  volumes:
     - name: extime-data
       emptyDir: {}
   dnsPolicy: ClusterFirst

@@ -1,9 +1,9 @@
-package org.gibil
+package handler
 
-import handler.AvinorScheduleXmlHandler
 import model.xmlFeedApi.Airport
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
@@ -76,7 +76,7 @@ class AvinorScheduleXmlHandlerTest {
             handler.unmarshallXmlToAirport(invalidXml)
         }
 
-        assertTrue(exception.message?.contains("Error parsing Airport") == true)
+        Assertions.assertTrue(exception.message?.contains("Error parsing Airport") == true)
     }
 
     @Test
@@ -86,7 +86,7 @@ class AvinorScheduleXmlHandlerTest {
         val exception = assertThrows<RuntimeException> {
             handler.unmarshallXmlToAirport(invalidXml)
         }
-        assertTrue(exception.message?.contains("Error parsing Airport") == true)
+        Assertions.assertTrue(exception.message?.contains("Error parsing Airport") == true)
     }
 
     @Test

@@ -42,8 +42,6 @@ jobs:
           mvn \
                   org.jacoco:jacoco-maven-plugin:prepare-agent verify \
                   org.jacoco:jacoco-maven-plugin:report sonar:sonar \
-                  -Dmaven.main.skip \
-                  -DskipTests \
                   -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                   -Dsonar.organization=enturas-github \
                   -Dsonar.projectName=${SONAR_PROJECT_NAME} \

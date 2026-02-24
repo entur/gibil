@@ -46,6 +46,13 @@ object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
 
+object FindServiceJourneyConstants {
+    //base path when running on a local computer, and not in cloud
+    val LOCAL_BASEPATH = "src/main/resources/extimeData"
+
+    val CLOUD_BASEPATH = "/app/extimeData"
+}
+
 object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36

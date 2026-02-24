@@ -294,14 +294,21 @@ class SiriETMapper(
                     call.departureStatus = CallStatusEnumeration.MISSED
                 }
                 FlightCodes.NEW_TIME_CODE -> {
-                    call.expectedDepartureTime = statusTime ?: scheduleTime
-                    call.departureStatus = CallStatusEnumeration.DELAYED
+                    if (statusTime != null && statusTime == scheduleTime) {
+                        call.expectedDepartureTime = scheduleTime
+                        call.departureStatus = CallStatusEnumeration.ON_TIME
+                    } else {
+                        call.expectedDepartureTime = statusTime ?: scheduleTime
+                        call.departureStatus = CallStatusEnumeration.DELAYED
+                    }
                 }
                 FlightCodes.CANCELLED_CODE -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
                     call.departureStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
                 }
                 else -> {
+                    LOG.info("Unknow departure code {} for flight {}", statusCode, airportCode)
                     call.expectedDepartureTime = scheduleTime
                     call.departureStatus = CallStatusEnumeration.ON_TIME
                 }
@@ -337,6 +344,9 @@ class SiriETMapper(
                     if (statusTime != null && statusTime.isBefore(scheduleTime)) {
                         call.expectedArrivalTime = statusTime
                         call.arrivalStatus = CallStatusEnumeration.EARLY
+                    } else if (statusTime != null && statusTime == scheduleTime) {
+                        call.expectedArrivalTime = scheduleTime
+                        call.arrivalStatus = CallStatusEnumeration.ON_TIME
                     } else {
                         call.expectedArrivalTime = statusTime ?: scheduleTime
                         call.arrivalStatus = CallStatusEnumeration.DELAYED
@@ -347,6 +357,7 @@ class SiriETMapper(
                     call.setCancellation(true)
                 }
                 else -> {
+                    LOG.info("Unknown arrival code {} for flight {}", statusCode, airportCode)
                     call.expectedArrivalTime = scheduleTime
                     call.arrivalStatus = CallStatusEnumeration.ON_TIME
                 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 import util.ZipUtil
 import util.DateUtil.formatDateTimeZoneToTime
 import org.slf4j.LoggerFactory
+import org.gibil.FindServiceJourneyConstants
 
 private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 
@@ -24,15 +25,15 @@ class FindServiceJourney(
     private val apiService: ApiService,
     @Value("\${gibil.extime.path:#{null}}") private val configuredPath: String?
 ) {
-    val pathBase = configuredPath ?: if (File("/app/extimeData").exists()) "/app/extimeData" else "src/main/resources/extimeData"
+    val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
 
     @PostConstruct
     fun init() {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
-        if (pathBase == "src/main/resources/extimeData") {
-            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", "src/main/resources/extimeData", apiService)
+        if (pathBase == FindServiceJourneyConstants.LOCAL_BASEPATH) {
+            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", FindServiceJourneyConstants.LOCAL_BASEPATH, apiService)
         }
         //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
         serviceJourneyList = findServiceJourney().also { journeys ->

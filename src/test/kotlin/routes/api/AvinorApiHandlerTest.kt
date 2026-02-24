@@ -1,8 +1,9 @@
-package org.gibil
+package routes.api
 
 import io.mockk.every
 import io.mockk.mockk
 import org.gibil.service.ApiService
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -46,16 +47,16 @@ class AvinorApiHandlerTest {
         val resultUrl = apiHandler.avinorXmlFeedUrlBuilder(params)
 
         // Assert
-        assertNotNull(resultUrl)
+        Assertions.assertNotNull(resultUrl)
 
         // Verify it is a valid URI
-        assertDoesNotThrow { URI.create(resultUrl) }
+        Assertions.assertDoesNotThrow { URI.create(resultUrl) }
 
         // Verify query parameters exist (order might vary, so checking containment is safer)
-        assertTrue(resultUrl.contains("airport=OSL"), "URL should contain airport param")
-        assertTrue(resultUrl.contains("TimeFrom=1"), "URL should contain TimeFrom param")
-        assertTrue(resultUrl.contains("TimeTo=7"), "URL should contain TimeTo param")
-        assertTrue(resultUrl.contains("direction=D"), "URL should contain direction param")
+        Assertions.assertTrue(resultUrl.contains("airport=OSL"), "URL should contain airport param")
+        Assertions.assertTrue(resultUrl.contains("TimeFrom=1"), "URL should contain TimeFrom param")
+        Assertions.assertTrue(resultUrl.contains("TimeTo=7"), "URL should contain TimeTo param")
+        Assertions.assertTrue(resultUrl.contains("direction=D"), "URL should contain direction param")
     }
 
     @Test
@@ -76,7 +77,10 @@ class AvinorApiHandlerTest {
         val resultUrl = apiHandler.avinorXmlFeedUrlBuilder(params)
 
         // Assert
-        assertFalse(resultUrl.contains("direction="), "URL should NOT contain direction param for empty input")
+        Assertions.assertFalse(
+            resultUrl.contains("direction="),
+            "URL should NOT contain direction param for empty input"
+        )
     }
 
     @Test
@@ -91,13 +95,13 @@ class AvinorApiHandlerTest {
         )
 
         requireNotNull(result) { "url builder returned null" }
-        assertTrue(result.contains("airport=OSL"))
-        assertTrue(result.contains("direction"))
+        Assertions.assertTrue(result.contains("airport=OSL"))
+        Assertions.assertTrue(result.contains("direction"))
     }
 
     @Test
     fun `avinorXmlFeedUrlBuilder with invalid airport code throws exception`() {
-        assertThrows(IllegalArgumentException::class.java) {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
                     airportCode = "OS",
@@ -111,7 +115,7 @@ class AvinorApiHandlerTest {
 
     @Test
     fun `avinorXmlFeedUrlBuilder with negative time from throws exception`() {
-        assertThrows(IllegalArgumentException::class.java) {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
                     airportCode = "OSL",
@@ -125,12 +129,26 @@ class AvinorApiHandlerTest {
 
     @Test
     fun `avinorXmlFeedUrlBuilder with time exceeding limit throws exception`() {
-        assertThrows(IllegalArgumentException::class.java) {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
                     airportCode = "OSL",
                     timeFrom = 1,
                     timeTo = 700000000,
+                    direction = "D",
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `avinorXmlFeedUrlBuilder missing airportCode should throw`() {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            apiHandler.avinorXmlFeedUrlBuilder(
+                AvinorXmlFeedParams(
+                    airportCode = "",
+                    timeFrom = 1,
+                    timeTo = 7,
                     direction = "D",
                 )
             )

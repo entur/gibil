@@ -1,16 +1,17 @@
-package subscriber
+package subscription
 
 import io.mockk.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import service.FlightAggregationService
 import siri.SiriETMapper
-import subscription.*
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure
 import uk.org.siri.siri21.ServiceDelivery
 import uk.org.siri.siri21.Siri
 import java.time.Duration
 import java.time.ZonedDateTime
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 
 class SubscriptionManagerTest {
 
@@ -146,6 +147,89 @@ class SubscriptionManagerTest {
 
         coVerify(exactly = 0) { httpHelper.postData(subscription1.address, any()) }
         coVerify(exactly = 1) { httpHelper.postData(subscription2.address, any()) }
+    }
+
+    @Test
+    fun `Should terminate subscription after max failed heartbeats`() {
+        val subscription = createTestSubscription()
+        val runnableSlot = slot<Runnable>()
+        val mockExecutor = mockk<ScheduledExecutorService>()
+
+        // Capture the runnable scheduled by initHeartbeat
+        every { mockExecutor.scheduleAtFixedRate(capture(runnableSlot), any(), any(), any()) } returns mockk()
+        every { mockExecutor.shutdown() } just Runs
+
+        mockkStatic(Executors::class)
+        every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
+
+        every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
+        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        coEvery { httpHelper.postData(any(), any()) } returns 200
+
+        subscriptionManager.addSubscription(subscription)
+
+        // Simulate 5 failed heartbeats to trip the threshold
+        coEvery { httpHelper.postHeartbeat(any(), any()) } returns 500
+        repeat(5) { runnableSlot.captured.run() }
+
+        // 6th run should now see hasFailed = true and terminate
+        runnableSlot.captured.run()
+
+        coVerify(atLeast = 5) { httpHelper.postHeartbeat(subscription.address, any()) }
+
+        unmockkStatic(Executors::class)
+    }
+
+    @Test
+    fun `Should mark failed when heartbeat throws exception`() {
+        val subscription = createTestSubscription()
+        val runnableSlot = slot<Runnable>()
+        val mockExecutor = mockk<ScheduledExecutorService>()
+
+        every { mockExecutor.scheduleAtFixedRate(capture(runnableSlot), any(), any(), any()) } returns mockk()
+        every { mockExecutor.shutdown() } just Runs
+
+        mockkStatic(Executors::class)
+        every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
+
+        every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
+        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { httpHelper.postHeartbeat(any(), any()) } throws Exception("Connection refused")
+
+        subscriptionManager.addSubscription(subscription)
+
+        // Should not throw — exception is caught internally
+        runnableSlot.captured.run()
+
+        coVerify(exactly = 1) { httpHelper.postHeartbeat(subscription.address, any()) }
+
+        unmockkStatic(Executors::class)
+    }
+
+    @Test
+    fun `Should mark failed when heartbeat returns non-200`() {
+        val subscription = createTestSubscription()
+        val runnableSlot = slot<Runnable>()
+        val mockExecutor = mockk<ScheduledExecutorService>()
+
+        every { mockExecutor.scheduleAtFixedRate(capture(runnableSlot), any(), any(), any()) } returns mockk()
+        every { mockExecutor.shutdown() } just Runs
+
+        mockkStatic(Executors::class)
+        every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
+
+        every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
+        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { httpHelper.postHeartbeat(any(), any()) } returns 503
+
+        subscriptionManager.addSubscription(subscription)
+        runnableSlot.captured.run()
+
+        coVerify(exactly = 1) { httpHelper.postHeartbeat(subscription.address, any()) }
+
+        unmockkStatic(Executors::class)
     }
 
     private fun createTestSubscription(id: String = "sub001", address: String = "http://localhost:8080/notify"): Subscription {

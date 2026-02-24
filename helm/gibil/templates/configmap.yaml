@@ -5,8 +5,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "gibil.common.labels" . | nindent 4 }}
-  annotations:
-    {{- include "annotations" . nindent 4 }}
 data:
   application.properties: |-
     # Spring Boot

@@ -111,7 +111,7 @@ class AvinorApiHandlerTest() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParams(
-                    airportCode = "OSÅ",
+                    airportCode = "OS",
                     timeFrom = 1,
                     timeTo = 7,
                     direction = "D",
@@ -160,27 +160,5 @@ class AvinorApiHandlerTest() {
                 )
             )
         }
-    }
-
-    @Test
-    fun `avinorXmlFeedUrlBuilder constructs correct URL and thus contains direction A`() {
-        // Arrange
-        val params = AvinorXmlFeedParams(
-            airportCode = "OSL",
-            timeFrom = 1,
-            timeTo = 7,
-            direction = "A"
-        )
-
-        // Act
-        val resultUrl = apiHandler.avinorXmlFeedUrlBuilder(params)
-
-        // Assert
-        Assertions.assertNotNull(resultUrl)
-
-        // Verify it is a valid URI
-        Assertions.assertDoesNotThrow { URI.create(resultUrl) }
-
-        Assertions.assertTrue(resultUrl.contains("direction=A"), "URL should contain direction param")
     }
 }

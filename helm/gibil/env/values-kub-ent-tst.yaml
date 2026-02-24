@@ -7,9 +7,6 @@ common:
 init:
   extimeData: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
 
-ingress:
-  host: gibil.staging.entur.io
-
 configMap:
   enabled: true
   data:

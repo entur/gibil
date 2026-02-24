@@ -39,7 +39,7 @@ spec:
         - sh
         - -c
         - |
-          curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.common.init.extimeData }}
+          curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.init.extimeData }}
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
           rm /tmp/rb_avi-aggregated-netex.zip
           ls -la /app/extimeData/

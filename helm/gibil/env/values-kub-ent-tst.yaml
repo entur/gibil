@@ -3,7 +3,7 @@ common:
   replicas: 1
 
 init:
-  extime-data: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
+  extimeData: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
 
 ingress:
   host: gibil.staging.entur.io

@@ -9,6 +9,7 @@ import uk.org.siri.siri21.Siri
 import kotlinx.coroutines.runBlocking
 import service.FlightAggregationService
 import siri.SiriETMapper
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -25,9 +26,10 @@ class SubscriptionManager(
     @param:Autowired private val flightAggregationService: FlightAggregationService,
     @param:Autowired private val flightStateCache: FlightStateCache
 ) {
-    private val subscriptions: MutableMap<String, Subscription> = HashMap()
-    private val subscriptionFailCounter: MutableMap<String, Int> = HashMap()
-    private val heartbeatExecutors: MutableMap<String, ScheduledExecutorService> = HashMap()
+    private val subscriptions = ConcurrentHashMap<String, Subscription>()
+    private val subscriptionFailCounter = ConcurrentHashMap<String, Int>()
+    private val heartbeatExecutors = ConcurrentHashMap<String, ScheduledExecutorService>()
+
 
     companion object {
         private const val MAX_FAILED_COUNTER = 5
@@ -48,8 +50,7 @@ class SubscriptionManager(
                         runBlocking { httpHelper.postData(subscription.address, SiriXml.toXml(siri)) }
                     } catch (e: Exception) {
                         val subscriptionId = subscription.subscriptionId
-                        val failures = subscriptionFailCounter.getOrDefault(subscriptionId, 0) + 1
-                        subscriptionFailCounter[subscriptionId] = failures
+                        val failures = subscriptionFailCounter.merge(subscriptionId, 1, Int::plus) ?: 0
                         LOG.warn(
                             "Failed to push SIRI data to subscription {} at address {} (failure count: {})",
                             subscriptionId,
@@ -156,8 +157,7 @@ class SubscriptionManager(
      * @param subscription The subscription for which to mark a failure. Based on subscription.kt model.
      */
     private fun markFailed(subscription: Subscription) {
-        val failedCounter = subscriptionFailCounter.getOrDefault(subscription.subscriptionId, 0)
-        subscriptionFailCounter[subscription.subscriptionId] = failedCounter + 1
+        subscriptionFailCounter.merge(subscription.subscriptionId, 1, Int::plus)
     }
 
     /**

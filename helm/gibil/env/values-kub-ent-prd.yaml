@@ -1,5 +1,7 @@
 common:
   env: prd
+  ingress:
+    host: gibil.entur.io
   replicas: 1
   container:
     replicas: 1
@@ -7,9 +9,6 @@ common:
 
 init:
   extimeData: https://storage.googleapis.com/marduk-prod/outbound/netex/rb_avi-aggregated-netex.zip
-
-ingress:
-  host: gibil.entur.io
 
 configMap:
   enabled: true

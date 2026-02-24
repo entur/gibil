@@ -1,5 +1,7 @@
 common:
   env: tst
+  ingress:
+    host: gibil.staging.entur.io
   replicas: 1
 
 init:

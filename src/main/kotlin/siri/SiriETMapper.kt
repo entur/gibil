@@ -3,6 +3,7 @@ package siri
 import util.AirportSizeClassification.orderAirportBySize
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
+import model.xmlFeedApi.MultiLegFlight
 import org.gibil.service.AirportQuayService
 import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
@@ -48,12 +49,18 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
     }
 
     /**
-     * Maps a collection of merged flights (from all airports) to a SIRI document.
-     * Use this when you have pre-aggregated flight data with complete departure/arrival info.
-     * @param mergedFlights Collection of flights that have been merged across airports
+     * Maps both direct (merged) flights and multi-leg flights into a single SIRI document.
+     * Direct flights produce a two-stop EstimatedVehicleJourney (departure + arrival).
+     * Multi-leg flights produce an N+1 stop EstimatedVehicleJourney covering every airport in the journey.
+     *
+     * @param directFlights Collection of merged two-airport flights
+     * @param multiLegFlights List of detected multi-leg flights
      * @return SIRI document with complete EstimatedCalls for all flights
      */
-    fun mapMergedFlightsToSiri(mergedFlights: Collection<Flight>): Siri {
+    fun mapAllFlightsToSiri(
+        directFlights: Collection<Flight>,
+        multiLegFlights: List<MultiLegFlight> = emptyList()
+    ): Siri {
         val siri = Siri()
 
         val serviceDelivery = ServiceDelivery()
@@ -70,10 +77,18 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
         val estimatedVersionFrame = EstimatedVersionFrameStructure()
         estimatedVersionFrame.recordedAtTime = ZonedDateTime.now()
 
-        mergedFlights.forEach { flight ->
-            // For merged flights, use departureAirport as the "requesting" airport context
+        // Map direct (two-airport) flights
+        directFlights.forEach { flight ->
             val contextAirport = flight.departureAirport ?: flight.arrivalAirport ?: return@forEach
             val evj = mapFlightToEstimatedVehicleJourney(flight, contextAirport)
+            if (evj != null) {
+                estimatedVersionFrame.estimatedVehicleJourneies.add(evj)
+            }
+        }
+
+        // Map multi-leg flights
+        multiLegFlights.forEach { mlf ->
+            val evj = mapMultiLegFlightToEstimatedVehicleJourney(mlf)
             if (evj != null) {
                 estimatedVersionFrame.estimatedVehicleJourneies.add(evj)
             }
@@ -231,6 +246,126 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
             )
             calls.add(arrivalCall)
         }
+    }
+
+    /**
+     * Maps a multi-leg flight to an EstimatedVehicleJourney with N+1 estimated calls
+     * (one per airport in the journey). Intermediate stops get both arrival and departure info.
+     */
+    private fun mapMultiLegFlightToEstimatedVehicleJourney(
+        multiLegFlight: MultiLegFlight
+    ): EstimatedVehicleJourney? {
+
+        val firstLeg = multiLegFlight.legs.firstOrNull() ?: return null
+        val scheduleTime = parseTimestamp(firstLeg.scheduledDepartureTime) ?: return null
+
+        val routeCode = "${multiLegFlight.airline}_${multiLegFlight.originAirport}-${multiLegFlight.destinationAirport}"
+        val routeCodeId = routeCode.idHash(10)
+
+        val evj = EstimatedVehicleJourney()
+
+        val lineRef = LineRef()
+        lineRef.value = "$LINE_PREFIX$routeCode"
+        evj.lineRef = lineRef
+
+        val directionRef = DirectionRefStructure()
+        directionRef.value = "outbound"
+        evj.directionRef = directionRef
+
+        val framedVehicleJourneyRef = FramedVehicleJourneyRefStructure()
+        val dataFrameRef = DataFrameRefStructure()
+        dataFrameRef.value = scheduleTime.toLocalDate().toString()
+        framedVehicleJourneyRef.dataFrameRef = dataFrameRef
+        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${multiLegFlight.flightId}-01-${routeCodeId}"
+        evj.framedVehicleJourneyRef = framedVehicleJourneyRef
+
+        evj.dataSource = DATA_SOURCE
+
+        val operatorRef = OperatorRefStructure()
+        operatorRef.value = "$OPERATOR_PREFIX${multiLegFlight.airline}"
+        evj.operatorRef = operatorRef
+
+        // Build estimated calls: one per airport in the journey
+        val callsWrapper = EstimatedVehicleJourney.EstimatedCalls()
+        val calls = callsWrapper.getEstimatedCalls()
+        val allStops = multiLegFlight.allStops
+
+        allStops.forEachIndexed { index, airportCode ->
+            val arrLeg = if (index > 0) multiLegFlight.legs[index - 1] else null
+            val depLeg = if (index < multiLegFlight.legs.size) multiLegFlight.legs[index] else null
+            val order = BigInteger.valueOf((index + 1).toLong())
+
+            val call = EstimatedCall()
+            val stopPointRef = StopPointRefStructure()
+            stopPointRef.value = findStopPointRef(airportCode)
+            call.stopPointRef = stopPointRef
+            call.order = order
+
+            // Add departure info (origin and intermediate stops)
+            if (depLeg != null) {
+                val depSchedule = parseTimestamp(depLeg.scheduledDepartureTime)
+                val depStatusTime = parseTimestamp(depLeg.expectedDepartureTime)
+                if (depSchedule != null) {
+                    call.aimedDepartureTime = depSchedule
+                    when (depLeg.departureStatus?.code) {
+                        "D" -> {
+                            call.expectedDepartureTime = depStatusTime ?: depSchedule
+                            call.departureStatus = CallStatusEnumeration.MISSED
+                        }
+                        "E" -> {
+                            call.expectedDepartureTime = depStatusTime ?: depSchedule
+                            call.departureStatus = CallStatusEnumeration.DELAYED
+                        }
+                        "C" -> {
+                            call.departureStatus = CallStatusEnumeration.CANCELLED
+                            call.setCancellation(true)
+                        }
+                        else -> {
+                            call.expectedDepartureTime = depSchedule
+                            call.departureStatus = CallStatusEnumeration.ON_TIME
+                        }
+                    }
+                }
+            }
+
+            // Add arrival info (intermediate and destination stops)
+            if (arrLeg != null) {
+                val arrSchedule = parseTimestamp(arrLeg.scheduledArrivalTime)
+                val arrStatusTime = parseTimestamp(arrLeg.expectedArrivalTime)
+                if (arrSchedule != null) {
+                    call.aimedArrivalTime = arrSchedule
+                    when (arrLeg.arrivalStatus?.code) {
+                        "A" -> {
+                            call.expectedArrivalTime = arrStatusTime ?: arrSchedule
+                            call.arrivalStatus = CallStatusEnumeration.ARRIVED
+                        }
+                        "E" -> {
+                            if (arrStatusTime != null && arrStatusTime.isBefore(arrSchedule)) {
+                                call.expectedArrivalTime = arrStatusTime
+                                call.arrivalStatus = CallStatusEnumeration.EARLY
+                            } else {
+                                call.expectedArrivalTime = arrStatusTime ?: arrSchedule
+                                call.arrivalStatus = CallStatusEnumeration.DELAYED
+                            }
+                        }
+                        "C" -> {
+                            call.arrivalStatus = CallStatusEnumeration.CANCELLED
+                            call.setCancellation(true)
+                        }
+                        else -> {
+                            call.expectedArrivalTime = arrSchedule
+                            call.arrivalStatus = CallStatusEnumeration.ON_TIME
+                        }
+                    }
+                }
+            }
+
+            calls.add(call)
+        }
+
+        evj.setEstimatedCalls(callsWrapper)
+        evj.isIsCompleteStopSequence = true
+        return evj
     }
 
     private fun createDepartureCall(
@@ -391,3 +526,5 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
     }
 
 }
+
+

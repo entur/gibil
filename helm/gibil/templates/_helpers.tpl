@@ -32,7 +32,7 @@ namespace: {{ .Release.Namespace }}
 {{- define "gibil.cron-job-template" }}
 spec:
   containers:
-    - name: "redeploy-extimeData-fetch"
+    - name: "redeploy-extime-data"
       image: curlimages/curl:latest
       imagePullPolicy: IfNotPresent
       command:

@@ -13,7 +13,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 
-
 @Component
 class SiriETMapper(private val airportQuayService: AirportQuayService) {
     companion object {
@@ -305,61 +304,15 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
             if (depLeg != null) {
                 val depSchedule = parseTimestamp(depLeg.scheduledDepartureTime)
                 val depStatusTime = parseTimestamp(depLeg.expectedDepartureTime)
-                if (depSchedule != null) {
-                    call.aimedDepartureTime = depSchedule
-                    when (depLeg.departureStatus?.code) {
-                        "D" -> {
-                            call.expectedDepartureTime = depStatusTime ?: depSchedule
-                            call.departureStatus = CallStatusEnumeration.MISSED
-                        }
-                        "E" -> {
-                            call.expectedDepartureTime = depStatusTime ?: depSchedule
-                            call.departureStatus = CallStatusEnumeration.DELAYED
-                        }
-                        "C" -> {
-                            call.departureStatus = CallStatusEnumeration.CANCELLED
-                            call.setCancellation(true)
-                        }
-                        else -> {
-                            call.expectedDepartureTime = depSchedule
-                            call.departureStatus = CallStatusEnumeration.ON_TIME
-                        }
-                    }
-                }
+                addDepartureStatus(call, depLeg.departureStatus?.code, depStatusTime, depSchedule)
             }
 
             // Add arrival info (intermediate and destination stops)
             if (arrLeg != null) {
                 val arrSchedule = parseTimestamp(arrLeg.scheduledArrivalTime)
                 val arrStatusTime = parseTimestamp(arrLeg.expectedArrivalTime)
-                if (arrSchedule != null) {
-                    call.aimedArrivalTime = arrSchedule
-                    when (arrLeg.arrivalStatus?.code) {
-                        "A" -> {
-                            call.expectedArrivalTime = arrStatusTime ?: arrSchedule
-                            call.arrivalStatus = CallStatusEnumeration.ARRIVED
-                        }
-                        "E" -> {
-                            if (arrStatusTime != null && arrStatusTime.isBefore(arrSchedule)) {
-                                call.expectedArrivalTime = arrStatusTime
-                                call.arrivalStatus = CallStatusEnumeration.EARLY
-                            } else {
-                                call.expectedArrivalTime = arrStatusTime ?: arrSchedule
-                                call.arrivalStatus = CallStatusEnumeration.DELAYED
-                            }
-                        }
-                        "C" -> {
-                            call.arrivalStatus = CallStatusEnumeration.CANCELLED
-                            call.setCancellation(true)
-                        }
-                        else -> {
-                            call.expectedArrivalTime = arrSchedule
-                            call.arrivalStatus = CallStatusEnumeration.ON_TIME
-                        }
-                    }
-                }
+                addArrivalStatus(call, arrLeg.arrivalStatus?.code, arrStatusTime, arrSchedule)
             }
-
             calls.add(call)
         }
 
@@ -383,28 +336,7 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         call.order = BigInteger.ONE
 
-        if (scheduleTime != null) {
-            call.aimedDepartureTime = scheduleTime
-
-            when (statusCode) {
-                "D" -> {
-                    call.expectedDepartureTime = statusTime ?: scheduleTime
-                    call.departureStatus = CallStatusEnumeration.MISSED
-                }
-                "E" -> {
-                    call.expectedDepartureTime = statusTime ?: scheduleTime
-                    call.departureStatus = CallStatusEnumeration.DELAYED
-                }
-                "C" -> {
-                    call.departureStatus = CallStatusEnumeration.CANCELLED
-                    call.setCancellation(true)
-                }
-                else -> {
-                    call.expectedDepartureTime = scheduleTime
-                    call.departureStatus = CallStatusEnumeration.ON_TIME
-                }
-            }
-        }
+        addDepartureStatus(call, statusCode, statusTime, scheduleTime)
         return call
     }
 
@@ -423,33 +355,8 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
 
         call.order = order
 
-        if (scheduleTime != null) {
-            call.aimedArrivalTime = scheduleTime
+        addArrivalStatus(call, statusCode, statusTime, scheduleTime)
 
-            when (statusCode) {
-                "A" -> {
-                    call.expectedArrivalTime = statusTime ?: scheduleTime
-                    call.arrivalStatus = CallStatusEnumeration.ARRIVED
-                }
-                "E" -> {
-                    if (statusTime != null && statusTime.isBefore(scheduleTime)) {
-                        call.expectedArrivalTime = statusTime
-                        call.arrivalStatus = CallStatusEnumeration.EARLY
-                    } else {
-                        call.expectedArrivalTime = statusTime ?: scheduleTime
-                        call.arrivalStatus = CallStatusEnumeration.DELAYED
-                    }
-                }
-                "C" -> {
-                    call.arrivalStatus = CallStatusEnumeration.CANCELLED
-                    call.setCancellation(true)
-                }
-                else -> {
-                    call.expectedArrivalTime = scheduleTime
-                    call.arrivalStatus = CallStatusEnumeration.ON_TIME
-                }
-            }
-        }
         return call
     }
 
@@ -469,6 +376,73 @@ class SiriETMapper(private val airportQuayService: AirportQuayService) {
             }
         }
     }
+
+    //Helper functions to set arrival and departure status on calls based on status codes and times from the API.
+    private fun addArrivalStatus(call: EstimatedCall, statusCode: String?, statusTime: ZonedDateTime?, scheduleTime: ZonedDateTime?) {
+        if (scheduleTime != null) {
+            call.aimedArrivalTime = scheduleTime
+
+            when (statusCode) {
+                "A" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.ARRIVED
+                }
+                "E" -> {
+                    if (statusTime != null && statusTime.isBefore(scheduleTime)) {
+                        call.expectedArrivalTime = statusTime
+                        call.arrivalStatus = CallStatusEnumeration.EARLY
+                    } else if (statusTime != null && statusTime == scheduleTime) {
+                        call.expectedArrivalTime = scheduleTime
+                        call.arrivalStatus = CallStatusEnumeration.ON_TIME
+                    } else {
+                        call.expectedArrivalTime = statusTime ?: scheduleTime
+                        call.arrivalStatus = CallStatusEnumeration.DELAYED
+                    }
+                }
+                "C" -> {
+                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.CANCELLED
+                    call.setCancellation(true)
+                }
+                else -> {
+                    call.expectedArrivalTime = scheduleTime
+                    call.arrivalStatus = CallStatusEnumeration.ON_TIME
+                }
+            }
+        }
+    }
+
+    private fun addDepartureStatus(call: EstimatedCall, statusCode: String?, statusTime: ZonedDateTime?, scheduleTime: ZonedDateTime?) {
+        if (scheduleTime != null) {
+            call.aimedDepartureTime = scheduleTime
+
+            when (statusCode) {
+                "D" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
+                    call.departureStatus = CallStatusEnumeration.MISSED
+                }
+                "E" -> {
+                    if (statusTime != null && statusTime == scheduleTime) {
+                        call.expectedDepartureTime = scheduleTime
+                        call.departureStatus = CallStatusEnumeration.ON_TIME
+                    } else {
+                        call.expectedDepartureTime = statusTime ?: scheduleTime
+                        call.departureStatus = CallStatusEnumeration.DELAYED
+                    }
+                }
+                "C" -> {
+                    call.expectedDepartureTime = statusTime ?: scheduleTime
+                    call.departureStatus = CallStatusEnumeration.CANCELLED
+                    call.setCancellation(true)
+                }
+                else -> {
+                    call.expectedDepartureTime = scheduleTime
+                    call.departureStatus = CallStatusEnumeration.ON_TIME
+                }
+            }
+        }
+    }
+
 
     /**
      * Finds first, and for now only quay belonging to wanted airport, if no quay found returns IATA code

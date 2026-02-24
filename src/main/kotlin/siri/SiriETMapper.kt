@@ -3,7 +3,6 @@ package siri
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import org.gibil.service.AirportQuayService
-import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
 import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
@@ -15,10 +14,11 @@ import org.gibil.FlightCodes
 import util.DateUtil.parseTimestamp
 import org.gibil.SiriConfig
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
-@Component
+@Service
 class SiriETMapper(
     private val airportQuayService: AirportQuayService,
     private val findServiceJourney: FindServiceJourney

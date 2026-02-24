@@ -3,11 +3,8 @@ package siri
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightsContainer
-import okhttp3.OkHttpClient
-import org.gibil.StopPlaceMapper
-import org.gibil.routes.api.StopPlaceApiHandler
 import org.gibil.service.AirportQuayService
-import org.gibil.service.ApiService
+import io.mockk.every
 import io.mockk.mockk
 import service.FindServiceJourney
 import org.junit.jupiter.api.Test
@@ -18,14 +15,9 @@ import java.time.ZonedDateTime
 
 class SiriETPublisherTest() {
 
-    class SpyAirportQuayService : AirportQuayService(
-        StopPlaceApiHandler(ApiService(OkHttpClient())),
-        StopPlaceMapper()
-    ) {
-        override fun getQuayId(iataCode: String): String? = null
+    private val airportQuayService = mockk<AirportQuayService> {
+        every { getQuayId(any()) } returns null
     }
-
-    private val airportQuayService = SpyAirportQuayService()
     private val findServiceJourney = mockk<FindServiceJourney>(relaxed = true)
 
     @Test

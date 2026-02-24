@@ -1,12 +1,12 @@
 package siri
 
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import util.SharedJaxbContext
 import uk.org.siri.siri21.Siri
 import java.io.StringWriter
 import java.io.File
 
-@Component
+@Service
 class SiriETPublisher {
 
     fun toXml(siri: Siri, formatOutput: Boolean = true): String {

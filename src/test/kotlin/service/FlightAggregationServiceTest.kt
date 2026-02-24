@@ -1,10 +1,9 @@
 package service
 
 import handler.AvinorScheduleXmlHandler
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkConstructor
-import io.mockk.unmockkAll
+import io.mockk.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import model.AvinorXmlFeedParams
 import model.xmlFeedApi.Airport
@@ -31,14 +30,16 @@ class FlightAggregationServiceTest {
     private lateinit var xmlHandler: AvinorScheduleXmlHandler
     private lateinit var apiService: ApiService
     private lateinit var flightAggregationService: FlightAggregationService
+    private lateinit var ioDispatcher: CoroutineDispatcher
 
     @BeforeEach
     fun init() {
         avinorApiHandler = mockk()
         xmlHandler = mockk()
         apiService = mockk()
+        ioDispatcher = Dispatchers.Unconfined
 
-        flightAggregationService = FlightAggregationService(avinorApiHandler, xmlHandler, apiService)
+        flightAggregationService = FlightAggregationService(avinorApiHandler, xmlHandler, apiService, ioDispatcher)
     }
 
     @AfterEach
@@ -220,7 +221,8 @@ class FlightAggregationServiceTest {
         domInt: String = "D",
         statusCode: String = "N"
     ): Flight {
-        return Flight(uniqueID).apply {
+        return Flight().apply {
+            this.uniqueID = uniqueID
             this.flightId = flightId
             this.airline = airline
             this.arrDep = arrDep

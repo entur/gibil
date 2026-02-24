@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlAttribute
 import jakarta.xml.bind.annotation.XmlElement
 import jakarta.xml.bind.annotation.XmlTransient
+import org.gibil.FlightCodes
 
 @XmlAccessorType(XmlAccessType.FIELD)
 class Flight {
@@ -49,16 +50,16 @@ class Flight {
     var delayed: String? = null
 
     @XmlElement(name = "codeshareAirlineDesignators")
-    var AirlineDesignators: String? = null
+    var airlineDesignators: String? = null
 
     @XmlElement(name = "codeshareAirlineNames")
-    var AirlineNames: String? = null
+    var airlineNames: String? = null
 
     @XmlElement(name = "codeshareFlightNumbers")
-    var FlightNumbers: String? = null
+    var flightNumbers: String? = null
 
     @XmlElement(name = "codeshareOperationalSuffixs")
-    var OperationalSuffixs: String? = null
+    var operationalSuffixs: String? = null
 
     // These fields are populated when merging flight data from multiple airport queries.
     @XmlTransient
@@ -82,78 +83,22 @@ class Flight {
     @XmlTransient
     var isMerged: Boolean = false
 
+    //[Direction] from Avinor
+    fun isDeparture(): Boolean = arrDep == FlightCodes.DEPARTURE_CODE
+    fun isArrival(): Boolean = arrDep == FlightCodes.ARRIVAL_CODE
+
+    //[Satus Code] from Avinor
+    fun isCancelled(): Boolean = status?.code == FlightCodes.CANCELLED_CODE
+    fun isDeparted(): Boolean = status?.code == FlightCodes.DEPARTED_CODE
+    fun isArrived(): Boolean = status?.code == FlightCodes.ARRIVED_CODE
+    fun isNewTime(): Boolean = status?.code == FlightCodes.NEW_TIME_CODE
+    fun isNewInfo(): Boolean = status?.code == FlightCodes.NEW_INFO_CODE
+
+    //[Dom_int] from Avinor
+    fun isDomestic(): Boolean = domInt == FlightCodes.DOMESTIC_CODE
+    fun isInternational(): Boolean = domInt == FlightCodes.INTERNATIONAL_CODE
+    fun isSchengen(): Boolean = domInt == FlightCodes.SCHENGEN_CODE
+
     //JAXB needs an empty constructor to populate the fields with the xml data
     constructor()
-
-    //This constructor is not needed, but allows to make own instances
-    constructor(uniqueID: String) {
-        this.uniqueID = uniqueID
-    }
-
-    constructor(airline: String, airport: String) {
-        this.airline = airline
-        this.airport = airport
-    }
-
-    fun isDeparture(): Boolean = arrDep == "D"
-    fun isArrival(): Boolean = arrDep == "A"
-
-    fun isCancelled(): Boolean = status?.code == "C"
-    fun isDelayed(): Boolean = delayed == "Y"
-
-    /**
-     * Populates the merged fields based on whether this flight is a departure or arrival.
-     * Call this after parsing from XML before merging with other flights.
-     * @param queryAirportCode The airport code used in the API query
-     */
-    fun populateMergedFields(queryAirportCode: String) {
-        if (isDeparture()) {
-            departureAirport = queryAirportCode
-            arrivalAirport = airport
-            scheduledDepartureTime = scheduleTime
-            departureStatus = status
-        } else {
-            arrivalAirport = queryAirportCode
-            departureAirport = airport
-            scheduledArrivalTime = scheduleTime
-            arrivalStatus = status
-        }
-    }
-
-    /**
-     * Merges data from another Flight with the same uniqueID.
-     * Combines departure data from one airport with arrival data from another.
-     * @param other The other Flight to merge with (must have same uniqueID)
-     * @return A new Flight with combined data from both
-     */
-    fun mergeWith(other: Flight): Flight {
-        if (this.uniqueID != other.uniqueID) {
-            throw IllegalArgumentException("Cannot merge flights with different uniqueIDs: ${this.uniqueID} vs ${other.uniqueID}")
-        }
-
-        return Flight(this.uniqueID).apply {
-            // Basic fields - prefer non-null values
-            airline = this@Flight.airline ?: other.airline
-            flightId = this@Flight.flightId ?: other.flightId
-            domInt = this@Flight.domInt ?: other.domInt
-            viaAirport = this@Flight.viaAirport ?: other.viaAirport
-            delayed = this@Flight.delayed ?: other.delayed
-            AirlineDesignators = this@Flight.AirlineDesignators ?: other.AirlineDesignators
-            AirlineNames = this@Flight.AirlineNames ?: other.AirlineNames
-            FlightNumbers = this@Flight.FlightNumbers ?: other.FlightNumbers
-            OperationalSuffixs = this@Flight.OperationalSuffixs ?: other.OperationalSuffixs
-
-            // Merge departure data
-            departureAirport = this@Flight.departureAirport ?: other.departureAirport
-            scheduledDepartureTime = this@Flight.scheduledDepartureTime ?: other.scheduledDepartureTime
-            departureStatus = this@Flight.departureStatus ?: other.departureStatus
-
-            // Merge arrival data
-            arrivalAirport = this@Flight.arrivalAirport ?: other.arrivalAirport
-            scheduledArrivalTime = this@Flight.scheduledArrivalTime ?: other.scheduledArrivalTime
-            arrivalStatus = this@Flight.arrivalStatus ?: other.arrivalStatus
-
-            isMerged = true
-        }
-    }
 }

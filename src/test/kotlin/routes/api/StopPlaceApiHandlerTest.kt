@@ -5,22 +5,34 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.gibil.routes.api.StopPlaceApiHandler
 import org.gibil.service.ApiService
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@ExtendWith(SpringExtension::class)
+@ContextConfiguration(classes = [StopPlaceApiHandlerTest.TestConfig::class, StopPlaceApiHandler::class])
+@TestPropertySource(locations = ["classpath:application.properties"])
 class StopPlaceApiHandlerTest {
 
-    private lateinit var apiService: ApiService
+    @TestConfiguration
+    class TestConfig {
+        @Bean
+        fun apiService(): ApiService = mockk()
+    }
+
+    @Autowired
     private lateinit var stopPlaceApiHandler: StopPlaceApiHandler
 
-    @BeforeEach
-    fun init(){
-        apiService = mockk()
-        stopPlaceApiHandler = StopPlaceApiHandler(apiService)
-    }
+    @Autowired
+    private lateinit var apiService: ApiService
 
     @Nested
     inner class StopPlaceApiUrlBuilder {

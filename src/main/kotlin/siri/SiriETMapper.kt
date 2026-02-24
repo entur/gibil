@@ -3,7 +3,6 @@ package siri
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import org.gibil.service.AirportQuayService
-import org.springframework.stereotype.Component
 import uk.org.siri.siri21.*
 import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
@@ -11,13 +10,15 @@ import java.time.ZonedDateTime
 import kotlin.math.abs
 import service.FindServiceJourney
 import org.gibil.Dates
+import org.gibil.FlightCodes
 import util.DateUtil.parseTimestamp
-import org.gibil.SIRI_VERSION_DELIVERY
+import org.gibil.SiriConfig
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
-@Component
+@Service
 class SiriETMapper(
     private val airportQuayService: AirportQuayService,
     private val findServiceJourney: FindServiceJourney
@@ -72,7 +73,7 @@ class SiriETMapper(
         serviceDelivery.producerRef = producerRef
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = SIRI_VERSION_DELIVERY
+        delivery.version = SiriConfig.SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         val estimatedVersionFrame = EstimatedVersionFrameStructure()
@@ -99,7 +100,7 @@ class SiriETMapper(
     ): EstimatedTimetableDeliveryStructure {
 
         val delivery = EstimatedTimetableDeliveryStructure()
-        delivery.version = SIRI_VERSION_DELIVERY
+        delivery.version = SiriConfig.SIRI_VERSION_DELIVERY
         delivery.responseTimestamp = ZonedDateTime.now()
 
         // create EstimatedJourneyVersionFrame element
@@ -288,11 +289,11 @@ class SiriETMapper(
             call.aimedDepartureTime = scheduleTime
 
             when (statusCode) {
-                "D" -> {
+                FlightCodes.DEPARTED_CODE -> {
                     call.expectedDepartureTime = statusTime ?: scheduleTime
                     call.departureStatus = CallStatusEnumeration.MISSED
                 }
-                "E" -> {
+                FlightCodes.NEW_TIME_CODE -> {
                     if (statusTime != null && statusTime == scheduleTime) {
                         call.expectedDepartureTime = scheduleTime
                         call.departureStatus = CallStatusEnumeration.ON_TIME
@@ -301,7 +302,7 @@ class SiriETMapper(
                         call.departureStatus = CallStatusEnumeration.DELAYED
                     }
                 }
-                "C" -> {
+                FlightCodes.CANCELLED_CODE -> {
                     call.expectedDepartureTime = statusTime ?: scheduleTime
                     call.departureStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
@@ -335,11 +336,11 @@ class SiriETMapper(
             call.aimedArrivalTime = scheduleTime
 
             when (statusCode) {
-                "A" -> {
+                FlightCodes.ARRIVED_CODE -> {
                     call.expectedArrivalTime = statusTime ?: scheduleTime
                     call.arrivalStatus = CallStatusEnumeration.ARRIVED
                 }
-                "E" -> {
+                FlightCodes.NEW_TIME_CODE -> {
                     if (statusTime != null && statusTime.isBefore(scheduleTime)) {
                         call.expectedArrivalTime = statusTime
                         call.arrivalStatus = CallStatusEnumeration.EARLY
@@ -347,12 +348,11 @@ class SiriETMapper(
                         call.expectedArrivalTime = scheduleTime
                         call.arrivalStatus = CallStatusEnumeration.ON_TIME
                     } else {
-                            call.expectedArrivalTime = statusTime ?: scheduleTime
-                            call.arrivalStatus = CallStatusEnumeration.DELAYED
-                        }
+                        call.expectedArrivalTime = statusTime ?: scheduleTime
+                        call.arrivalStatus = CallStatusEnumeration.DELAYED
                     }
-                "C" -> {
-                    call.expectedArrivalTime = statusTime ?: scheduleTime
+                }
+                FlightCodes.CANCELLED_CODE -> {
                     call.arrivalStatus = CallStatusEnumeration.CANCELLED
                     call.setCancellation(true)
                 }

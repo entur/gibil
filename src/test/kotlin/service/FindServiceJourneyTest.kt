@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions
 import kotlin.test.Test
 
 class FindServiceJourneyTest {
-    val service = FindServiceJourney(mockk<ApiService>(), "src/test/resources/extimeData")
+    val service = FindServiceJourney(mockk<ApiService>(), "src/test/resources/extimeData").also { it.init() }
 
     //correct information
     val exampleFlightSasSVG = listOf("2026-05-05T06:00:00Z", "SK4011")

@@ -18,10 +18,4 @@ class Airport {
 
     //JAXB needs an empty constructor to populate the fields with the xml data
     constructor()
-
-    //This constructor is not needed, but allows to make own instances
-    constructor(name: String, flightsContainer: FlightsContainer? = null) {
-        this.name = name
-        this.flightsContainer = flightsContainer
-    }
 }

@@ -1,7 +1,6 @@
 package service
 
 import handler.AvinorScheduleXmlHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -9,8 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.Flight
-import org.gibil.BATCH_SIZE
-import org.gibil.REQUEST_DELAY_MS
+import org.gibil.PollingConfig
 import org.gibil.Dates
 import util.DateUtil.parseTimestamp
 import org.gibil.service.ApiService
@@ -33,9 +31,10 @@ private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
 class FlightAggregationService(
     private val avinorApiHandler: AvinorApiHandler,
     private val xmlHandler: AvinorScheduleXmlHandler,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val ioDispatcher: CoroutineDispatcher
 ) {
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
 
     companion object {
         // Filter to only include flights within this time window
@@ -55,7 +54,7 @@ class FlightAggregationService(
 
         LOG.info("Starting data fetch for {} airports...", airportCodes.size)
 
-        airportCodes.chunked(BATCH_SIZE).forEach { batch ->
+        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
             processBatch(batch, flightMap)
         }
 
@@ -102,7 +101,7 @@ class FlightAggregationService(
     ) = coroutineScope {
         val deferredResults = batch.map { airportCode ->
             async(ioDispatcher) {
-                delay(REQUEST_DELAY_MS.toLong())
+                delay(PollingConfig.REQUEST_DELAY_MS.toLong())
                 airportCode to fetchFlightsForAirport(airportCode)
             }
         }
@@ -137,6 +136,64 @@ class FlightAggregationService(
     }
 
     /**
+     * Populates the merged fields based on whether this flight is a departure or arrival.
+     * Call this after parsing from XML before merging with other flights.
+     * @param queryAirportCode The airport code used in the API query
+     */
+    private fun populateMergedFields(flight: Flight, queryAirportCode: String) {
+        if (flight.isDeparture()) {
+            flight.departureAirport = queryAirportCode
+            flight.arrivalAirport = flight.airport
+            flight.scheduledDepartureTime = flight.scheduleTime
+            flight.departureStatus = flight.status
+        } else {
+            flight.arrivalAirport = queryAirportCode
+            flight.departureAirport = flight.airport
+            flight.scheduledArrivalTime = flight.scheduleTime
+            flight.arrivalStatus = flight.status
+        }
+    }
+
+    /**
+     * Merges data from another Flight with the same uniqueID.
+     * Combines departure data from one airport with arrival data from another.
+     * @param other The other Flight to merge with (must have same uniqueID)
+     * @return A new Flight with combined data from both
+     */
+    private fun mergeFlights(existing: Flight, other: Flight): Flight {
+        if (existing.uniqueID != other.uniqueID) {
+            throw IllegalArgumentException("Cannot merge flights with different uniqueIDs: ${existing.uniqueID} vs ${other.uniqueID}")
+        }
+
+        return Flight().apply {
+
+            // Basic fields - prefer non-null values
+            uniqueID = existing.uniqueID
+            airline = existing.airline ?: other.airline
+            flightId = existing.flightId ?: other.flightId
+            domInt = existing.domInt ?: other.domInt
+            viaAirport = existing.viaAirport ?: other.viaAirport
+            delayed = existing.delayed ?: other.delayed
+            airlineDesignators = existing.airlineDesignators ?: other.airlineDesignators
+            airlineNames = existing.airlineNames ?: other.airlineNames
+            flightNumbers = existing.flightNumbers ?: other.flightNumbers
+            operationalSuffixs = existing.operationalSuffixs ?: other.operationalSuffixs
+
+            // Merge departure data
+            departureAirport = existing.departureAirport ?: other.departureAirport
+            scheduledDepartureTime = existing.scheduledDepartureTime ?: other.scheduledDepartureTime
+            departureStatus = existing.departureStatus ?: other.departureStatus
+
+            // Merge arrival data
+            arrivalAirport = existing.arrivalAirport ?: other.arrivalAirport
+            scheduledArrivalTime = existing.scheduledArrivalTime ?: other.scheduledArrivalTime
+            arrivalStatus = existing.arrivalStatus ?: other.arrivalStatus
+
+            isMerged = true
+        }
+    }
+
+    /**
      * Merges a list of flights into the aggregated flight map.
      * Only includes domestic flights due to lacking data from international airports.
      */
@@ -146,15 +203,15 @@ class FlightAggregationService(
         flightMap: MutableMap<String, Flight>
     ) {
         flights
-            .filter { it.domInt == "D" }
+            .filter { it.isDomestic() }
             .forEach { flight ->
-                flight.populateMergedFields(queryAirportCode)
+                populateMergedFields(flight, queryAirportCode)
 
                 val existingFlight = flightMap[flight.uniqueID]
                 if (existingFlight == null) {
                     flightMap[flight.uniqueID] = flight
                 } else {
-                    flightMap[flight.uniqueID] = existingFlight.mergeWith(flight)
+                    flightMap[flight.uniqueID] = mergeFlights(existingFlight, flight)
                 }
             }
     }

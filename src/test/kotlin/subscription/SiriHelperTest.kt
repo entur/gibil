@@ -1,9 +1,7 @@
-package subscriber
+package subscription
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
-import subscription.SiriDataType
-import subscription.SiriHelper
 import uk.org.siri.siri21.*
 
 class SiriHelperTest {

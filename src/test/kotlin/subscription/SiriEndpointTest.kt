@@ -1,4 +1,4 @@
-package subscriber
+package subscription
 
 import io.mockk.*
 import jakarta.xml.bind.JAXBContext
@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
-import subscription.*
 import uk.org.siri.siri21.*
 import java.io.StringReader
 

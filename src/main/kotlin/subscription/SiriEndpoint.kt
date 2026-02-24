@@ -1,10 +1,13 @@
 package subscription
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.org.siri.siri21.Siri
+import java.net.URI
+import java.net.URISyntaxException
 import java.time.Duration
 
 /**
@@ -15,6 +18,7 @@ import java.time.Duration
 @RestController
 class SiriEndpoint(
     @Autowired private val subscriptionManager: SubscriptionManager,
+    @Value("\${siri.allowed-subscriber-hosts}") private val allowedSubscriberHosts: List<String>
 ) {
 
     /**
@@ -46,6 +50,8 @@ class SiriEndpoint(
         val subscriptionId = SiriHelper.resolveSubscriptionId(siriRequest.subscriptionRequest)
             ?: throw IllegalArgumentException("Unable to resolve subscription ID")
 
+        validateSubscriberAddress(address)
+
         val subscription = Subscription(
             siriRequest.subscriptionRequest.requestTimestamp,
             siriDataType,
@@ -56,6 +62,18 @@ class SiriEndpoint(
         )
         subscriptionManager.addSubscription(subscription)
         return SiriHelper.createSubscriptionResponse(subscription.subscriptionId)
+    }
+
+    private fun validateSubscriberAddress(address: String?) {
+        val uri = try {
+            URI(address ?: throw IllegalArgumentException("Subscriber address is missing"))
+        } catch (e: URISyntaxException) {
+            throw IllegalArgumentException("Invalid subscriber address: $address", e)
+        }
+        val host = uri.host ?: throw IllegalArgumentException("Subscriber address has no host: $address")
+        if (host !in allowedSubscriberHosts) {
+            throw IllegalArgumentException("Subscriber host not in allowlist: $host")
+        }
     }
 
     /**

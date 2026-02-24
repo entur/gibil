@@ -1,24 +1,23 @@
 package subscriber
 
 import io.mockk.*
-import jakarta.xml.bind.JAXBContext
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
 import subscription.*
 import uk.org.siri.siri21.*
+import util.SharedJaxbContext
 import java.io.StringReader
 
 class SiriEndpointTest {
     private lateinit var endpoint: SiriEndpoint
     private lateinit var subscriptionManager: SubscriptionManager
-    private val jaxbContext = JAXBContext.newInstance(Siri::class.java)
 
     @BeforeEach
     fun setup(){
         subscriptionManager = mockk(relaxed = false)
-        endpoint = SiriEndpoint(subscriptionManager)
+        endpoint = SiriEndpoint(subscriptionManager, listOf("SERVER", "CONSUMER"))
     }
 
     @Test
@@ -31,7 +30,7 @@ class SiriEndpointTest {
         verify(exactly = 1) {
             subscriptionManager.addSubscription(match { subscription ->
                 subscription.subscriptionId == "SUBSCRIPTION_ID" &&
-                        subscription.address == "https://SERVER:PORT/full/path/to/consumer/endpoint" &&
+                        subscription.address == "https://SERVER/full/path/to/consumer/endpoint" &&
                         subscription.requestorRef == "ENTUR_DEV"
             })
         }
@@ -48,7 +47,7 @@ class SiriEndpointTest {
 
         verify(exactly = 1) {
             subscriptionManager.addSubscription(match { subscription ->
-                subscription.address == "https://CONSUMER:PORT/endpoint"
+                subscription.address == "https://CONSUMER/endpoint"
             })
         }
         assertNotNull(response.subscriptionResponse)
@@ -78,6 +77,19 @@ class SiriEndpointTest {
     }
 
     @Test
+    fun `Should throw exception when subscriber host is not in allowlist`(){
+        val siriRequest = createSubscriptionRequest() // uses host "SERVER"
+        endpoint = SiriEndpoint(subscriptionManager, listOf("anshar.entur.org"))
+
+        val exception = assertThrows<IllegalArgumentException> {
+            endpoint.handleSubscriptionRequest(siriRequest)
+        }
+
+        assertTrue(exception.message!!.contains("not in allowlist"))
+        verify(exactly = 0) { subscriptionManager.addSubscription(any()) }
+    }
+
+    @Test
     fun `Should handle terminate subscription request`(){
         val siriRequest = createTerminateSubscriptionRequest()
         every { subscriptionManager.terminateSubscription("SUBSCRIPTION_ID") } just Runs
@@ -92,10 +104,10 @@ class SiriEndpointTest {
 
     private fun createSubscriptionRequest(): Siri {
         val xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
+<Siri version="2.1" xmlns="http://www.siri.org.uk/siri">
     <SubscriptionRequest>
         <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
-        <Address>https://SERVER:PORT/full/path/to/consumer/endpoint</Address>
+        <Address>https://SERVER/full/path/to/consumer/endpoint</Address>
         <RequestorRef>ENTUR_DEV</RequestorRef>
         <MessageIdentifier>ad2c0501-dd99-468a-a1bc-91ac8fbd7543</MessageIdentifier>
         <SubscriptionContext>
@@ -114,16 +126,16 @@ class SiriEndpointTest {
     </SubscriptionRequest>
 </Siri>""".trimIndent()
 
-        val unmarshaller = jaxbContext.createUnmarshaller()
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
         return unmarshaller.unmarshal(StringReader(xml)) as Siri
     }
 
     private fun createSubscriptionRequestWithConsumerAddress(): Siri {
         val xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
+<Siri version="2.1" xmlns="http://www.siri.org.uk/siri">
     <SubscriptionRequest>
         <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
-        <ConsumerAddress>https://CONSUMER:PORT/endpoint</ConsumerAddress>
+        <ConsumerAddress>https://CONSUMER/endpoint</ConsumerAddress>
         <RequestorRef>ENTUR_DEV</RequestorRef>
         <MessageIdentifier>ad2c0501-dd99-468a-a1bc-91ac8fbd7543</MessageIdentifier>
         <SubscriptionContext>
@@ -141,16 +153,16 @@ class SiriEndpointTest {
     </SubscriptionRequest>
 </Siri>""".trimIndent()
 
-        val unmarshaller = jaxbContext.createUnmarshaller()
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
         return unmarshaller.unmarshal(StringReader(xml)) as Siri
     }
 
     private fun createInvalidSubscriptionRequest(): Siri {
         val xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
+<Siri version="2.1" xmlns="http://www.siri.org.uk/siri">
     <SubscriptionRequest>
         <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
-        <Address>https://SERVER:PORT/endpoint</Address>
+        <Address>https://SERVER/endpoint</Address>
         <RequestorRef>ENTUR_DEV</RequestorRef>
         <SubscriptionContext>
             <HeartbeatInterval>PT60S</HeartbeatInterval>
@@ -165,7 +177,7 @@ class SiriEndpointTest {
     </SubscriptionRequest>
 </Siri>""".trimIndent()
 
-        val unmarshaller = jaxbContext.createUnmarshaller()
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
         return unmarshaller.unmarshal(StringReader(xml)) as Siri
     }
 
@@ -174,7 +186,7 @@ class SiriEndpointTest {
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
     <SubscriptionRequest>
         <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
-        <Address>https://SERVER:PORT/endpoint</Address>
+        <Address>https://SERVER/endpoint</Address>
         <RequestorRef>ENTUR_DEV</RequestorRef>
         <SubscriptionContext>
             <HeartbeatInterval>PT60S</HeartbeatInterval>
@@ -182,13 +194,13 @@ class SiriEndpointTest {
     </SubscriptionRequest>
 </Siri>""".trimIndent()
 
-        val unmarshaller = jaxbContext.createUnmarshaller()
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
         return unmarshaller.unmarshal(StringReader(xml)) as Siri
     }
 
     private fun createTerminateSubscriptionRequest(): Siri {
         val xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
+<Siri version="2.1" xmlns="http://www.siri.org.uk/siri">
     <TerminateSubscriptionRequest>
         <RequestTimestamp>2019-12-03T14:00:00+01:00</RequestTimestamp>
         <RequestorRef>ENTUR_DEV</RequestorRef>
@@ -197,7 +209,7 @@ class SiriEndpointTest {
     </TerminateSubscriptionRequest>
 </Siri>""".trimIndent()
 
-        val unmarshaller = jaxbContext.createUnmarshaller()
+        val unmarshaller = SharedJaxbContext.createUnmarshaller()
         return unmarshaller.unmarshal(StringReader(xml)) as Siri
     }
 }

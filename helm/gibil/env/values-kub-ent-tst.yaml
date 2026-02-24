@@ -1,8 +1,14 @@
 common:
   env: tst
-  ingress:
-    host: gibil.staging.entur.io
-  configmap:
-    enabled: true
-    data:
-      LOG_LEVEL: warn
+  replicas: 1
+
+init:
+  extime-data: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
+
+ingress:
+  host: gibil.staging.entur.io
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: INFO

@@ -1,11 +1,17 @@
 common:
   env: prd
-  ingress:
-    host: gibil.entur.io
+  replicas: 1
   container:
-    replicas: 2
-    maxReplicas: 10
-  configmap:
-    enabled: true
-    data:
-      LOG_LEVEL: warn
+    replicas: 1
+    maxReplicas: 1
+
+init:
+  extime-data: https://storage.googleapis.com/marduk-prod/outbound/netex/rb_avi-aggregated-netex.zip
+
+ingress:
+  host: gibil.entur.io
+
+configMap:
+  enabled: true
+  data:
+    LOG_LEVEL: INFO

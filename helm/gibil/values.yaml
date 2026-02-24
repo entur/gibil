@@ -2,8 +2,6 @@ common:
   app: gibil
   shortname: gibil
   team: ror
-  ingress:
-    trafficType: public
   container:
     image: <+artifacts.primary.image>
     imagePullPolicy: Always
@@ -95,7 +93,7 @@ common:
         - -c
         - |
           echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
+          curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.common.init.extime-data }}
           echo "Download complete. Extracting to shared volume..."
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
           echo "Extraction complete. Cleaning up zip file..."

@@ -60,6 +60,10 @@ spec:
       resources: {}
   dnsPolicy: ClusterFirst
   restartPolicy: Never
+  volumes:
+    - name: extime-data
+      persistentVolumeClaim:
+        claimName: gibil-extime-pvc
   schedulerName: default-scheduler
   securityContext:
     runAsGroup: 1000

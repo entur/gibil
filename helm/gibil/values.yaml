@@ -20,7 +20,8 @@ common:
         mountPath: /app/logs
     volumes:
       - name: extime-data
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: gibil-extime-pvc
       - name: logs
         emptyDir: {}
     probes:

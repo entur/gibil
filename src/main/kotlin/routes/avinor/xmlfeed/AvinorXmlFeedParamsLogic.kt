@@ -1,8 +1,8 @@
-package model
+package org.gibil.routes.avinor.xmlfeed
 
 import org.gibil.AvinorApiConfig
 
-data class AvinorXmlFeedParams(
+data class AvinorXmlFeedParamsLogic(
     val airportCode: String,
     val timeFrom: Int = AvinorApiConfig.TIME_FROM_DEFAULT,
     val timeTo: Int = AvinorApiConfig.TIME_TO_DEFAULT,

@@ -7,7 +7,7 @@ import model.xmlFeedApi.FlightStatus
 import org.gibil.service.AirportQuayService
 import io.mockk.every
 import io.mockk.mockk
-import service.FindServiceJourney
+import service.FindServiceJourneyService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -19,8 +19,8 @@ class SiriETMapperTest() {
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
-    private val findServiceJourney = mockk<FindServiceJourney>(relaxed = true)
-    private val mapper = SiriETMapper(airportQuayService, findServiceJourney)
+    private val findServiceJourneyService = mockk<FindServiceJourneyService>(relaxed = true)
+    private val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
 
 
     @Test

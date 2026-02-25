@@ -6,13 +6,13 @@ import model.serviceJourney.ServiceJourney
 import handler.ServiceJourneyParser
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
 import util.ZipUtil
 import util.DateUtil.formatDateTimeZoneToTime
 import org.slf4j.LoggerFactory
 import org.gibil.FindServiceJourneyConstants
+import org.springframework.stereotype.Service
 
-private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
+private val LOG = LoggerFactory.getLogger(FindServiceJourneyService::class.java)
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
@@ -20,8 +20,8 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
  * @param apiService used to download NeTEx data when running locally
  * @param configuredPath optional override for the NeTEx data directory, set via `gibil.extime.path`
  */
-@Component
-class FindServiceJourney(
+@Service
+class FindServiceJourneyService(
     private val apiService: ApiService,
     @Value("\${gibil.extime.path:#{null}}") private val configuredPath: String?
 ) {

@@ -2,7 +2,7 @@ package org.gibil.service
 
 import jakarta.annotation.PostConstruct
 import org.gibil.StopPlaceMapper
-import org.gibil.routes.api.StopPlaceApiHandler
+import org.gibil.routes.entur.StopPlaceApiHandler
 import org.springframework.stereotype.Service
 
 @Service

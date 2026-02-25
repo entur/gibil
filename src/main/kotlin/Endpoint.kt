@@ -1,6 +1,8 @@
-package routes.api
+package org.gibil
 
-import model.AvinorXmlFeedParams
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import org.gibil.service.ApiService
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -8,11 +10,10 @@ import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
 import siri.SiriETMapper
 import siri.SiriETPublisher
-import org.gibil.service.ApiService
 
 @RestController
 class Endpoint(
-    private val avinorApiHandler: AvinorApiHandler,
+    private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
     private val flightAggregationService: FlightAggregationService,
     private val siriETMapper: SiriETMapper,
     private val siriETPublisher: SiriETPublisher,
@@ -39,8 +40,8 @@ class Endpoint(
     fun rawAvinorEndpoint(
         @RequestParam(defaultValue = "OSL") airport: String
     ): String {
-        val url = avinorApiHandler.avinorXmlFeedUrlBuilder(
-            AvinorXmlFeedParams(airportCode = airport)
+        val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
+            AvinorXmlFeedParamsLogic(airportCode = airport)
         )
         return apiService.apiCall(url) ?: "Error: No response from Avinor API"
     }
@@ -48,7 +49,7 @@ class Endpoint(
     /**
      * Debug endpoint that fetches and combines raw XML data from all Avinor airports.
      * Warning: This makes ~55 API calls and may take some time.
-     
+
     @GetMapping("/avinor/all", produces = [MediaType.APPLICATION_XML_VALUE])
     fun allAirportsEndpoint(): String {
     val airportCodes = ClassPathResource("airports.txt")

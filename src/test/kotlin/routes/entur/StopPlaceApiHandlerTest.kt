@@ -1,9 +1,9 @@
-package routes.api
+package routes.entur
 
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.gibil.routes.api.StopPlaceApiHandler
+import org.gibil.routes.entur.StopPlaceApiHandler
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.assertThrows

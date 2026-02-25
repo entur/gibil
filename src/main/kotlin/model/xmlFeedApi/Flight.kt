@@ -111,10 +111,4 @@ class Flight {
         this.airline = airline
         this.airport = airport
     }
-
-    fun isDeparture(): Boolean = arrDep == "D"
-    fun isArrival(): Boolean = arrDep == "A"
-
-    fun isCancelled(): Boolean = status?.code == "C"
-    fun isDelayed(): Boolean = delayed == "Y"
 }

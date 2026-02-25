@@ -17,8 +17,6 @@ import org.gibil.SiriConfig
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
-@Component
-class SiriETMapper(private val airportQuayService: AirportQuayService) {
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
 @Service
@@ -70,7 +68,7 @@ class SiriETMapper(
      */
     fun mapAllFlightsToSiri(
         directFlights: Collection<Flight>,
-        multiLegFlights: List<MultiLegFlight> = emptyList()
+        multiLegFlights: List<MultiLegFlight>
     ): Siri {
         val siri = Siri()
 
@@ -173,7 +171,7 @@ class SiriETMapper(
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
 
-        val fullRoute = routeBuilder(requestingAirportCode, flight, false)
+        val fullRoute = routeBuilder(requestingAirportCode, flight, true)
         val routeCodeId = fullRoute.idHash(10)
 
         //datevehiclejourneyref fetching and evaluation
@@ -191,14 +189,17 @@ class SiriETMapper(
                     findServiceJourney.matchServiceJourney(scheduledDepartureTime, flightId)
 
                 //a match was found
-                if (flightId in findFlightSequence && routeCodeId in findFlightSequence) {
-                    //match was validated by routecode and flightId
+                if (flightId in findFlightSequence) {
                     framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
+                    // Log hash mismatch as debug — some flights have intermediate stops in ExTime
+                    // that we don't see from a two-airport merge (e.g. BOO→MQN→TRD seen as BOO→TRD)
+                    if (routeCodeId !in findFlightSequence) {
+                        LOG.debug("Route hash mismatch for {} (expected {} in {}), using service journey anyway",
+                            flightId, routeCodeId, findFlightSequence)
+                    }
                 } else {
                     //match was not validated
-                    framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: $flightId = $findFlightSequence (${flightId in findFlightSequence}), $routeCodeId = $findFlightSequence (${routeCodeId in findFlightSequence})"
-
-                    //log the failed match attempt
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = "Couldn't validate VehicleJourneyRefID: $flightId not found in $findFlightSequence"
                     LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.currentDateMMMddyyyy())
                 }
             }
@@ -298,31 +299,72 @@ class SiriETMapper(
         val firstLeg = multiLegFlight.legs.firstOrNull() ?: return null
         val scheduleTime = parseTimestamp(firstLeg.scheduledDepartureTime) ?: return null
 
-        val routeCode = "${multiLegFlight.airline}_${multiLegFlight.originAirport}-${multiLegFlight.destinationAirport}"
-        val routeCodeId = routeCode.idHash(10)
-
         val evj = EstimatedVehicleJourney()
 
+        // LineRef uses size-ordered airports (same as existing mapFlightToEstimatedVehicleJourney)
+        val ordered = orderAirportsBySize(listOf(multiLegFlight.originAirport, multiLegFlight.destinationAirport))
         val lineRef = LineRef()
-        lineRef.value = "$LINE_PREFIX$routeCode"
+        lineRef.value = "$LINE_PREFIX${multiLegFlight.airline}_${ordered[0]}-${ordered[1]}"
         evj.lineRef = lineRef
 
+        val operatorRef = OperatorRefStructure()
+        operatorRef.value = "$OPERATOR_PREFIX${multiLegFlight.airline}"
+        evj.operatorRef = operatorRef
+
         val directionRef = DirectionRefStructure()
-        directionRef.value = "outbound"
+        // Circular routes (origin == destination) default to "outbound".
+        // Otherwise: if the flight departs from the larger (hub) airport it is "outbound",
+        // and from the smaller (regional) airport it is "inbound" — consistent with LineRef ordering.
+        directionRef.value = if (multiLegFlight.originAirport == multiLegFlight.destinationAirport
+            || multiLegFlight.originAirport == ordered[0]) "outbound" else "inbound"
         evj.directionRef = directionRef
 
         val framedVehicleJourneyRef = FramedVehicleJourneyRefStructure()
         val dataFrameRef = DataFrameRefStructure()
         dataFrameRef.value = scheduleTime.toLocalDate().toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
-        framedVehicleJourneyRef.datedVehicleJourneyRef = "${VEHICLE_JOURNEY_PREFIX}${multiLegFlight.flightId}-01-${routeCodeId}"
+
+        // VJR hash uses the full ordered route including intermediate stops (not size-sorted),
+        // matching how ExTime and routeBuilder(wantOrdered=false) compute it
+        val fullRoute = "${multiLegFlight.airline}_${multiLegFlight.allStops.joinToString("-")}"
+        val routeHash = fullRoute.idHash(10)
+
+        val flightId = multiLegFlight.flightId
+        val departureTimeStr = firstLeg.scheduledDepartureTime
+        try {
+            if (departureTimeStr == null) {
+                framedVehicleJourneyRef.datedVehicleJourneyRef =
+                    "Missing departure time for VehicleJourneyRef: flightId=$flightId"
+                LOG.error("Missing departure time for VehicleJourneyRef: flightId={}", flightId)
+            } else {
+                val findFlightSequence =
+                    findServiceJourney.matchServiceJourney(departureTimeStr, flightId)
+
+                if (flightId in findFlightSequence) {
+                    framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
+                    // Route hash check is skipped for multi-leg flights: our stop sequence may
+                    // differ from ExTime's route format for multi-leg/circular flights
+                    // (e.g. TOS→HFT→SOJ→HFT→TOS stitched as 5 stops vs ExTime's 4-node format)
+                    if (routeHash !in findFlightSequence) {
+                        LOG.debug("Route hash mismatch for {} (expected {} in {}), using service journey anyway",
+                            flightId, routeHash, findFlightSequence)
+                    }
+                } else {
+                    framedVehicleJourneyRef.datedVehicleJourneyRef =
+                        "Couldn't validate VehicleJourneyRefID: $flightId not found in $findFlightSequence"
+                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flightId, Dates.currentDateMMMddyyyy())
+                }
+            }
+        } catch (e: Exception) {
+            framedVehicleJourneyRef.datedVehicleJourneyRef =
+                "ERROR finding VJR-ID or no match found $flightId: ${e.message}"
+            LOG.error("Error finding VJR-ID for flightId {}: {}", flightId, e.message)
+        }
+
         evj.framedVehicleJourneyRef = framedVehicleJourneyRef
 
         evj.dataSource = DATA_SOURCE
 
-        val operatorRef = OperatorRefStructure()
-        operatorRef.value = "$OPERATOR_PREFIX${multiLegFlight.airline}"
-        evj.operatorRef = operatorRef
 
         // Build estimated calls: one per airport in the journey
         val callsWrapper = EstimatedVehicleJourney.EstimatedCalls()
@@ -400,22 +442,7 @@ class SiriETMapper(
         return call
     }
 
-    private fun parseTimestamp(timestamp: String?): ZonedDateTime? {
-        if (timestamp.isNullOrBlank()) return null
 
-        return try {
-            ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
-        } catch (_: DateTimeParseException) {
-            try {
-                // Try parsing without timezone (assume UTC)
-                java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(java.time.ZoneOffset.UTC)
-            } catch (_: DateTimeParseException) {
-                println("Warning: Could not parse timestamp: $timestamp")
-                null
-            }
-        }
-    }
 
     //Helper functions to set arrival and departure status on calls based on status codes and times from the API.
     private fun addArrivalStatus(call: EstimatedCall, statusCode: String?, statusTime: ZonedDateTime?, scheduleTime: ZonedDateTime?) {

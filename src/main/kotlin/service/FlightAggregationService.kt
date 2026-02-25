@@ -10,8 +10,6 @@ import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightLeg
 import model.xmlFeedApi.MultiLegFlight
-import org.gibil.BATCH_SIZE
-import org.gibil.REQUEST_DELAY_MS
 import org.gibil.PollingConfig
 import org.gibil.Dates
 import util.DateUtil.parseTimestamp
@@ -81,44 +79,6 @@ class FlightAggregationService(
         return true
     }
 
-    //Processes a batch of airport codes concurrently.
-    private suspend fun processBatch(
-        batch: List<String>,
-        flightMap: MutableMap<String, Flight>
-    ) = coroutineScope {
-        val deferredResults = batch.map { airportCode ->
-            async(ioDispatcher) {
-                delay(PollingConfig.REQUEST_DELAY_MS.toLong())
-                airportCode to fetchFlightsForAirport(airportCode)
-            }
-        }
-
-        val results = deferredResults.awaitAll()
-
-        results.forEach { (airportCode, flights) ->
-            mergeFlightsIntoMap(flights, airportCode, flightMap)
-        }
-    }
-
-        val results = deferredResults.awaitAll()
-
-        results.forEach { (airportCode, flights) ->
-            mergeFlightsIntoMap(flights, airportCode, flightMap)
-    //Parses a timestamp string to ZonedDateTime.
-    private fun parseTimestamp(timestamp: String?): ZonedDateTime? {
-        if (timestamp.isNullOrBlank()) return null
-        return try {
-            ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
-        } catch (_: DateTimeParseException) {
-            try {
-                java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(java.time.ZoneOffset.UTC)
-            } catch (_: DateTimeParseException) {
-                null
-            }
-        }
-    }
-
     /**
      * Merges raw flights into a map by uniqueID and applies the time window filter.
      * Reuses an already-fetched raw flight list to avoid a second API sweep.
@@ -127,7 +87,7 @@ class FlightAggregationService(
         val flightMap = mutableMapOf<String, Flight>()
         rawFlights.forEach { flight ->
             val existing = flightMap[flight.uniqueID]
-            flightMap[flight.uniqueID] = if (existing == null) flight else existing.mergeWith(flight)
+            flightMap[flight.uniqueID] = if (existing == null) flight else mergeFlights(existing, flight)
         }
         val now = ZonedDateTime.now(java.time.ZoneOffset.UTC)
         return flightMap.filter { (_, flight) -> isWithinTimeWindow(flight, now) }
@@ -161,14 +121,15 @@ class FlightAggregationService(
      * @param queryAirportCode The airport code used in the API query
      */
     private fun populateMergedFields(flight: Flight, queryAirportCode: String) {
+        val viaList = flight.viaAirports
         if (flight.isDeparture()) {
             flight.departureAirport = queryAirportCode
-            flight.arrivalAirport = flight.airport
+            flight.arrivalAirport = viaList.firstOrNull() ?: flight.airport
             flight.scheduledDepartureTime = flight.scheduleTime
             flight.departureStatus = flight.status
         } else {
             flight.arrivalAirport = queryAirportCode
-            flight.departureAirport = flight.airport
+            flight.departureAirport = viaList.lastOrNull() ?: flight.airport
             flight.scheduledArrivalTime = flight.scheduleTime
             flight.arrivalStatus = flight.status
         }
@@ -265,12 +226,12 @@ class FlightAggregationService(
         val airportCodes = loadAirportCodes()
         val allFlights = mutableListOf<Flight>()
 
-        airportCodes.chunked(BATCH_SIZE).forEach { batch ->
+        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
             val deferredResults = batch.map { airportCode ->
                 async(ioDispatcher) {
-                    delay(REQUEST_DELAY_MS.toLong())
+                    delay(PollingConfig.REQUEST_DELAY_MS.toLong())
                     val flights = fetchFlightsForAirport(airportCode)
-                    flights.forEach { it.populateMergedFields(airportCode) }
+                    flights.forEach { populateMergedFields(it, airportCode) }
                     flights
                 }
             }
@@ -281,8 +242,6 @@ class FlightAggregationService(
                 allFlights.addAll(domesticFlights)
             }
         }
-
-
         allFlights
     }
 
@@ -292,20 +251,45 @@ class FlightAggregationService(
      * Groups all raw flights by flight_id
      * For each flight_id groups with 4+ records, attempts to build MultiLegFlight
      * Validates leg continuity (arrival of leg N = departure of leg N+1)
-     *
+     */
+
+    /**
      * @param rawFlights List of raw Flight objects (not merged by uniqueID)
      * @return List of detected multi-leg flights
      */
     fun detectMultiLegFlights(rawFlights: List<Flight>): List<MultiLegFlight> {
         val domesticFlights = rawFlights.filter { it.domInt == "D" }
         val withFlightId = domesticFlights.filter { it.flightId != null }
-        val flightIdGroups = withFlightId.groupBy { it.flightId!! }
+        val allFlightIdGroups = withFlightId.groupBy { it.flightId!! }
 
-        return flightIdGroups.mapNotNull { (flightId, flights) ->
-            // Need at least 4 records for a 2-leg flight (2 dep + 2 arr)
-            if (flights.size < 4) return@mapNotNull null
-            buildMultiLegFlight(flightId, flights)
+        // A flight ID is a multi-leg candidate if EITHER:
+        // 1. Any of its records has via_airport set (explicit indicator from Avinor), OR
+        // 2. Its records reference 3+ distinct airports (a direct flight only ever touches 2,
+        //    so 3+ guarantees a stopover and prevents false positives from repeated flight numbers)
+        val multiLegCandidateIds = allFlightIdGroups.filter { (_, flights) ->
+            val hasVia = flights.any { it.viaAirport != null }
+            val distinctAirports = flights.flatMap {
+                listOfNotNull(it.departureAirport, it.arrivalAirport)
+            }.distinct().size
+            hasVia || distinctAirports >= 3
+        }.keys
+
+        LOG.info("Multi-leg candidates: {} flight IDs (from {} total groups)", multiLegCandidateIds.size, allFlightIdGroups.size)
+
+        val results = multiLegCandidateIds.mapNotNull { flightId ->
+            val flights = allFlightIdGroups[flightId] ?: return@mapNotNull null
+            if (flights.size < 4) {
+                LOG.info("Skipping {} - only {} records", flightId, flights.size)
+                return@mapNotNull null
+            }
+            val result = buildMultiLegFlight(flightId, flights)
+            if (result == null) LOG.info("buildMultiLegFlight failed for {}", flightId)
+            else LOG.info("Built multi-leg: {} ({} legs: {})", flightId, result.totalLegs, result.allStops)
+            result
         }
+
+        LOG.info("detectMultiLegFlights: {} built successfully", results.size)
+        return results
     }
 
     /**
@@ -331,37 +315,25 @@ class FlightAggregationService(
 
         // Must have matching number of departures and arrivals
         if (departures.isEmpty() || departures.size != arrivals.size) {
+            LOG.info("  {} dep/arr mismatch: {} deps, {} arrs", flightId, departures.size, arrivals.size)
             return null
         }
 
-        // Build legs by matching departures with their corresponding arrivals
-        val legs = mutableListOf<FlightLeg>()
-        val usedArrivals = mutableSetOf<Int>()
-
-        for ((depIndex, departure) in departures.withIndex()) {
+        // Build legs by pairing departures[i] with arrivals[i] (both sorted by scheduleTime).
+        // Positional matching is necessary because the Avinor API sometimes reports flight.airport
+        // as the full journey origin rather than the immediately adjacent stop, making airport-based
+        // matching unreliable. Time-order pairing is always correct: the i-th departure in time
+        // corresponds to the i-th arrival in time for the same leg.
+        val legs = departures.mapIndexed { i, departure ->
             val depAirport = departure.departureAirport
             val arrAirport = departure.arrivalAirport
-
             if (depAirport == null || arrAirport == null) {
+                LOG.info("  {} dep[{}] missing airports: dep={} arr={}", flightId, i, depAirport, arrAirport)
                 return null
             }
-
-            // Find matching arrival: same route (depAirport → arrAirport)
-            val matchingArrivalIndex = arrivals.indices.firstOrNull { arrIndex ->
-                !usedArrivals.contains(arrIndex) &&
-                arrivals[arrIndex].departureAirport == depAirport &&
-                arrivals[arrIndex].arrivalAirport == arrAirport
-            }
-
-            if (matchingArrivalIndex == null) {
-                return null
-            }
-
-            val arrival = arrivals[matchingArrivalIndex]
-            usedArrivals.add(matchingArrivalIndex)
-
-            legs.add(FlightLeg(
-                legNumber = depIndex + 1,
+            val arrival = arrivals[i]
+            FlightLeg(
+                legNumber = i + 1,
                 departureAirport = depAirport,
                 arrivalAirport = arrAirport,
                 scheduledDepartureTime = departure.scheduledDepartureTime,
@@ -371,7 +343,7 @@ class FlightAggregationService(
                 departureStatus = departure.departureStatus,
                 arrivalStatus = arrival.arrivalStatus,
                 uniqueId = departure.uniqueID
-            ))
+            )
         }
 
         if (legs.isEmpty()) {
@@ -384,6 +356,10 @@ class FlightAggregationService(
         // Validate leg continuity: arrival airport of leg N must equal departure airport of leg N+1
         for (i in 0 until sortedLegs.size - 1) {
             if (sortedLegs[i].arrivalAirport != sortedLegs[i + 1].departureAirport) {
+                LOG.info("  {} broken chain at leg {}: {}→{} but next departs {}",
+                    flightId, i + 1,
+                    sortedLegs[i].departureAirport, sortedLegs[i].arrivalAirport,
+                    sortedLegs[i + 1].departureAirport)
                 return null
             }
         }
@@ -421,20 +397,34 @@ class FlightAggregationService(
         val minTime = now.minusMinutes(MAX_PAST_MINUTES)
         val maxTime = now.plusHours(MAX_FUTURE_HOURS)
 
+        // Identify ALL candidate flight IDs (viaAirport or 3+ distinct airports) before building,
+        // so that failed builds are also excluded from direct flights
+        val domesticWithId = rawFlights.filter { it.domInt == "D" && it.flightId != null }
+        val allFlightIdGroups = domesticWithId.groupBy { it.flightId!! }
+        val allCandidateIds = allFlightIdGroups.filter { (_, flights) ->
+            val hasVia = flights.any { it.viaAirport != null }
+            val distinctAirports = flights.flatMap {
+                listOfNotNull(it.departureAirport, it.arrivalAirport)
+            }.distinct().size
+            hasVia || distinctAirports >= 3
+        }.keys
+
         val multiLegFlights = detectMultiLegFlights(rawFlights).filter { mlf ->
             val firstDep = parseTimestamp(mlf.legs.first().scheduledDepartureTime)
             val lastArr  = parseTimestamp(mlf.legs.last().scheduledArrivalTime)
             val depWithinTime = firstDep == null || (firstDep.isAfter(minTime) && firstDep.isBefore(maxTime))
             val arrWithinTime = lastArr  == null || (lastArr.isAfter(minTime)  && lastArr.isBefore(maxTime))
+            if (!depWithinTime || !arrWithinTime) {
+                LOG.info("Filtered out multi-leg {} (dep={} arr={} window={} to {})",
+                    mlf.flightId, firstDep, lastArr, minTime, maxTime)
+            }
             depWithinTime && arrWithinTime
         }
 
-        // Collect all flight_ids that belong to a confirmed multi-leg flight so their
-        // raw records are not also included as separate direct (two-airport) flights.
-        val multiLegFlightIds = multiLegFlights.map { it.flightId }.toSet()
-        val directRawFlights = rawFlights.filter { it.flightId !in multiLegFlightIds }
-
+        // Exclude ALL candidate IDs from direct flights, even those that failed to build
+        val directRawFlights = rawFlights.filter { it.flightId !in allCandidateIds }
         val directFlights = mergeRawFlights(directRawFlights)
+        LOG.info("fetchAllFlights: {} direct, {} multi-leg", directFlights.size, multiLegFlights.size)
         return Pair(directFlights, multiLegFlights)
     }
 }

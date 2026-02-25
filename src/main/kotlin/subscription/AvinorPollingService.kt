@@ -32,16 +32,16 @@ class AvinorPollingService(
         LOG.info("Starting poll cycle. Cache size: {}", flightStateCache.getCacheSize())
 
         try {
-            val allFlights = flightAggregationService.fetchAndMergeAllFlights()
-            LOG.info("Fetched {} flights", allFlights.size)
+            val (directFlights, multiLegFlights) = flightAggregationService.fetchAllFlights()
+            LOG.info("Fetched {} direct flights, {} multi-leg flights", directFlights.size, multiLegFlights.size)
             // Cleaning cache before adding and filtering to not remove entries that are just added.
-            flightStateCache.cleanCache(allFlights.keys)
-            val changedFlights = flightStateCache.filterChanged(allFlights.values)
+            flightStateCache.cleanCache(directFlights.keys)
+            val changedFlights = flightStateCache.filterChanged(directFlights.values)
 
             if (changedFlights.isNotEmpty()) {
-                LOG.info("Detected {} changed flights out of {}", changedFlights.size, allFlights.size)
+                LOG.info("Detected {} changed flights out of {}", changedFlights.size, directFlights.size)
 
-                val siri = siriETMapper.mapMergedFlightsToSiri(changedFlights)
+                val siri = siriETMapper.mapAllFlightsToSiri(changedFlights, multiLegFlights)
 
                 subscriptionManager.pushSiriToSubscribers(siri)
             } else {

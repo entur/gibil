@@ -33,7 +33,7 @@ class SubscriptionManagerTest {
     fun `Should add a subscription successfully`() {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
@@ -45,7 +45,7 @@ class SubscriptionManagerTest {
     fun `Should handle failed initial delivery`() {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } throws Exception("Connection error")
 
         subscriptionManager.addSubscription(subscription)
@@ -59,7 +59,7 @@ class SubscriptionManagerTest {
         val subscription2 = createTestSubscription(id = "sub002")
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription1)
@@ -80,7 +80,7 @@ class SubscriptionManagerTest {
     fun `Should not push SIRI data if no ET deliveries`() {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
@@ -96,7 +96,7 @@ class SubscriptionManagerTest {
     fun `Should handle push failure and increment failure counter`() {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } throws Exception("Network error")
 
         subscriptionManager.addSubscription(subscription)
@@ -111,7 +111,7 @@ class SubscriptionManagerTest {
     fun `Should terminate subscription successfully`() {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
@@ -131,7 +131,7 @@ class SubscriptionManagerTest {
         val subscription2 = createTestSubscription("sub002", address = "http://localhost:8080/notify2")
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
-        every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
+        every { siriETMapper.mapAllFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { httpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription1)

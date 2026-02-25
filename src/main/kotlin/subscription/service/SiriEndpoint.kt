@@ -1,9 +1,12 @@
-package subscription
+package org.gibil.subscription.service
 
+import org.gibil.subscription.helper.SiriHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.gibil.subscription.model.Subscription
+import subscription.SubscriptionManager
 import uk.org.siri.siri21.Siri
 import java.time.Duration
 
@@ -72,22 +75,22 @@ class SiriEndpoint(
     }
 }
 
-    /**
-     * Handles incoming service requests. It processes the request, retrieves the relevant Estimated Vehicle Journey (ET)
-     * data from the SiriETRepository, and generates a service delivery response containing the ET data.
-     * @param siriRequest The incoming SIRI service request, expected to be in XML format and deserialized into a Siri object.
-     * @return A Siri object representing the service delivery response, which will be serialized back to XML and sent to the requester.
+/**
+ * Handles incoming service requests. It processes the request, retrieves the relevant Estimated Vehicle Journey (ET)
+ * data from the SiriETRepository, and generates a service delivery response containing the ET data.
+ * @param siriRequest The incoming SIRI service request, expected to be in XML format and deserialized into a Siri object.
+ * @return A Siri object representing the service delivery response, which will be serialized back to XML and sent to the requester.
 
-    @Autowired private val siriETRepository: SiriETRepository
+@Autowired private val siriETRepository: SiriETRepository
 
-    @PostMapping(value = ["/service"], produces = ["application/xml"], consumes = ["application/xml"])
-    fun handleServiceRequest(@RequestBody siriRequest: Siri): Siri {
-        val serviceRequest = siriRequest.serviceRequest
-        serviceRequest.estimatedTimetableRequests
+@PostMapping(value = ["/service"], produces = ["application/xml"], consumes = ["application/xml"])
+fun handleServiceRequest(@RequestBody siriRequest: Siri): Siri {
+    val serviceRequest = siriRequest.serviceRequest
+    serviceRequest.estimatedTimetableRequests
 
-        // Use non-nullable collection
-        val siriEtElements: Collection<EstimatedVehicleJourney> = siriETRepository.all
-        return SiriHelper.createSiriEtServiceDelivery(siriEtElements)
-    }
+    // Use non-nullable collection
+    val siriEtElements: Collection<EstimatedVehicleJourney> = siriETRepository.all
+    return SiriHelper.createSiriEtServiceDelivery(siriEtElements)
 }
-        */
+}
+    */

@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import uk.org.siri.siri21.Siri
 import kotlinx.coroutines.runBlocking
+import org.gibil.subscription.helper.SubscriptionHttpHelper
+import org.gibil.subscription.model.SiriDataType
+import org.gibil.subscription.model.Subscription
+import org.gibil.subscription.repository.FlightStateCache
 import service.FlightAggregationService
 import siri.SiriETMapper
 import java.util.concurrent.ConcurrentHashMap
@@ -21,7 +25,7 @@ private val LOG: Logger = LoggerFactory.getLogger(SubscriptionManager::class.jav
  */
 @Repository
 class SubscriptionManager(
-    @param:Autowired private val httpHelper: HttpHelper,
+    @param:Autowired private val SubscriptionHttpHelper: SubscriptionHttpHelper,
     @param:Autowired private val siriETMapper: SiriETMapper,
     @param:Autowired private val flightAggregationService: FlightAggregationService,
     @param:Autowired private val flightStateCache: FlightStateCache
@@ -47,7 +51,7 @@ class SubscriptionManager(
             for (subscription in subscriptions.values) {
                 if (subscription.subscriptionType == SiriDataType.ESTIMATED_TIMETABLE) {
                     try {
-                        runBlocking { httpHelper.postData(subscription.address, SiriXml.toXml(siri)) }
+                        runBlocking { SubscriptionHttpHelper.postData(subscription.address, SiriXml.toXml(siri)) }
                     } catch (e: Exception) {
                         val subscriptionId = subscription.subscriptionId
                         val failures = subscriptionFailCounter.merge(subscriptionId, 1, Int::plus) ?: 0
@@ -83,7 +87,7 @@ class SubscriptionManager(
         }
 
         try {
-            runBlocking { httpHelper.postData(subscription.address, SiriXml.toXml(initialDelivery)) }
+            runBlocking { SubscriptionHttpHelper.postData(subscription.address, SiriXml.toXml(initialDelivery)) }
         } catch (_: Exception) {
             LOG.warn("Initial delivery failed to address {}", subscription.address)
         }
@@ -129,7 +133,7 @@ class SubscriptionManager(
                         terminateSubscription(subscription.subscriptionId)
                     } else {
                         LOG.info("Posting heartbeat to {}", subscription)
-                        val responseCode = runBlocking { httpHelper.postHeartbeat(subscription.address, subscription.subscriptionId) }
+                        val responseCode = runBlocking { SubscriptionHttpHelper.postHeartbeat(subscription.address, subscription.subscriptionId) }
                         if (responseCode != 200) {
                             markFailed(subscription)
                         }

@@ -1,8 +1,13 @@
-package subscription
+package org.gibil.subscription.helper
 
+import org.gibil.subscription.model.SiriDataType
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import uk.org.siri.siri21.*
+import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure
+import uk.org.siri.siri21.SubscriptionQualifierStructure
+import uk.org.siri.siri21.SubscriptionRefStructure
+import uk.org.siri.siri21.SubscriptionRequest
+import uk.org.siri.siri21.TerminateSubscriptionRequestStructure
 
 class SiriHelperTest {
 
@@ -17,7 +22,7 @@ class SiriHelperTest {
 
         val result = SiriHelper.resolveSubscriptionId(request)
 
-        assertEquals("sub-123", result)
+        Assertions.assertEquals("sub-123", result)
     }
 
     @Test
@@ -26,7 +31,7 @@ class SiriHelperTest {
 
         val result = SiriHelper.resolveSubscriptionId(request)
 
-        assertNull(result)
+        Assertions.assertNull(result)
     }
 
     @Test
@@ -37,7 +42,7 @@ class SiriHelperTest {
 
         val result = SiriHelper.resolveSiriDataType(request)
 
-        assertEquals(SiriDataType.ESTIMATED_TIMETABLE, result)
+        Assertions.assertEquals(SiriDataType.ESTIMATED_TIMETABLE, result)
     }
 
     @Test
@@ -46,7 +51,7 @@ class SiriHelperTest {
 
         val result = SiriHelper.resolveSiriDataType(request)
 
-        assertNull(result)
+        Assertions.assertNull(result)
     }
 
     @Test
@@ -55,11 +60,11 @@ class SiriHelperTest {
 
         val result = SiriHelper.createHeartbeatNotification(requestorRef)
 
-        assertNotNull(result.heartbeatNotification)
-        assertTrue(result.heartbeatNotification.isStatus)
-        assertEquals(requestorRef, result.heartbeatNotification.producerRef.value)
-        assertNotNull(result.heartbeatNotification.serviceStartedTime)
-        assertNotNull(result.heartbeatNotification.requestTimestamp)
+        Assertions.assertNotNull(result.heartbeatNotification)
+        Assertions.assertTrue(result.heartbeatNotification.isStatus)
+        Assertions.assertEquals(requestorRef, result.heartbeatNotification.producerRef.value)
+        Assertions.assertNotNull(result.heartbeatNotification.serviceStartedTime)
+        Assertions.assertNotNull(result.heartbeatNotification.requestTimestamp)
     }
 
     @Test
@@ -68,14 +73,14 @@ class SiriHelperTest {
 
         val result = SiriHelper.createSubscriptionResponse(subscriptionRef)
 
-        assertNotNull(result.subscriptionResponse)
-        assertEquals("2.1", result.version)
-        assertEquals(subscriptionRef, result.subscriptionResponse.responderRef.value)
-        assertEquals(1, result.subscriptionResponse.responseStatuses.size)
+        Assertions.assertNotNull(result.subscriptionResponse)
+        Assertions.assertEquals("2.1", result.version)
+        Assertions.assertEquals(subscriptionRef, result.subscriptionResponse.responderRef.value)
+        Assertions.assertEquals(1, result.subscriptionResponse.responseStatuses.size)
 
         val status = result.subscriptionResponse.responseStatuses[0]
-        assertTrue(status.isStatus)
-        assertEquals(subscriptionRef, status.subscriptionRef.value)
+        Assertions.assertTrue(status.isStatus)
+        Assertions.assertEquals(subscriptionRef, status.subscriptionRef.value)
     }
 
     @Test
@@ -87,12 +92,12 @@ class SiriHelperTest {
 
         val result = SiriHelper.createTerminateSubscriptionResponse(terminateRequest)
 
-        assertNotNull(result.terminateSubscriptionResponse)
-        assertEquals(1, result.terminateSubscriptionResponse.terminationResponseStatuses.size)
+        Assertions.assertNotNull(result.terminateSubscriptionResponse)
+        Assertions.assertEquals(1, result.terminateSubscriptionResponse.terminationResponseStatuses.size)
 
         val status = result.terminateSubscriptionResponse.terminationResponseStatuses[0]
-        assertTrue(status.isStatus)
-        assertEquals("sub-789", status.subscriptionRef.value)
-        assertNotNull(status.responseTimestamp)
+        Assertions.assertTrue(status.isStatus)
+        Assertions.assertEquals("sub-789", status.subscriptionRef.value)
+        Assertions.assertNotNull(status.responseTimestamp)
     }
 }

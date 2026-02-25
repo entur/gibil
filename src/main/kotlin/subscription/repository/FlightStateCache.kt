@@ -1,4 +1,4 @@
-package subscription
+package org.gibil.subscription.repository
 
 import model.xmlFeedApi.Flight
 import org.slf4j.LoggerFactory

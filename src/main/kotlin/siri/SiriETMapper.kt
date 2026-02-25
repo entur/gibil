@@ -580,8 +580,13 @@ class SiriETMapper(
                 call.expectedDepartureTime = statusTime ?: scheduledZdt
             }
             "E" -> {
-                call.departureStatus = CallStatusEnumeration.DELAYED
-                call.expectedDepartureTime = statusTime ?: scheduledZdt
+                if (statusTime != null && statusTime == scheduledZdt) {
+                    call.departureStatus = CallStatusEnumeration.ON_TIME
+                    call.expectedDepartureTime = scheduledZdt
+                } else {
+                    call.departureStatus = CallStatusEnumeration.DELAYED
+                    call.expectedDepartureTime = statusTime ?: scheduledZdt
+                }
             }
             "C" -> {
                 call.departureStatus = CallStatusEnumeration.CANCELLED
@@ -604,6 +609,8 @@ class SiriETMapper(
             "E" -> {
                 if (statusTime != null && statusTime.isBefore(scheduledZdt)) {
                     call.arrivalStatus = CallStatusEnumeration.EARLY
+                } else if (statusTime != null && statusTime == scheduledZdt) {
+                    call.arrivalStatus = CallStatusEnumeration.ON_TIME
                 } else {
                     call.arrivalStatus = CallStatusEnumeration.DELAYED
                 }

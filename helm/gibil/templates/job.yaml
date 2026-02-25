@@ -10,4 +10,4 @@ metadata:
         "helm.sh/hook-delete-policy": before-hook-creation
 spec:
     template:
-        {{- include "gibil.job-template" . | indent 4 }}
+        {{- include "gibil.cron-job-template" . | indent 4 }}

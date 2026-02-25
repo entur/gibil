@@ -39,9 +39,13 @@ spec:
         - sh
         - -c
         - |
+          echo "Downloading zip file..."
           curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.init.extimeData }}
+          echo "Download complete. Extracting from" {{ .Values.init.extimeData }} "to shared volume..."
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
+          echo "Extraction complete. Cleaning up zip file..."
           rm /tmp/rb_avi-aggregated-netex.zip
+          echo "Init container finished. Files in /app/extimeData:"
           ls -la /app/extimeData/
       volumeMounts:
         - name: extime-data

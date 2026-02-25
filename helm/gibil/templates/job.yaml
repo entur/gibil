@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: {{ template "app.name" . }}-initial-fetch
+    labels:
+      {{- include "gibil.common.labels" . | indent 4 }}
+    annotations:
+        "helm.sh/hook": post-install, post-upgrade
+        "helm.sh/hook-weight": "-1"
+        "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+    template:
+        {{- include "gibil.job-template" . | indent 4 }}

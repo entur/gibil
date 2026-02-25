@@ -58,9 +58,6 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       resources: {}
-  volumes:
-    - name: extime-data
-      emptyDir: {}
   dnsPolicy: ClusterFirst
   restartPolicy: Never
   schedulerName: default-scheduler

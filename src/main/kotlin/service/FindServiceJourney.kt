@@ -3,7 +3,7 @@ package service
 import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
-import model.serviceJourney.ServiceJourneyParser
+import handler.ServiceJourneyParser
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

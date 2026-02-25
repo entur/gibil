@@ -1,5 +1,6 @@
-package model.serviceJourney
+package handler
 
+import model.serviceJourney.ServiceJourney
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamReader
 import java.io.File

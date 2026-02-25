@@ -1,4 +1,4 @@
-package org.gibil.routes.api
+package org.gibil.routes.entur
 
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value

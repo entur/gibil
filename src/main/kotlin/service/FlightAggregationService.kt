@@ -14,9 +14,9 @@ import util.DateUtil.parseTimestamp
 import org.gibil.service.ApiService
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import routes.api.AvinorApiHandler
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import java.time.ZonedDateTime
-import model.AvinorXmlFeedParams
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.slf4j.LoggerFactory
 
 /**
@@ -29,7 +29,7 @@ private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
 
 @Service
 class FlightAggregationService(
-    private val avinorApiHandler: AvinorApiHandler,
+    private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
     private val xmlHandler: AvinorScheduleXmlHandler,
     private val apiService: ApiService,
     private val ioDispatcher: CoroutineDispatcher
@@ -116,8 +116,8 @@ class FlightAggregationService(
     //Fetches flights for a single airport using wider time window.
     private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
         return try {
-            val url = avinorApiHandler.avinorXmlFeedUrlBuilder(
-                AvinorXmlFeedParams(airportCode = airportCode)
+            val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
+                AvinorXmlFeedParamsLogic(airportCode = airportCode)
             )
             val xmlResponse = apiService.apiCall(url) ?: return emptyList()
 

@@ -1,11 +1,12 @@
-package routes.api
+package routes.avinor.xmlfeed
 
 import io.mockk.every
 import io.mockk.mockk
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
@@ -13,14 +14,12 @@ import org.springframework.context.annotation.Bean
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import routes.api.AvinorApiHandler
-import model.AvinorXmlFeedParams
 import java.net.URI
 
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [AvinorApiHandlerTest.TestConfig::class, AvinorApiHandler::class])
+@ContextConfiguration(classes = [AvinorXmlFeedApiHandlerTest.TestConfig::class, AvinorXmlFeedApiHandler::class])
 @TestPropertySource(locations = ["classpath:application.properties"])
-class AvinorApiHandlerTest {
+class AvinorXmlFeedApiHandlerTest {
 
     @TestConfiguration
     class TestConfig {
@@ -31,12 +30,12 @@ class AvinorApiHandlerTest {
     }
 
     @Autowired
-    private lateinit var apiHandler: AvinorApiHandler
+    private lateinit var apiHandler: AvinorXmlFeedApiHandler
 
     @Test
     fun `avinorXmlFeedUrlBuilder constructs correct URL with all parameters`() {
         // Arrange
-        val params = AvinorXmlFeedParams(
+        val params = AvinorXmlFeedParamsLogic(
             airportCode = "OSL",
             timeFrom = 1,
             timeTo = 7,
@@ -66,7 +65,7 @@ class AvinorApiHandlerTest {
         // Based on your code, it only adds param if direction is "A" or "D".
         // Let's pass a param that SHOULD be ignored if logic allows, or create a specific case.
 
-        val params = AvinorXmlFeedParams(
+        val params = AvinorXmlFeedParamsLogic(
             airportCode = "OSL",
             timeFrom = 1,
             timeTo = 7,
@@ -86,7 +85,7 @@ class AvinorApiHandlerTest {
     @Test
     fun `avinorXmlFeedUrlBuilder with all valid parameters returns URL`() {
         val result = apiHandler.avinorXmlFeedUrlBuilder(
-            AvinorXmlFeedParams(
+            AvinorXmlFeedParamsLogic(
                 airportCode = "OSL",
                 timeFrom = 1,
                 timeTo = 7,
@@ -103,7 +102,7 @@ class AvinorApiHandlerTest {
     fun `avinorXmlFeedUrlBuilder with invalid airport code throws exception`() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
-                AvinorXmlFeedParams(
+                AvinorXmlFeedParamsLogic(
                     airportCode = "OS",
                     timeFrom = 1,
                     timeTo = 7,
@@ -117,7 +116,7 @@ class AvinorApiHandlerTest {
     fun `avinorXmlFeedUrlBuilder with negative time from throws exception`() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
-                AvinorXmlFeedParams(
+                AvinorXmlFeedParamsLogic(
                     airportCode = "OSL",
                     timeFrom = -100,
                     timeTo = 7,
@@ -131,7 +130,7 @@ class AvinorApiHandlerTest {
     fun `avinorXmlFeedUrlBuilder with time exceeding limit throws exception`() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
-                AvinorXmlFeedParams(
+                AvinorXmlFeedParamsLogic(
                     airportCode = "OSL",
                     timeFrom = 1,
                     timeTo = 700000000,
@@ -145,7 +144,7 @@ class AvinorApiHandlerTest {
     fun `avinorXmlFeedUrlBuilder missing airportCode should throw`() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             apiHandler.avinorXmlFeedUrlBuilder(
-                AvinorXmlFeedParams(
+                AvinorXmlFeedParamsLogic(
                     airportCode = "",
                     timeFrom = 1,
                     timeTo = 7,

@@ -8,7 +8,7 @@ import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZonedDateTime
 import kotlin.math.abs
-import service.FindServiceJourney
+import service.FindServiceJourneyService
 import org.gibil.Dates
 import org.gibil.FlightCodes
 import util.DateUtil.parseTimestamp
@@ -21,7 +21,7 @@ private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 @Service
 class SiriETMapper(
     private val airportQuayService: AirportQuayService,
-    private val findServiceJourney: FindServiceJourney
+    private val findServiceJourneyService: FindServiceJourneyService
 ) {
 
     companion object {
@@ -171,7 +171,7 @@ class SiriETMapper(
                 //calls matchServiceJourney with flightId and scheduledDepartureTime to find the corresponding service journey sequence
                     //if none is found an exception will be thrown, which is caught in the catch
                 val findFlightSequence =
-                    findServiceJourney.matchServiceJourney(scheduledDepartureTime, flightId)
+                    findServiceJourneyService.matchServiceJourney(scheduledDepartureTime, flightId)
 
                 //a match was found
                 if (flightId in findFlightSequence && routeCodeId in findFlightSequence) {

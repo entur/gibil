@@ -5,7 +5,7 @@ import io.mockk.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import model.AvinorXmlFeedParams
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightStatus
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
-import routes.api.AvinorApiHandler
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -26,7 +26,7 @@ import kotlin.test.assertTrue
 
 class FlightAggregationServiceTest {
 
-    private lateinit var avinorApiHandler: AvinorApiHandler
+    private lateinit var avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler
     private lateinit var xmlHandler: AvinorScheduleXmlHandler
     private lateinit var apiService: ApiService
     private lateinit var flightAggregationService: FlightAggregationService
@@ -34,12 +34,12 @@ class FlightAggregationServiceTest {
 
     @BeforeEach
     fun init() {
-        avinorApiHandler = mockk()
+        avinorXmlFeedApiHandler = mockk()
         xmlHandler = mockk()
         apiService = mockk()
         ioDispatcher = Dispatchers.Unconfined
 
-        flightAggregationService = FlightAggregationService(avinorApiHandler, xmlHandler, apiService, ioDispatcher)
+        flightAggregationService = FlightAggregationService(avinorXmlFeedApiHandler, xmlHandler, apiService, ioDispatcher)
     }
 
     @AfterEach
@@ -186,7 +186,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should handle API errors gracefully`() = runBlocking {
-            every { avinorApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
+            every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
             every { apiService.apiCall(any()) } returns "Error: API unavailable"
             mockAirportsList(listOf("OSL"))
 
@@ -197,7 +197,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should handle null API response gracefully`() = runBlocking {
-            every { avinorApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
+            every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
             every { apiService.apiCall(any()) } returns null
             mockAirportsList(listOf("OSL"))
 
@@ -246,8 +246,8 @@ class FlightAggregationServiceTest {
 
         // Match any AvinorXmlFeedParams with the correct airportCode
         every {
-            avinorApiHandler.avinorXmlFeedUrlBuilder(
-                match<AvinorXmlFeedParams> { it.airportCode == airportCode }
+            avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
+                match<AvinorXmlFeedParamsLogic> { it.airportCode == airportCode }
             )
         } returns "http://test.url/$airportCode"
 

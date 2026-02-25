@@ -1,4 +1,4 @@
-package subscription
+package org.gibil.subscription.helper
 
 import jakarta.annotation.PreDestroy
 import okhttp3.MediaType.Companion.toMediaType
@@ -10,14 +10,14 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import siri.SiriETPublisher
 
-private val LOG = LoggerFactory.getLogger(HttpHelper::class.java)
+private val LOG = LoggerFactory.getLogger(SubscriptionHttpHelper::class.java)
 
 /**
  * Helper class for making HTTP POST requests, specifically for sending SIRI ET notifications.
  * It uses OkHttp3 HttpClient to perform HTTP operations.
  */
 @Component
-class HttpHelper(
+class SubscriptionHttpHelper(
     @Qualifier("subscriberClient") private val httpClient: OkHttpClient,
     private val publisher: SiriETPublisher
 ) {

@@ -1,10 +1,12 @@
-package subscription
+package org.gibil.subscription.service
 
+import org.gibil.subscription.repository.FlightStateCache
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import service.FlightAggregationService
 import siri.SiriETMapper
+import subscription.SubscriptionManager
 
 private val LOG = LoggerFactory.getLogger(AvinorPollingService::class.java)
 

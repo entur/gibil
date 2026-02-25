@@ -1,6 +1,10 @@
 package subscription
 
 import io.mockk.*
+import org.gibil.subscription.helper.SubscriptionHttpHelper
+import org.gibil.subscription.model.SiriDataType
+import org.gibil.subscription.model.Subscription
+import org.gibil.subscription.repository.FlightStateCache
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import service.FlightAggregationService
@@ -16,18 +20,18 @@ import java.util.concurrent.ScheduledExecutorService
 class SubscriptionManagerTest {
 
     private lateinit var subscriptionManager: SubscriptionManager
-    private lateinit var httpHelper: HttpHelper
+    private lateinit var SubscriptionHttpHelper: SubscriptionHttpHelper
     private lateinit var siriETMapper: SiriETMapper
     private lateinit var flightAggregationService: FlightAggregationService
     private lateinit var flightStateCache: FlightStateCache
 
     @BeforeEach
     fun setup() {
-        httpHelper = mockk()
+        SubscriptionHttpHelper = mockk()
         siriETMapper = mockk()
         flightAggregationService = mockk()
         flightStateCache = mockk(relaxed = true)
-        subscriptionManager = SubscriptionManager(httpHelper, siriETMapper, flightAggregationService, flightStateCache)
+        subscriptionManager = SubscriptionManager(SubscriptionHttpHelper, siriETMapper, flightAggregationService, flightStateCache)
     }
 
     @Test
@@ -35,11 +39,11 @@ class SubscriptionManagerTest {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
 
-        coVerify(exactly = 1) { httpHelper.postData(subscription.address, any()) }
+        coVerify(exactly = 1) { SubscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -47,11 +51,11 @@ class SubscriptionManagerTest {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } throws Exception("Connection error")
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } throws Exception("Connection error")
 
         subscriptionManager.addSubscription(subscription)
 
-        coVerify(exactly = 1) { httpHelper.postData(subscription.address, any()) }
+        coVerify(exactly = 1) { SubscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -61,20 +65,20 @@ class SubscriptionManagerTest {
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription1)
         subscriptionManager.addSubscription(subscription2)
 
-        clearMocks(httpHelper, answers = false)
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        clearMocks(SubscriptionHttpHelper, answers = false)
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         val siri = createSiriWithET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 2) { httpHelper.postData(any(), any()) }
-        coVerify { httpHelper.postData(subscription1.address, any()) }
-        coVerify { httpHelper.postData(subscription2.address, any()) }
+        coVerify(exactly = 2) { SubscriptionHttpHelper.postData(any(), any()) }
+        coVerify { SubscriptionHttpHelper.postData(subscription1.address, any()) }
+        coVerify { SubscriptionHttpHelper.postData(subscription2.address, any()) }
     }
 
     @Test
@@ -82,15 +86,15 @@ class SubscriptionManagerTest {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
-        clearMocks(httpHelper, answers = false)
+        clearMocks(SubscriptionHttpHelper, answers = false)
 
         val siri = createSiriWithoutET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 0) { httpHelper.postData(any(), any()) }
+        coVerify(exactly = 0) { SubscriptionHttpHelper.postData(any(), any()) }
     }
 
     @Test
@@ -98,14 +102,14 @@ class SubscriptionManagerTest {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } throws Exception("Network error")
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } throws Exception("Network error")
 
         subscriptionManager.addSubscription(subscription)
 
         val siri = createSiriWithET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(atLeast = 1) { httpHelper.postData(subscription.address, any()) }
+        coVerify(atLeast = 1) { SubscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -113,17 +117,17 @@ class SubscriptionManagerTest {
         val subscription = createTestSubscription()
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
         subscriptionManager.terminateSubscription(subscription.subscriptionId)
 
         val siri = createSiriWithET()
-        clearMocks(httpHelper, answers = false)
+        clearMocks(SubscriptionHttpHelper, answers = false)
 
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 0) { httpHelper.postData(subscription.address, any()) }
+        coVerify(exactly = 0) { SubscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -133,20 +137,20 @@ class SubscriptionManagerTest {
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription1)
         subscriptionManager.addSubscription(subscription2)
 
         subscriptionManager.terminateSubscription(subscription1.subscriptionId)
-        clearMocks(httpHelper, answers = false)
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        clearMocks(SubscriptionHttpHelper, answers = false)
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         val siri = createSiriWithET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 0) { httpHelper.postData(subscription1.address, any()) }
-        coVerify(exactly = 1) { httpHelper.postData(subscription2.address, any()) }
+        coVerify(exactly = 0) { SubscriptionHttpHelper.postData(subscription1.address, any()) }
+        coVerify(exactly = 1) { SubscriptionHttpHelper.postData(subscription2.address, any()) }
     }
 
     @Test
@@ -164,18 +168,18 @@ class SubscriptionManagerTest {
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
 
         // Simulate 5 failed heartbeats to trip the threshold
-        coEvery { httpHelper.postHeartbeat(any(), any()) } returns 500
+        coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } returns 500
         repeat(5) { runnableSlot.captured.run() }
 
         // 6th run should now see hasFailed = true and terminate
         runnableSlot.captured.run()
 
-        coVerify(atLeast = 5) { httpHelper.postHeartbeat(subscription.address, any()) }
+        coVerify(atLeast = 5) { SubscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
 
         unmockkStatic(Executors::class)
     }
@@ -194,15 +198,15 @@ class SubscriptionManagerTest {
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
-        coEvery { httpHelper.postHeartbeat(any(), any()) } throws Exception("Connection refused")
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } throws Exception("Connection refused")
 
         subscriptionManager.addSubscription(subscription)
 
         // Should not throw — exception is caught internally
         runnableSlot.captured.run()
 
-        coVerify(exactly = 1) { httpHelper.postHeartbeat(subscription.address, any()) }
+        coVerify(exactly = 1) { SubscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
 
         unmockkStatic(Executors::class)
     }
@@ -221,13 +225,13 @@ class SubscriptionManagerTest {
 
         every { flightAggregationService.fetchAndMergeAllFlights() } returns emptyMap()
         every { siriETMapper.mapMergedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { httpHelper.postData(any(), any()) } returns 200
-        coEvery { httpHelper.postHeartbeat(any(), any()) } returns 503
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
+        coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } returns 503
 
         subscriptionManager.addSubscription(subscription)
         runnableSlot.captured.run()
 
-        coVerify(exactly = 1) { httpHelper.postHeartbeat(subscription.address, any()) }
+        coVerify(exactly = 1) { SubscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
 
         unmockkStatic(Executors::class)
     }

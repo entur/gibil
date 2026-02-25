@@ -1,10 +1,21 @@
-package subscription
+package org.gibil.subscription.helper
 
-import org.gibil.SiriConfig
-import uk.org.siri.siri21.*
-import java.time.ZonedDateTime
-import java.util.*
 import org.gibil.Dates
+import org.gibil.SiriConfig
+import org.gibil.subscription.model.SiriDataType
+import uk.org.siri.siri21.HeartbeatNotificationStructure
+import uk.org.siri.siri21.MessageRefStructure
+import uk.org.siri.siri21.RequestorRef
+import uk.org.siri.siri21.ResponseStatus
+import uk.org.siri.siri21.Siri
+import uk.org.siri.siri21.SubscriptionRefStructure
+import uk.org.siri.siri21.SubscriptionRequest
+import uk.org.siri.siri21.SubscriptionResponseStructure
+import uk.org.siri.siri21.TerminateSubscriptionRequestStructure
+import uk.org.siri.siri21.TerminateSubscriptionResponseStructure
+import uk.org.siri.siri21.TerminationResponseStatusStructure
+import java.time.ZonedDateTime
+import java.util.UUID
 
 /**
  * Helper class for creating SIRI objects, such as service deliveries and heartbeat notifications,

@@ -1,12 +1,18 @@
-package subscription
+package subscription.service
 
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verify
 import jakarta.xml.bind.JAXBContext
-import org.junit.jupiter.api.Test
+import org.gibil.subscription.service.SiriEndpoint
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import uk.org.siri.siri21.*
+import subscription.SubscriptionManager
+import uk.org.siri.siri21.Siri
 import java.io.StringReader
 
 class SiriEndpointTest {
@@ -34,8 +40,8 @@ class SiriEndpointTest {
                         subscription.requestorRef == "ENTUR_DEV"
             })
         }
-        assertNotNull(response.subscriptionResponse)
-        assertEquals("2.1", response.version)
+        Assertions.assertNotNull(response.subscriptionResponse)
+        Assertions.assertEquals("2.1", response.version)
     }
 
     @Test
@@ -50,7 +56,7 @@ class SiriEndpointTest {
                 subscription.address == "https://CONSUMER:PORT/endpoint"
             })
         }
-        assertNotNull(response.subscriptionResponse)
+        Assertions.assertNotNull(response.subscriptionResponse)
     }
 
     @Test
@@ -72,7 +78,7 @@ class SiriEndpointTest {
             endpoint.handleSubscriptionRequest(siriRequest)
         }
 
-        assertEquals("Unable to resolve SIRI data type", exception.message)
+        Assertions.assertEquals("Unable to resolve SIRI data type", exception.message)
         verify(exactly = 0) { subscriptionManager.addSubscription(any()) }
     }
 
@@ -84,8 +90,8 @@ class SiriEndpointTest {
         val response = endpoint.handleTerminateSubscriptionRequest(siriRequest)
 
         verify(exactly = 1) { subscriptionManager.terminateSubscription("SUBSCRIPTION_ID") }
-        assertNotNull(response.terminateSubscriptionResponse)
-        assertEquals(1, response.terminateSubscriptionResponse.terminationResponseStatuses.size)
+        Assertions.assertNotNull(response.terminateSubscriptionResponse)
+        Assertions.assertEquals(1, response.terminateSubscriptionResponse.terminationResponseStatuses.size)
     }
 
 

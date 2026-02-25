@@ -68,7 +68,7 @@ class SiriETMapper(
      */
     fun mapAllFlightsToSiri(
         directFlights: Collection<Flight>,
-        multiLegFlights: List<MultiLegFlight>
+        multiLegFlights: List<MultiLegFlight> = emptyList()
     ): Siri {
         val siri = Siri()
 

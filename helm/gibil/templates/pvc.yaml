@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ template "app.name" . }}-extime-pvc
   labels:
-    {{- include "gibil.common.labels" . | nindent 4 }
+    {{- include "gibil.common.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce

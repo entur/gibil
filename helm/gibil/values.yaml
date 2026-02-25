@@ -78,29 +78,3 @@ common:
           chmod -R 755 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
-
-    - name: extime-data-fetch
-      image: curlimages/curl:latest
-      securityContext:
-        allowPrivilegeEscalation: false
-        runAsNonRoot: true
-        runAsUser: 65534
-        capabilities:
-          drop: ["ALL"]
-        seccompProfile:
-          type: RuntimeDefault
-      volumeMounts:
-        - name: extime-data
-          mountPath: /app/extimeData
-      command:
-        - sh
-        - -c
-        - |
-          echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.init.extimeData }}
-          echo "Download complete. Extracting to shared volume..."
-          unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
-          echo "Extraction complete. Cleaning up zip file..."
-          rm /tmp/rb_avi-aggregated-netex.zip
-          echo "Init container finished. Files in /app/extimeData:"
-          ls -la /app/extimeData/

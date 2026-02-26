@@ -5,8 +5,12 @@ import model.UnifiedFlight
 import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import org.gibil.Dates
-import org.gibil.SIRI_VERSION_DELIVERY
+import org.gibil.FlightCodes
+import org.gibil.SiriConfig
 import org.gibil.service.AirportQuayService
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import service.FindServiceJourneyService
 import uk.org.siri.siri21.*
 import util.AirportSizeClassification.orderAirportsBySize
 import util.DateUtil.parseTimestamp
@@ -14,13 +18,6 @@ import java.math.BigInteger
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import kotlin.math.abs
-import service.FindServiceJourneyService
-import org.gibil.Dates
-import org.gibil.FlightCodes
-import util.DateUtil.parseTimestamp
-import org.gibil.SiriConfig
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
@@ -451,7 +448,7 @@ class SiriETMapper(
         serviceDelivery.producerRef = producerRef
 
         val estimatedTimetableDelivery = EstimatedTimetableDeliveryStructure()
-        estimatedTimetableDelivery.version = SIRI_VERSION_DELIVERY
+        estimatedTimetableDelivery.version = SiriConfig.SIRI_VERSION_DELIVERY
         estimatedTimetableDelivery.responseTimestamp = Dates.instantNowUtc()
 
         val estimatedVersionFrame = EstimatedVersionFrameStructure()
@@ -510,7 +507,7 @@ class SiriETMapper(
                 LOG.error("Missing departure time for VehicleJourneyRef: flightId={}", flight.flightId)
             } else {
                 val findFlightSequence =
-                    findServiceJourney.matchServiceJourney(departureTimeStr, flight.flightId)
+                    findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
                 if (flight.flightId in findFlightSequence) {
                     framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
                     // Route hash check is skipped for the chain path: our stop sequence may

@@ -7,28 +7,23 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import model.AvinorXmlFeedParams
 import model.FlightStop
 import model.UnifiedFlight
 import model.xmlFeedApi.Flight
-import org.gibil.BATCH_SIZE
 import org.gibil.Dates
-import org.gibil.REQUEST_DELAY_MS
-import org.gibil.SVALBARD_AIRPORTS
 import org.gibil.PollingConfig
-import util.DateUtil.parseTimestamp
+import org.gibil.SVALBARD_AIRPORTS
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.service.ApiService
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import routes.api.AvinorApiHandler
 import util.DateUtil.parseTimestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import java.time.ZonedDateTime
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 
 /**
  * Service that fetches flight data from all Avinor airports and merges
@@ -268,11 +263,11 @@ class FlightAggregationService(
         LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
 
         // FETCH: Collect all domestic (+ Svalbard) flights with their parsed schedule times
-        airportCodes.chunked(BATCH_SIZE).forEach { batch ->
+        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
             coroutineScope {
                 batch.map { code ->
                     async(ioDispatcher) {
-                        delay(REQUEST_DELAY_MS.toLong())
+                        delay(PollingConfig.REQUEST_DELAY_MS.toLong())
                         code to fetchFlightsForAirport(code)
                     }
                 }.awaitAll()

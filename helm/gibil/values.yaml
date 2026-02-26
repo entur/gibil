@@ -87,12 +87,12 @@ common:
           drop: ["ALL"]
         seccompProfile:
           type: RuntimeDefault
-      env:
-        - name: EXTIME_DATA_URL
-          value: {{ .Values.init.extimeData }}
       volumeMounts:
         - name: extime-data
           mountPath: /app/extimeData
+      env:
+        - name: EXTIME_DATA_URL
+          value: https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
       command:
         - sh
         - -c

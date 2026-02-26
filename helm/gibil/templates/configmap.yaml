@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gibil.common.labels" . | nindent 4 }}
+data:
+  application.properties: |-
+    # Spring Boot
+
+    # Logging
+    logging.level.root={{ .Values.configMap.data.LOG_LEVEL }}

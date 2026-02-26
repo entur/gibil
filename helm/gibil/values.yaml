@@ -4,6 +4,9 @@ common:
   team: ror
   ingress:
     trafficType: public
+  service:
+    externalPort: 80
+    internalPort: 8080
   container:
     image: <+artifacts.primary.image>
     imagePullPolicy: Always

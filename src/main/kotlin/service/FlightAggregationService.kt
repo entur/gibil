@@ -19,15 +19,15 @@ import org.gibil.service.ApiService
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import util.DateUtil.parseTimestamp
+import util.DateUtil.parseTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 /**
- * Service that fetches flight data from all Avinor airports and merges
- * departure/arrival data for the same flight (matched by uniqueID).
+ * Service that fetches flight data from all Avinor airports and stitches
+ * records into [model.UnifiedFlight] chains for both the /siri endpoint and the subscription polling path.
  * Uses coroutines with batching for concurrent API calls.
  */
 
@@ -48,78 +48,7 @@ class FlightAggregationService(
         const val MAX_FUTURE_HOURS = 7L       // Up to 7 hours in the future
     }
 
-    /**
-     * Fetches flight data from all airports concurrently and merges flights by uniqueID.
-     * Filters out flights that are outside the configured time window
-     * (more than [MAX_PAST_MINUTES] minutes in the past or more than [MAX_FUTURE_HOURS] hours in the future).
-     * @return Map of uniqueID to merged Flight entries within the configured time window
-     */
-    fun fetchAndMergeAllFlights(): Map<String, Flight> = runBlocking {
-        val airportCodes = loadAirportCodes()
-        val flightMap = mutableMapOf<String, Flight>()
-
-        LOG.info("Starting data fetch for {} airports...", airportCodes.size)
-
-        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
-            processBatch(batch, flightMap)
-        }
-
-        // Filter out flights where either end is outside the allowed time window
-        val filteredFlights = flightMap.filter { (_, flight) ->
-            isWithinTimeWindow(flight, Dates.instantNowUtc())
-        }
-
-        LOG.info("Aggregated {} flights within time window from {} total ({} airports)", filteredFlights.size, flightMap.size, airportCodes.size)
-        filteredFlights
-    }
-
-    /**
-     * Checks if the entire flight journey is within the allowed time window:
-     * - If departure exists and is outside window, exclude the flight
-     * - If arrival exists and is outside window, exclude the flight
-     * - Flights with missing times are kept (for debugging other issues)
-     */
-    private fun isWithinTimeWindow(flight: Flight, now: ZonedDateTime): Boolean {
-        val minTime = now.minusMinutes(MAX_PAST_MINUTES)
-        val maxTime = now.plusHours(MAX_FUTURE_HOURS)
-
-        val departureTime = parseTimestamp(flight.scheduledDepartureTime)
-        val arrivalTime = parseTimestamp(flight.scheduledArrivalTime)
-
-        // If departure exists and is outside window, exclude
-        if (departureTime != null && (departureTime.isBefore(minTime) || departureTime.isAfter(maxTime))) {
-            return false
-        }
-
-        // If arrival exists and is outside window, exclude
-        if (arrivalTime != null && (arrivalTime.isBefore(minTime) || arrivalTime.isAfter(maxTime))) {
-            return false
-        }
-
-        // Keep flights with missing times (for debugging) or with both times in window
-        return true
-    }
-
-    //Processes a batch of airport codes concurrently.
-    private suspend fun processBatch(
-        batch: List<String>,
-        flightMap: MutableMap<String, Flight>
-    ) = coroutineScope {
-        val deferredResults = batch.map { airportCode ->
-            async(ioDispatcher) {
-                delay(PollingConfig.REQUEST_DELAY_MS.toLong())
-                airportCode to fetchFlightsForAirport(airportCode)
-            }
-        }
-
-        val results = deferredResults.awaitAll()
-
-        results.forEach { (airportCode, flights) ->
-            mergeFlightsIntoMap(flights, airportCode, flightMap)
-        }
-    }
-
-    //Fetches flights for a single airport using wider time window.
+    //Fetches flights for a single airport.
     private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
         return try {
             val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
@@ -139,87 +68,6 @@ class FlightAggregationService(
             LOG.error("Error fetching data for {}: {}", airportCode, e.message)
             emptyList()
         }
-    }
-
-    /**
-     * Populates the merged fields based on whether this flight is a departure or arrival.
-     * Call this after parsing from XML before merging with other flights.
-     * @param queryAirportCode The airport code used in the API query
-     */
-    private fun populateMergedFields(flight: Flight, queryAirportCode: String) {
-        if (flight.isDeparture()) {
-            flight.departureAirport = queryAirportCode
-            flight.arrivalAirport = flight.airport
-            flight.scheduledDepartureTime = flight.scheduleTime
-            flight.departureStatus = flight.status
-        } else {
-            flight.arrivalAirport = queryAirportCode
-            flight.departureAirport = flight.airport
-            flight.scheduledArrivalTime = flight.scheduleTime
-            flight.arrivalStatus = flight.status
-        }
-    }
-
-    /**
-     * Merges data from another Flight with the same uniqueID.
-     * Combines departure data from one airport with arrival data from another.
-     * @param other The other Flight to merge with (must have same uniqueID)
-     * @return A new Flight with combined data from both
-     */
-    private fun mergeFlights(existing: Flight, other: Flight): Flight {
-        if (existing.uniqueID != other.uniqueID) {
-            throw IllegalArgumentException("Cannot merge flights with different uniqueIDs: ${existing.uniqueID} vs ${other.uniqueID}")
-        }
-
-        return Flight().apply {
-
-            // Basic fields - prefer non-null values
-            uniqueID = existing.uniqueID
-            airline = existing.airline ?: other.airline
-            flightId = existing.flightId ?: other.flightId
-            domInt = existing.domInt ?: other.domInt
-            viaAirport = existing.viaAirport ?: other.viaAirport
-            delayed = existing.delayed ?: other.delayed
-            airlineDesignators = existing.airlineDesignators ?: other.airlineDesignators
-            airlineNames = existing.airlineNames ?: other.airlineNames
-            flightNumbers = existing.flightNumbers ?: other.flightNumbers
-            operationalSuffixs = existing.operationalSuffixs ?: other.operationalSuffixs
-
-            // Merge departure data
-            departureAirport = existing.departureAirport ?: other.departureAirport
-            scheduledDepartureTime = existing.scheduledDepartureTime ?: other.scheduledDepartureTime
-            departureStatus = existing.departureStatus ?: other.departureStatus
-
-            // Merge arrival data
-            arrivalAirport = existing.arrivalAirport ?: other.arrivalAirport
-            scheduledArrivalTime = existing.scheduledArrivalTime ?: other.scheduledArrivalTime
-            arrivalStatus = existing.arrivalStatus ?: other.arrivalStatus
-
-            isMerged = true
-        }
-    }
-
-    /**
-     * Merges a list of flights into the aggregated flight map.
-     * Only includes domestic flights due to lacking data from international airports.
-     */
-    private fun mergeFlightsIntoMap(
-        flights: List<Flight>,
-        queryAirportCode: String,
-        flightMap: MutableMap<String, Flight>
-    ) {
-        flights
-            .filter { it.isDomestic() }
-            .forEach { flight ->
-                populateMergedFields(flight, queryAirportCode)
-
-                val existingFlight = flightMap[flight.uniqueID]
-                if (existingFlight == null) {
-                    flightMap[flight.uniqueID] = flight
-                } else {
-                    flightMap[flight.uniqueID] = mergeFlights(existingFlight, flight)
-                }
-            }
     }
 
     //Loads airport codes from the airports.txt resource file.
@@ -350,9 +198,7 @@ class FlightAggregationService(
             if (onlyStop.departureTime != null && onlyStop.targetAirport != null) {
                 stops.add(FlightStop(airportCode = onlyStop.targetAirport, arrivalTime = null, departureTime = null))
             } else if (onlyStop.arrivalTime != null) {
-                val originAirport = events.firstOrNull { it.raw.arrDep == "A" }?.raw?.let { arr ->
-                    arr.viaAirport?.split(",")?.lastOrNull()?.trim() ?: arr.airport
-                }
+                val originAirport = events.firstOrNull { it.raw.arrDep == "A" }?.raw?.airport
                 if (originAirport != null) {
                     stops.add(0, FlightStop(airportCode = originAirport, arrivalTime = null, departureTime = null))
                 }
@@ -373,6 +219,7 @@ class FlightAggregationService(
             }
         }
 
+        if (flightId.length < 2) return null
         val operator = flightId.take(2)
         return UnifiedFlight(flightId = flightId, operator = operator, date = date, stops = stops)
     }
@@ -402,15 +249,6 @@ class FlightAggregationService(
         )
     }
 
-    // Parses a schedule time string into LocalDateTime, using the shared DateUtil parser.
-    private fun parseTime(timeStr: String?): LocalDateTime? {
-        if (timeStr.isNullOrBlank()) return null
-        return try {
-            parseTimestamp(timeStr)?.toLocalDateTime()
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-    }
 
     /**
      * Keeps a chain if its latest stop time is within the allowed window and its earliest

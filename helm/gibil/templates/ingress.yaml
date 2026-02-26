@@ -9,12 +9,12 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   rules:
-    - host: {{ .Values.common.ingress.host }}
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            backend:
-              service:
-                name: {{ template "app.name" . }}
-                port:
-                  number: 80
+  - host: {{ .Values.common.ingress.host }}
+    http:
+      paths:
+        - pathType: ImplementationSpecific
+          backend:
+            service:
+              name: {{ template "app.name" . }}
+              port:
+                number: 80

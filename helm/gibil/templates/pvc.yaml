@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "gibil.common.labels" . | nindent 4 }}
 spec:
+  volumeName: extime-data
   accessModes:
     - ReadWriteOnce
   resources:

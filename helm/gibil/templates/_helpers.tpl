@@ -32,7 +32,7 @@ namespace: {{ .Release.Namespace }}
 spec:
   containers:
     - name: "redeploy-{{ template "app.name" . }}"
-      image: eu.gcr.io/entur-system-1287/deployment-rollout-restart:0.1.2
+      image: eu.gcr.io/entur-system-1287/deployment-rollout-restart:0.1.12
       imagePullPolicy: IfNotPresent
       command:
         - ./redeploy_generic_deployment.sh

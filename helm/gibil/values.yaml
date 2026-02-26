@@ -3,7 +3,7 @@ common:
   shortname: gibil
   team: ror
   ingress:
-    trafficType: public-
+    trafficType: public
   container:
     image: <+artifacts.primary.image>
     imagePullPolicy: Always

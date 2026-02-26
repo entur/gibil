@@ -3,7 +3,7 @@ common:
   shortname: gibil
   team: ror
   ingress:
-    trafficType: public
+    trafficType: public-
   container:
     image: <+artifacts.primary.image>
     imagePullPolicy: Always
@@ -95,7 +95,7 @@ common:
         - -c
         - |
           echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.init.extimeData }}
+          curl -o /tmp/rb_avi-aggregated-netex.zip -L {{ .Values.init.extimeData }}
           echo "Download complete. Extracting to shared volume..."
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
           echo "Extraction complete. Cleaning up zip file..."

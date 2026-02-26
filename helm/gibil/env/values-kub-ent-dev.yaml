@@ -11,3 +11,6 @@ configMap:
   enabled: true
   data:
     LOG_LEVEL: DEBUG
+
+cronJob:
+  gcpProject: entur-dev-gcp2

@@ -37,10 +37,10 @@ spec:
       command:
         - ./redeploy_generic_deployment.sh
       env:
-        - name: DEPLOYMENT_NAME
+        - name: DEPLOYMENT
           value: {{ template "app.name" . }}
-        - name: DEPLOYMENT_NAMESPACE
-          value: {{ .Release.Namespace }}
+        - name: CLOUDSDK_CORE_PROJECT
+          value: {{ .Values.cronJob.gcpProject }}
       securityContext:
         runAsNonRoot: true
         allowPrivilegeEscalation: false

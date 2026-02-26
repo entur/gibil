@@ -31,14 +31,11 @@ namespace: {{ .Release.Namespace }}
 {{- define "gibil.cron-job-template" }}
 spec:
   containers:
-    - name: "redeploy-{{ template "app.name" . }}
+    - name: "redeploy-{{ template "app.name" . }}"
       image: eu.gcr.io/entur-system-1287/deployment-rollout-restart:0.1.2
       imagePullPolicy: IfNotPresent
       command:
         - ./redeploy_generic_deployment.sh
-      env:
-      - name: DEPLOYMENT
-        value: {{ template "app.name" . }}
       securityContext:
         runAsNonRoot: true
         allowPrivilegeEscalation: false

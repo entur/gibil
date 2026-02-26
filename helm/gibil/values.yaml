@@ -87,6 +87,9 @@ common:
           drop: ["ALL"]
         seccompProfile:
           type: RuntimeDefault
+      env:
+        - name: EXTIME_DATA_URL
+          value: {{ .Values.init.extimeData }}
       volumeMounts:
         - name: extime-data
           mountPath: /app/extimeData

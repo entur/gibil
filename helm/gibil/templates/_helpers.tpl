@@ -28,7 +28,6 @@ team: ror
 namespace: {{ .Release.Namespace }}
 {{- end }}
 
-
 {{- define "gibil.cron-job-template" }}
 spec:
   containers:

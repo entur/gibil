@@ -39,7 +39,11 @@ spec:
         - sh
         - -c
         - |
+          ls -la /app/extimeData/
+          find /app/extimeData -mindepth 1 -delete
+          ls -la /app/extimeData/
           echo "Downloading zip file..."
+          find /app/extimeData -mindepth 1 -delete
           curl -o /tmp/rb_avi-aggregated-netex.zip {{ .Values.init.extimeData }}
           echo "Download complete. Extracting from" {{ .Values.init.extimeData }} "to shared volume..."
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData

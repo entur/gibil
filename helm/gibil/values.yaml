@@ -16,8 +16,6 @@ common:
     volumeMounts:
       - name: extime-data
         mountPath: /app/extimeData
-        persistentVolumeClaim:
-          claimName: gibil-extime-pvc
       - name: logs
         mountPath: /app/logs
     volumes:

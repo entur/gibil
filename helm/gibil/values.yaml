@@ -95,7 +95,7 @@ common:
         - -c
         - |
           echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip -L {{ .Values.init.extimeData }}
+          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
           echo "Download complete. Extracting to shared volume..."
           unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
           echo "Extraction complete. Cleaning up zip file..."

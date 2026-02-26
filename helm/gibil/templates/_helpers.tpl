@@ -36,6 +36,11 @@ spec:
       imagePullPolicy: IfNotPresent
       command:
         - ./redeploy_generic_deployment.sh
+      env:
+        - name: DEPLOYMENT_NAME
+          value: {{ template "app.name" . }}
+        - name: DEPLOYMENT_NAMESPACE
+          value: {{ .Release.Namespace }}
       securityContext:
         runAsNonRoot: true
         allowPrivilegeEscalation: false

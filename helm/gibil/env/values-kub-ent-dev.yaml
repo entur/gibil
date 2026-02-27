@@ -1,7 +1,7 @@
 common:
   env: dev
   ingress:
-    host: gibil.dev.entur.io
+    host: .dev.entur.io
   replicas: 1
 
 init:

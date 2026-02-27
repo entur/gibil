@@ -286,27 +286,29 @@ class FlightAggregationServiceTest {
         }
 
         @Test
-        fun `should infer missing departure stop from arrival origin`() = runBlocking {
-            val now = ZonedDateTime.now(ZoneOffset.UTC)
+        fun `should infer missing departure stop from arrival origin`() {
+            runBlocking {
+                val now = ZonedDateTime.now(ZoneOffset.UTC)
 
-            // Only arrival at BGO from OSL, no departure data from OSL
-            val bgoArr = createFlight(
-                uniqueID = "1", flightId = "DY300", airline = "DY",
-                arrDep = "A", airport = "OSL",
-                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
-            )
+                // Only arrival at BGO from OSL, no departure data from OSL
+                val bgoArr = createFlight(
+                    uniqueID = "1", flightId = "DY300", airline = "DY",
+                    arrDep = "A", airport = "OSL",
+                    scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+                )
 
-            mockAirportData("BGO", listOf(bgoArr))
-            mockAirportsList(listOf("BGO"))
+                mockAirportData("BGO", listOf(bgoArr))
+                mockAirportsList(listOf("BGO"))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+                val result = flightAggregationService.fetchUnifiedFlights()
 
-            assertEquals(1, result.size)
-            val flight = result.first()
-            assertEquals(2, flight.stops.size)
-            assertEquals("OSL", flight.origin)
-            assertEquals("BGO", flight.destination)
-            assertNotNull(flight.stops.last().arrivalTime)
+                assertEquals(1, result.size)
+                val flight = result.first()
+                assertEquals(2, flight.stops.size)
+                assertEquals("OSL", flight.origin)
+                assertEquals("BGO", flight.destination)
+                assertNotNull(flight.stops.last().arrivalTime)
+            }
         }
 
         @Test

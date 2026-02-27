@@ -23,7 +23,7 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
 @Service
 class FindServiceJourneyService(
     private val apiService: ApiService,
-    @Value("gibil.extime.data-file") private val configuredPath: String?
+    @Value("\${gibil.extime.data-file:#{null}}") private val configuredPath: String?
 ) {
     val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 

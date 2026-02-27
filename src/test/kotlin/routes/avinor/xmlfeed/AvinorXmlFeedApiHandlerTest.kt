@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -26,6 +27,12 @@ class AvinorXmlFeedApiHandlerTest {
         @Bean
         fun apiService(): ApiService = mockk {
             every { apiCall(any()) } returns """<airportNames><airportName code="OSL" name="Oslo Lufthavn"/><airportName code="BGO" name="Bergen Lufthavn"/></airportNames>"""
+        }
+        @Bean
+        fun airportNamesHandler(): AvinorAirportNamesApiHandler = mockk(relaxed = true) {
+            every { airportCodeValidator("OSL") } returns true
+            every { airportCodeValidator("BGO") } returns true
+            every { airportCodeValidator(not(or(eq("OSL"), eq("BGO")))) } returns false
         }
     }
 

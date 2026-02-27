@@ -46,6 +46,9 @@ object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
 
+// Svalbard is classified as international (domInt="I") by Avinor, but should be treated as domestic
+val SVALBARD_AIRPORTS = setOf("LYR")
+
 object FindServiceJourneyConstants {
     //base path when running on a local computer, and not in cloud
     val LOCAL_BASEPATH = "src/main/resources/extimeData"

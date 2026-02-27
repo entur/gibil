@@ -27,8 +27,8 @@ class Endpoint(
      */
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
-    val mergedFlights = flightAggregationService.fetchAllMergedFlightsAsList()
-    val siri = siriETMapper.mapMergedFlightsToSiri(mergedFlights)
+    val unifiedFlights = flightAggregationService.fetchUnifiedFlights()
+    val siri = siriETMapper.mapUnifiedFlightsToSiri(unifiedFlights)
     return siriETPublisher.toXml(siri)
     }
 
@@ -46,43 +46,4 @@ class Endpoint(
         return apiService.apiCall(url) ?: "Error: No response from Avinor API"
     }
 
-    /**
-     * Debug endpoint that fetches and combines raw XML data from all Avinor airports.
-     * Warning: This makes ~55 API calls and may take some time.
-
-    @GetMapping("/avinor/all", produces = [MediaType.APPLICATION_XML_VALUE])
-    fun allAirportsEndpoint(): String {
-    val airportCodes = ClassPathResource("airports.txt")
-    .inputStream
-    .bufferedReader()
-    .readLines()
-    .filter { it.isNotBlank() }
-
-    val combinedXml = StringBuilder()
-    combinedXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-    combinedXml.append("<AllAirportsResponse>\n")
-
-    airportCodes.forEach { code ->
-    try {
-    val url = avinorApiHandler.avinorXmlFeedUrlBuilder(
-    AvinorXmlFeedParams(airportCode = code)
-    )
-    val response = apiService.apiCall(url)
-    if (response != null && "Error" !in response) {
-    combinedXml.append("  <AirportData code=\"$code\">\n")
-    val cleanedResponse = response
-    .replace(Regex("<\\?xml[^>]*\\?>"), "")
-    .trim()
-    combinedXml.append("    $cleanedResponse\n")
-    combinedXml.append("  </AirportData>\n")
-    }
-    } catch (e: Exception) {
-    combinedXml.append("  <!-- Error fetching $code: ${e.message} -->\n")
-    }
-    }
-
-    combinedXml.append("</AllAirportsResponse>")
-    return combinedXml.toString()
-    }
-    */
 }

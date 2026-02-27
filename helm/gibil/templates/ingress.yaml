@@ -10,7 +10,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   rules:
-  - host: {{ template "app.name" . }}{{ .Values.common.ingress.host }}
+  - host: {{ .Values.common.ingress.host }}
     http:
       paths:
         - pathType: ImplementationSpecific

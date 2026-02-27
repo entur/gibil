@@ -1,7 +1,7 @@
 common:
   env: prd
   ingress:
-    host: .entur.io
+    host: gibil.entur.io
   replicas: 1
   container:
     replicas: 1

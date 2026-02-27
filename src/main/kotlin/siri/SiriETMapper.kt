@@ -110,44 +110,28 @@ class SiriETMapper(
         val routeHash = fullRoute.idHash(10)
 
         val departureTimeStr = flight.stops.first().departureTime?.atZone(UTC_ZONE)?.toString()
+        if (departureTimeStr == null) {
+            LOG.error("Missing departure time for VehicleJourneyRef: flightId={}", flight.flightId)
+            return null
+        }
         try {
-            if (departureTimeStr == null) {
-                if (flight.isFullyCancelled()) {
-                    LOG.debug("Skipping fully cancelled flight {} with no departure time", flight.flightId)
-                    return null
+            val findFlightSequence =
+                findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
+            if (flight.flightId in findFlightSequence) {
+                framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
+                // Route hash check is advisory for multi-leg/circular flights:
+                // our stop sequence may differ from ExTime's route format
+                if (routeHash !in findFlightSequence) {
+                    LOG.debug("Route hash mismatch for {} (expected {} in {}), using service journey anyway",
+                        flight.flightId, routeHash, findFlightSequence)
                 }
-                framedVehicleJourneyRef.datedVehicleJourneyRef =
-                    "Missing departure time for VehicleJourneyRef: flightId=${flight.flightId}"
-                LOG.error("Missing departure time for VehicleJourneyRef: flightId={}", flight.flightId)
             } else {
-                val findFlightSequence =
-                    findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
-                if (flight.flightId in findFlightSequence) {
-                    framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
-                    // Route hash check is advisory for multi-leg/circular flights:
-                    // our stop sequence may differ from ExTime's route format
-                    if (routeHash !in findFlightSequence) {
-                        LOG.debug("Route hash mismatch for {} (expected {} in {}), using service journey anyway",
-                            flight.flightId, routeHash, findFlightSequence)
-                    }
-                } else {
-                    if (flight.isFullyCancelled()) {
-                        LOG.debug("Skipping fully cancelled flight {} with no matching VJR", flight.flightId)
-                        return null
-                    }
-                    framedVehicleJourneyRef.datedVehicleJourneyRef =
-                        "Couldn't validate VehicleJourneyRefID: ${flight.flightId} not found in $findFlightSequence"
-                    LOG.error("{}, {}, errors/{}", framedVehicleJourneyRef.datedVehicleJourneyRef, flight.flightId, Dates.currentDateMMMddyyyy())
-                }
-            }
-        } catch (e: Exception) {
-            if (flight.isFullyCancelled()) {
-                LOG.debug("Skipping fully cancelled flight {} with no matching service journey: {}", flight.flightId, e.message)
+                LOG.error("No VJR match for {}, errors/{}", flight.flightId, Dates.currentDateMMMddyyyy())
                 return null
             }
-            framedVehicleJourneyRef.datedVehicleJourneyRef =
-                "ERROR finding VJR-ID or no match found ${flight.flightId}: ${e.message}"
+        } catch (e: Exception) {
             LOG.error("Error finding VJR-ID for flightId {}: {}", flight.flightId, e.message)
+            return null
         }
 
         journey.framedVehicleJourneyRef = framedVehicleJourneyRef
@@ -182,19 +166,6 @@ class SiriETMapper(
         }
 
         return journey
-    }
-
-    /**
-     * Returns true if every stop in the chain that has a scheduled time is cancelled.
-     * Used to silently drop fully cancelled flights whose service journey can't be found in ExTime.
-     */
-    private fun UnifiedFlight.isFullyCancelled(): Boolean {
-        val hasAnyTime = stops.any { it.departureTime != null || it.arrivalTime != null }
-        if (!hasAnyTime) return false
-        return stops.all { stop ->
-            (stop.departureTime == null || stop.departureStatusCode == "C") &&
-            (stop.arrivalTime == null || stop.arrivalStatusCode == "C")
-        }
     }
 
     private fun applyDepartureStatus(call: EstimatedCall, stop: FlightStop, scheduledZdt: ZonedDateTime) {

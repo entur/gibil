@@ -79,10 +79,9 @@ class SiriETMapperTest {
     }
 
     @Test
-    fun `should skip fully cancelled flight when no service journey is found`() {
-        // Relaxed mock returns "" — flightId not in "" → isFullyCancelled check → skip
-        val cancelledFlight = createFlight(departureStatusCode = "C", arrivalStatusCode = "C")
-        val result = mapper.mapUnifiedFlightsToSiri(listOf(cancelledFlight))
+    fun `should skip flight when no service journey match is found`() {
+        // Relaxed mock returns "" — flightId not in "" → return null
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
         assertTrue(getJourneys(result).isEmpty())
     }

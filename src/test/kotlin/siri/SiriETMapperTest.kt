@@ -3,8 +3,7 @@ package siri
 import model.FlightStop
 import model.UnifiedFlight
 import org.gibil.service.AirportQuayService
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import service.FindServiceJourneyService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
@@ -18,7 +17,10 @@ class SiriETMapperTest {
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
-    private val findServiceJourneyService = mockk<FindServiceJourneyService>(relaxed = true)
+    private val findServiceJourneyService = mockk<FindServiceJourneyService> {
+        // Return a VJR string that contains the flightId so the VJR check passes
+        every { matchServiceJourney(any(), any()) } answers { "AVI:ServiceJourney:${secondArg<String>()}_hash" }
+    }
     private val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
 
     @Test
@@ -80,7 +82,7 @@ class SiriETMapperTest {
 
     @Test
     fun `should skip flight when no service journey match is found`() {
-        // Relaxed mock returns "" — flightId not in "" → return null
+        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ""
         val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
         assertTrue(getJourneys(result).isEmpty())

@@ -10,7 +10,7 @@ data:
     # Spring Boot
 
     # Netex data file path 
-    gibil.extime.data-file=app/netex_data.zip
+    gibil.extime.data-file=/app/netex_data.zip
 
     # Logging
     logging.level.root={{ .Values.configMap.data.LOG_LEVEL }}

@@ -1,13 +1,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "app.name" . }}
+  name: {{ template "app.name" . }}-application
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "gibil.common.labels" . | nindent 4 }}
 data:
   application.properties: |-
     # Spring Boot
+
+    # Netex data file path 
+    gibil.extime.data-file=app/netex_data.zip
 
     # Logging
     logging.level.root={{ .Values.configMap.data.LOG_LEVEL }}

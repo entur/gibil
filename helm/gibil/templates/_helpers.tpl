@@ -41,8 +41,6 @@ spec:
           value: {{ template "app.name" . }}
         - name: CLOUDSDK_CORE_PROJECT
           value: {{ .Values.cronJob.gcpProject }}
-        - name: EXTIME_DATA_URL
-          value: {{ .Values.init.extimeData }}
       securityContext:
         runAsNonRoot: true
         allowPrivilegeEscalation: false

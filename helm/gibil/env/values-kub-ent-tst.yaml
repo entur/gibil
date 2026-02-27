@@ -5,7 +5,7 @@ common:
   replicas: 1
 
 init:
-  extimeData: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
+  NETEX_DATA_URL: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
 
 configMap:
   enabled: true

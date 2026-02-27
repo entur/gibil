@@ -50,7 +50,7 @@ object FindServiceJourneyConstants {
     //base path when running on a local computer, and not in cloud
     val LOCAL_BASEPATH = "src/main/resources/extimeData"
 
-    val CLOUD_BASEPATH = "/app/extimeData"
+    val CLOUD_BASEPATH = "/app/netex_data.zip"
 }
 
 object AvinorApiConfig {

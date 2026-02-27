@@ -17,13 +17,16 @@ common:
       runAsGroup: 1000
       fsGroup: 1000
     volumeMounts:
-      - name: extime-data
-        mountPath: /app/extimeData
+      - mountPath: /etc/application-config
+        name: application-config
+        readOnly: true
       - name: logs
         mountPath: /app/logs
     volumes:
-      - name: extime-data
-        emptyDir: {}
+      - configMap:
+            defaultMode: 420
+            name: gibil-application
+        name: application-config
       - name: logs
         emptyDir: {}
     probes:
@@ -80,38 +83,3 @@ common:
           chmod -R 755 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
-    - name: extime-data-fetch
-      image: curlimages/curl:latest
-      securityContext:
-        allowPrivilegeEscalation: false
-        runAsNonRoot: true
-        runAsUser: 65534
-        capabilities:
-          drop: ["ALL"]
-        seccompProfile:
-          type: RuntimeDefault
-      volumeMounts:
-        - name: extime-data
-          mountPath: /app/extimeData
-      env:
-        - name: EXTIME_DATA_URL
-          value: https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
-      command:
-        - sh
-        - -c
-        - |
-          echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip -L $EXTIME_DATA_URL
-          echo "Download complete. Extracting to shared volume..."
-          unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
-          echo "Extraction complete. Cleaning up zip file..."
-          rm /tmp/rb_avi-aggregated-netex.zip
-          echo "Init container finished. Files in /app/extimeData:"
-          ls -la /app/extimeData/
-      resources:
-        limits:
-          cpu: 1
-          memory: 512Mi
-        requests:
-          cpu: 0.5
-          memory: 256Mi

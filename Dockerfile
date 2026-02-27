@@ -6,6 +6,11 @@ RUN java -Djarmode=tools  -jar application.jar extract --layers --destination ex
 FROM bellsoft/liberica-openjre-alpine:21.0.10
 RUN apk update && apk upgrade && apk add --no-cache tini=0.19.0-r3
 WORKDIR /deployments
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod a+x /docker-entrypoint.sh
+ENTRYPOINT ["sh", "/docker-entrypoint.sh"]
+
 RUN addgroup appuser && adduser --disabled-password appuser --ingroup appuser
 USER appuser
 COPY --from=builder /builder/extracted/dependencies/ ./

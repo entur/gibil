@@ -1,7 +1,7 @@
 common:
   env: prd
   ingress:
-    domainName: .entur.io
+    host: .entur.io
   replicas: 1
   container:
     replicas: 1

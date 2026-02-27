@@ -1,7 +1,7 @@
 common:
   env: dev
   ingress:
-    domainName: .dev.entur.io
+    host: .dev.entur.io
   replicas: 1
 
 init:

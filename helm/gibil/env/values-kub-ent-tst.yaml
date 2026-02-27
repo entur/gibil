@@ -1,7 +1,7 @@
 common:
   env: tst
   ingress:
-    domainName: .staging.entur.io
+    host: .staging.entur.io
   replicas: 1
 
 init:

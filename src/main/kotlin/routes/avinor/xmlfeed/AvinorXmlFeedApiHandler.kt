@@ -1,8 +1,6 @@
 package org.gibil.routes.avinor.xmlfeed
 
-import jakarta.annotation.PostConstruct
 import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
-import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder

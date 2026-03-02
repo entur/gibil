@@ -1,4 +1,7 @@
 common:
+  configmap:
+    data:
+      NETEX_DATA_URL: https://storage.googleapis.com/marduk-production/outbound/netex/rb_avi-aggregated-netex.zip
   env: prd
   ingress:
     host: gibil.entur.io
@@ -7,13 +10,8 @@ common:
     replicas: 1
     maxReplicas: 2
 
-init:
-  NETEX_DATA_URL: https://storage.googleapis.com/marduk-prod/outbound/netex/rb_avi-aggregated-netex.zip
-
 configMap:
-  enabled: true
-  data:
-    LOG_LEVEL: INFO
+  LOG_LEVEL: INFO
 
 cronJob:
     gcpProject: entur-dev-gcp2

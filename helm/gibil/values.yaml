@@ -29,12 +29,6 @@ common:
         name: application-config
       - name: logs
         emptyDir: {}
-    configmap:
-        data:
-            JDK_JAVA_OPTIONS: -server -Xmx2048m -Xss1024m -Xms2048m -Dspring.config.location=/etc/application-config/application.properties -Dfile.encoding=UTF-8
-            TZ: Europe/Oslo
-        enabled: true
-        toEnv: true
     probes:
       enabled: true
       spec:
@@ -89,3 +83,9 @@ common:
           chmod -R 755 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
+  configmap:
+    data:
+      JDK_JAVA_OPTIONS: -server -Xmx2048m -Xss1024m -Xms2048m -Dspring.config.location=/etc/application-config/application.properties -Dfile.encoding=UTF-8
+      TZ: Europe/Oslo
+    enabled: true
+    toEnv: true

@@ -4,12 +4,12 @@ import jakarta.annotation.PostConstruct
 import model.airportNames.AirportNames
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import util.SharedJaxbContext
 import java.io.StringReader
 import kotlin.text.uppercase
 
-@Component
+@Service
 class AvinorAirportNamesApiHandler(
     private val apiService: ApiService,
     @Value("\${avinor.api.base-url-airport-names}") private val baseUrlAirportNames: String

@@ -8,9 +8,20 @@ metadata:
 data:
   application.properties: |-
     # Spring Boot
+    avinor.api.base-url-xmlfeed=https://asrv.avinor.no/XmlFeed/v1.0
+    avinor.api.base-url-airport-names=https://asrv.avinor.no/airportNames/v1.0
+    entur.api.base-url-stop-places=https://api.entur.io/stop-places/v1/read/stop-places
 
     # Netex data file path 
     org.gibil.extime.data-file=/tmp/netex_data.zip
+    
+    # Actuator
+    management.server.port=8080
+    management.endpoints.access.default=none
+    management.endpoint.health.enabled=true
+    management.health.defaults.enabled=false
+    management.endpoint.health.probes.enabled=true
+    management.endpoint.health.group.readiness.include=readinessState
 
     # Logging
     logging.level.root={{ .Values.configMap.LOG_LEVEL }}

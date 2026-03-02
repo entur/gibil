@@ -30,32 +30,12 @@ common:
       - name: logs
         emptyDir: {}
     probes:
-      enabled: true
-      spec:
-        startupProbe:
-          tcpSocket:
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 1
-          timeoutSeconds: 1
-          failureThreshold: 300
-        readinessProbe:
-          httpGet:
-            path: /actuator/health/readiness
-            port: 8080
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          timeoutSeconds: 10
-          failureThreshold: 3
-          successThreshold: 1
-        livenessProbe:
-          httpGet:
-            path: /actuator/health/liveness
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+      startupProbe:
+        enabled: true
+      readinessProbe:
+        path: /actuator/health/readiness
+      livenessProbe:
+        path: /actuator/health/liveness
 
   initContainers:
     - name: create-log-dirs
@@ -85,7 +65,8 @@ common:
           ls -la /app/logs/
   configmap:
     data:
-      JDK_JAVA_OPTIONS: -server -Xmx2048m -Xss1024m -Xms2048m -Dspring.config.location=/etc/application-config/application.properties -Dfile.encoding=UTF-8
+      JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties
+        -Dfile.encoding=UTF-8
       TZ: Europe/Oslo
     enabled: true
     toEnv: true

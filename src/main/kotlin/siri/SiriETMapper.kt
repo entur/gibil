@@ -3,6 +3,7 @@ package siri
 import model.FlightStop
 import model.UnifiedFlight
 import org.gibil.Dates
+import org.gibil.FlightCodes
 import org.gibil.SiriConfig
 import org.gibil.service.AirportQuayService
 import org.slf4j.LoggerFactory
@@ -17,6 +18,15 @@ import kotlin.math.abs
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
+/**
+ * Maps [UnifiedFlight] chains into SIRI Estimated Timetable (ET) documents.
+ * Resolves airport quay IDs via [AirportQuayService], looks up ExTime service journey
+ * references via [FindServiceJourneyService], and translates Avinor status codes
+ * into SIRI [CallStatusEnumeration] values.
+ *
+ * Flights that cannot be matched to a valid service journey reference are excluded
+ * from the output rather than emitted with placeholder error values.
+ */
 @Service
 class SiriETMapper(
     private val airportQuayService: AirportQuayService,
@@ -43,8 +53,6 @@ class SiriETMapper(
         val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
         return abs(hashcode).toString().take(length)
     }
-
-    // ── Chain-based multileg path ─────────────────────────────────────────────
 
     /**
      * Maps a list of [UnifiedFlight] chains into a SIRI EstimatedTimetableDelivery.
@@ -81,6 +89,16 @@ class SiriETMapper(
         return siri
     }
 
+    /**
+     * Maps a single [UnifiedFlight] to a SIRI [EstimatedVehicleJourney].
+     *
+     * Returns null (and logs an error) if the first stop has no departure time or if no
+     * valid service journey reference can be found in ExTime, so the caller can silently
+     * exclude the flight from the output.
+     *
+     * @param flight The unified flight chain to map.
+     * @return The mapped journey, or null if the flight should be excluded from the output.
+     */
     private fun mapFlightToJourney(flight: UnifiedFlight): EstimatedVehicleJourney? {
         val journey = EstimatedVehicleJourney()
 
@@ -150,6 +168,7 @@ class SiriETMapper(
             call.stopPointRef = stopPointRef
             call.order = BigInteger.valueOf((index + 1).toLong())
 
+            //when stop.departureTime and stop.arrivalTime are null, the stop is skipped in ExTime, so we can skip it here as well
             if (stop.departureTime != null) {
                 val departureZdt = stop.departureTime.atZone(UTC_ZONE)
                 call.aimedDepartureTime = departureZdt
@@ -168,14 +187,27 @@ class SiriETMapper(
         return journey
     }
 
+    /**
+     * Sets departure status and expected departure time on [call] based on the Avinor status code.
+     *
+     * Status mappings:
+     * - [FlightCodes.DEPARTED_CODE] ("D") → MISSED — the flight has already left.
+     * - [FlightCodes.NEW_TIME_CODE] ("E") → ON_TIME if the new time matches scheduled, DELAYED otherwise.
+     * - [FlightCodes.CANCELLED_CODE] ("C") → CANCELLED.
+     * - No status / unknown → ON_TIME with the scheduled time as the expected time.
+     *
+     * @param call The [EstimatedCall] to update.
+     * @param stop The [FlightStop] providing the status code and status time.
+     * @param scheduledZdt The aimed (scheduled) departure time, used as fallback when no status time is available.
+     */
     private fun applyDepartureStatus(call: EstimatedCall, stop: FlightStop, scheduledZdt: ZonedDateTime) {
         val statusTime = stop.departureStatusTime?.atZone(UTC_ZONE)
         when (stop.departureStatusCode) {
-            "D" -> {
+            FlightCodes.DEPARTED_CODE -> {
                 call.departureStatus = CallStatusEnumeration.MISSED
                 call.expectedDepartureTime = statusTime ?: scheduledZdt
             }
-            "E" -> {
+            FlightCodes.NEW_TIME_CODE -> {
                 if (statusTime != null && statusTime == scheduledZdt) {
                     call.departureStatus = CallStatusEnumeration.ON_TIME
                     call.expectedDepartureTime = scheduledZdt
@@ -184,7 +216,7 @@ class SiriETMapper(
                     call.expectedDepartureTime = statusTime ?: scheduledZdt
                 }
             }
-            "C" -> {
+            FlightCodes.CANCELLED_CODE -> {
                 call.departureStatus = CallStatusEnumeration.CANCELLED
                 call.setCancellation(true)
             }
@@ -195,14 +227,27 @@ class SiriETMapper(
         }
     }
 
+    /**
+     * Sets arrival status and expected arrival time on [call] based on the Avinor status code.
+     *
+     * Status mappings:
+     * - [FlightCodes.ARRIVED_CODE] ("A") → ARRIVED.
+     * - [FlightCodes.NEW_TIME_CODE] ("E") → EARLY if before scheduled, ON_TIME if equal, DELAYED otherwise.
+     * - [FlightCodes.CANCELLED_CODE] ("C") → CANCELLED.
+     * - No status / unknown → ON_TIME with the scheduled time as the expected time.
+     *
+     * @param call The [EstimatedCall] to update.
+     * @param stop The [FlightStop] providing the status code and status time.
+     * @param scheduledZdt The aimed (scheduled) arrival time, used as fallback when no status time is available.
+     */
     private fun applyArrivalStatus(call: EstimatedCall, stop: FlightStop, scheduledZdt: ZonedDateTime) {
         val statusTime = stop.arrivalStatusTime?.atZone(UTC_ZONE)
         when (stop.arrivalStatusCode) {
-            "A" -> {
+            FlightCodes.ARRIVED_CODE -> {
                 call.arrivalStatus = CallStatusEnumeration.ARRIVED
                 call.expectedArrivalTime = statusTime ?: scheduledZdt
             }
-            "E" -> {
+            FlightCodes.NEW_TIME_CODE -> {
                 if (statusTime != null && statusTime.isBefore(scheduledZdt)) {
                     call.arrivalStatus = CallStatusEnumeration.EARLY
                 } else if (statusTime != null && statusTime == scheduledZdt) {
@@ -212,7 +257,7 @@ class SiriETMapper(
                 }
                 call.expectedArrivalTime = statusTime ?: scheduledZdt
             }
-            "C" -> {
+            FlightCodes.CANCELLED_CODE -> {
                 call.arrivalStatus = CallStatusEnumeration.CANCELLED
                 call.setCancellation(true)
             }

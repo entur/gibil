@@ -35,6 +35,9 @@ object FlightCodes {
     const val DOMESTIC_CODE = "D"
     const val INTERNATIONAL_CODE = "I"
     const val SCHENGEN_CODE = "S"
+
+    // Svalbard is classified as international (domInt="I") by Avinor, but should be treated as domestic
+    const val SVALBARD_AIRPORTS = "LYR"
 }
 
 object AirportSizeConfig {
@@ -45,9 +48,6 @@ object AirportSizeConfig {
 object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
-
-// Svalbard is classified as international (domInt="I") by Avinor, but should be treated as domestic
-val SVALBARD_AIRPORTS = setOf("LYR")
 
 object FindServiceJourneyConstants {
     //base path when running on a local computer, and not in cloud

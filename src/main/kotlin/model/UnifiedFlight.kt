@@ -26,6 +26,12 @@ data class FlightStop(
 )
 
 /**
+ * Groups Avinor flight events by flight ID and calendar date,
+ * preventing flights from different days being stitched together.
+ */
+data class FlightKey(val flightId: String, val date: LocalDate)
+
+/**
  * Represents a complete journey (chain of stops) for a single Flight ID.
  * Handles both Direct (2 stops) and Multi-Leg (3+ stops) flights uniformly.
  */

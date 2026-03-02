@@ -7,12 +7,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import model.FlightKey
 import model.FlightStop
 import model.UnifiedFlight
 import model.xmlFeedApi.Flight
 import org.gibil.Dates
+import org.gibil.FlightCodes
 import org.gibil.PollingConfig
-import org.gibil.SVALBARD_AIRPORTS
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.service.ApiService
@@ -25,14 +26,14 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
+private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
+
+
 /**
  * Service that fetches flight data from all Avinor airports and stitches
  * records into [model.UnifiedFlight] chains for both the /siri endpoint and the subscription polling path.
  * Uses coroutines with batching for concurrent API calls.
  */
-
-private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
-
 @Service
 class FlightAggregationService(
     private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
@@ -48,7 +49,12 @@ class FlightAggregationService(
         const val MAX_FUTURE_HOURS = 7L       // Up to 7 hours in the future
     }
 
-    //Fetches flights for a single airport.
+    /**
+     * Fetches raw flight records from the Avinor XML feed for a single airport.
+     *
+     * @param airportCode The IATA code of the airport to fetch flights for.
+     * @return The list of [Flight] records, or an empty list if the call fails or returns an error.
+     */
     private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
         return try {
             val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
@@ -70,7 +76,11 @@ class FlightAggregationService(
         }
     }
 
-    //Loads airport codes from the airports.txt resource file.
+    /**
+     * Reads the list of Avinor airport IATA codes from the `airports.txt` classpath resource.
+     *
+     * @return The list of airport codes, or an empty list if the file cannot be read.
+     */
     private fun loadAirportCodes(): List<String> {
         return try {
             ClassPathResource("airports.txt")
@@ -84,14 +94,15 @@ class FlightAggregationService(
         }
     }
 
-    // Wraps a raw Avinor Flight with the airport it was fetched from and its parsed schedule time.
+    /**
+     * Wraps a raw Avinor [Flight] with the airport it was fetched from and its parsed schedule time.
+     * Used as an intermediate representation before stop stitching.
+     */
     private data class TaggedFlight(
         val sourceAirport: String,
         val raw: Flight,
         val time: LocalDateTime
     )
-
-    private data class FlightKey(val flightId: String, val date: LocalDate)
 
     /**
      * Fetches flight data from all airports and stitches records into UnifiedFlight chains.
@@ -146,11 +157,17 @@ class FlightAggregationService(
         filteredChains
     }
 
-    // Svalbard (LYR) flights are classified as international ("I") by Avinor,
-    // but should be treated as domestic for our purposes.
+    /**
+     * Returns true if the flight should be treated as domestic.
+     * Svalbard ([FlightCodes.SVALBARD_AIRPORTS]) routes are classified as international by Avinor
+     * but are included because they are operated as domestic flights.
+     *
+     * @param sourceAirport The airport the flight record was fetched from.
+     * @param flight The raw Avinor flight record.
+     */
     private fun isDomesticOrSvalbard(sourceAirport: String, flight: Flight): Boolean {
-        if (flight.domInt == "D") return true
-        return sourceAirport in SVALBARD_AIRPORTS || flight.airport in SVALBARD_AIRPORTS
+        if (flight.domInt == FlightCodes.DOMESTIC_CODE) return true
+        return sourceAirport == FlightCodes.SVALBARD_AIRPORTS || flight.airport == FlightCodes.SVALBARD_AIRPORTS
     }
 
     /**
@@ -166,27 +183,36 @@ class FlightAggregationService(
         val sortedEvents = events.sortedBy { it.time }
         val stops = mutableListOf<FlightStop>()
 
-        // Build stops chronologically. Consecutive events at the same airport are merged
-        // into one stop (arrival then departure at an intermediate airport).
-        // Events at the same airport separated by other airports become separate stops —
-        // essential for circular flights (e.g. BOO→SVJ→LKN→BOO).
+        /**
+         * Walk all events in chronological order and group consecutive events at the same airport
+         * into a single stop. An intermediate airport (e.g. BOO in TOS→BOO→SVJ) produces one stop
+         * with both an arrival and a departure. The origin has only a departure, the destination
+         * only an arrival.
+         *
+         * The three "cursor" variables track whichever airport is currently being assembled.
+         * currentAirport is null at the start because no airport has been visited yet.
+         * When the airport changes, the completed stop is saved ("flushed") to the list.
+         */
         var currentAirport: String? = null
         var currentArrival: TaggedFlight? = null
         var currentDeparture: TaggedFlight? = null
 
         for (event in sortedEvents) {
             if (event.sourceAirport != currentAirport) {
+                // Airport has changed. The null check prevents a spurious flush before
+                // the very first airport has been seen (currentAirport starts as null).
                 if (currentAirport != null) {
                     stops.add(buildFlightStop(currentAirport, currentArrival, currentDeparture))
                 }
-                currentAirport = event.sourceAirport
-                currentArrival = null
+                currentAirport = event.sourceAirport  // move cursor to the new airport
+                currentArrival = null                 // reset — new airport, fresh slate
                 currentDeparture = null
             }
-            if (event.raw.arrDep == "A") currentArrival = event
-            if (event.raw.arrDep == "D") currentDeparture = event
+            if (event.raw.arrDep == FlightCodes.ARRIVAL_CODE) currentArrival = event
+            if (event.raw.arrDep == FlightCodes.DEPARTURE_CODE) currentDeparture = event
         }
-        // Flush the last stop
+        // The loop only flushes a stop when the airport changes, so the last airport in the
+        // sequence is never flushed inside the loop. Flush it here.
         if (currentAirport != null) {
             stops.add(buildFlightStop(currentAirport, currentArrival, currentDeparture))
         }
@@ -198,7 +224,7 @@ class FlightAggregationService(
             if (onlyStop.departureTime != null && onlyStop.targetAirport != null) {
                 stops.add(FlightStop(airportCode = onlyStop.targetAirport, arrivalTime = null, departureTime = null))
             } else if (onlyStop.arrivalTime != null) {
-                val originAirport = events.firstOrNull { it.raw.arrDep == "A" }?.raw?.airport
+                val originAirport = events.firstOrNull { it.raw.arrDep == FlightCodes.ARRIVAL_CODE }?.raw?.airport
                 if (originAirport != null) {
                     stops.add(0, FlightStop(airportCode = originAirport, arrivalTime = null, departureTime = null))
                 }
@@ -225,7 +251,12 @@ class FlightAggregationService(
     }
 
     /**
-     * Builds a FlightStop from arrival and/or departure events at a single airport.
+     * Builds a [FlightStop] from arrival and/or departure events at a single airport.
+     *
+     * @param airportCode The IATA code of the airport.
+     * @param arrivalEvent The arrival event at this airport, or null if none was observed.
+     * @param departureEvent The departure event from this airport, or null if none was observed.
+     * @return A [FlightStop] with all available time and status information populated.
      */
     private fun buildFlightStop(
         airportCode: String,
@@ -251,11 +282,13 @@ class FlightAggregationService(
 
 
     /**
-     * Keeps a chain if its latest stop time is within the allowed window and its earliest
-     * stop time is not beyond the future limit. Mirrors [isWithinTimeWindow] but operates
-     * on the full set of stop times rather than a single departure/arrival pair, so that
+     * Returns true if the flight chain falls within the allowed time window.
+     * Uses the full set of stop times rather than only the first departure, so that
      * ongoing multi-leg flights (e.g. WF904 TOS→ALF→TOS) are retained even when their
-     * first departure is already in the past.
+     * first leg has already departed.
+     *
+     * A chain is kept if its latest stop time is within [MAX_PAST_MINUTES] of now,
+     * and its earliest stop time is within [MAX_FUTURE_HOURS] of now.
      */
     private fun isChainWithinTimeWindow(flight: UnifiedFlight, now: ZonedDateTime): Boolean {
         val minTime = now.minusMinutes(MAX_PAST_MINUTES)

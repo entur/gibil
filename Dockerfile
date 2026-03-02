@@ -4,7 +4,7 @@ COPY target/*-SNAPSHOT.jar application.jar
 RUN java -Djarmode=tools  -jar application.jar extract --layers --destination extracted
 
 FROM bellsoft/liberica-openjre-alpine:21.0.10
-RUN apk update && apk upgrade && apk add --no-cache tini=0.19.0-r3 unzip=6.0-r16 wget=1.25.0-r3
+RUN apk update && apk upgrade && apk add --no-cache tini=0.19.0-r3 unzip=6.0-r16 wget=1.25.0-r2
 WORKDIR /deployments
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh

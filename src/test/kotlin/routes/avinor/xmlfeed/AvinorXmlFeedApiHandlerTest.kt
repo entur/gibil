@@ -4,33 +4,26 @@ import io.mockk.every
 import io.mockk.mockk
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
-import org.gibil.service.ApiService
+import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.net.URI
 
-@ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [AvinorXmlFeedApiHandlerTest.TestConfig::class, AvinorXmlFeedApiHandler::class])
-@TestPropertySource(locations = ["classpath:application.properties"])
 class AvinorXmlFeedApiHandlerTest {
 
-    @TestConfiguration
-    class TestConfig {
-        @Bean
-        fun apiService(): ApiService = mockk {
-            every { apiCall(any()) } returns """<airportNames><airportName code="OSL" name="Oslo Lufthavn"/><airportName code="BGO" name="Bergen Lufthavn"/></airportNames>"""
-        }
-    }
-
-    @Autowired
+    private lateinit var airportNamesHandler: AvinorAirportNamesApiHandler
     private lateinit var apiHandler: AvinorXmlFeedApiHandler
+
+    @BeforeEach
+    fun setUp() {
+        airportNamesHandler = mockk {
+            every { airportCodeValidator("OSL") } returns true
+            every { airportCodeValidator("BGO") } returns true
+            every { airportCodeValidator(not(or(eq("OSL"), eq("BGO")))) } returns false
+        }
+        apiHandler = AvinorXmlFeedApiHandler(airportNamesHandler, "http://fake-url")
+    }
 
     @Test
     fun `avinorXmlFeedUrlBuilder constructs correct URL with all parameters`() {

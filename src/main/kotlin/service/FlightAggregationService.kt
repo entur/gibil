@@ -178,26 +178,34 @@ class FlightAggregationService(
      * Returns null if the chain is invalid (gaps between stops, or fewer than 2 stops).
      */
     private fun stitchFlightLegs(flightId: String, date: LocalDate, events: List<TaggedFlight>): UnifiedFlight? {
-        if (events.isEmpty()) return null
+        if (events.isEmpty() || flightId.length < 2) return null
 
-        val sortedEvents = events.sortedBy { it.time }
+        val stops = buildStopsFromEvents(events)
+        inferMissingEndpoint(stops, events)
+
+        if (stops.size < 2 || hasGap(stops)) return null
+
+        val operator = flightId.take(2)
+        return UnifiedFlight(flightId = flightId, operator = operator, date = date, stops = stops)
+    }
+
+    /**
+     * Walks all events in chronological order and groups consecutive events at the same airport
+     * into a single stop. An intermediate airport (e.g. BOO in TOS→BOO→SVJ) produces one stop
+     * with both an arrival and a departure. The origin has only a departure, the destination
+     * only an arrival.
+     *
+     * The three "cursor" variables track whichever airport is currently being assembled.
+     * currentAirport is null at the start because no airport has been visited yet.
+     * When the airport changes, the completed stop is saved ("flushed") to the list.
+     */
+    private fun buildStopsFromEvents(events: List<TaggedFlight>): MutableList<FlightStop> {
         val stops = mutableListOf<FlightStop>()
-
-        /**
-         * Walk all events in chronological order and group consecutive events at the same airport
-         * into a single stop. An intermediate airport (e.g. BOO in TOS→BOO→SVJ) produces one stop
-         * with both an arrival and a departure. The origin has only a departure, the destination
-         * only an arrival.
-         *
-         * The three "cursor" variables track whichever airport is currently being assembled.
-         * currentAirport is null at the start because no airport has been visited yet.
-         * When the airport changes, the completed stop is saved ("flushed") to the list.
-         */
         var currentAirport: String? = null
         var currentArrival: TaggedFlight? = null
         var currentDeparture: TaggedFlight? = null
 
-        for (event in sortedEvents) {
+        for (event in events.sortedBy { it.time }) {
             if (event.sourceAirport != currentAirport) {
                 // Airport has changed. The null check prevents a spurious flush before
                 // the very first airport has been seen (currentAirport starts as null).
@@ -211,43 +219,48 @@ class FlightAggregationService(
             if (event.raw.arrDep == FlightCodes.ARRIVAL_CODE) currentArrival = event
             if (event.raw.arrDep == FlightCodes.DEPARTURE_CODE) currentDeparture = event
         }
-        // The loop only flushes a stop when the airport changes, so the last airport in the
-        // sequence is never flushed inside the loop. Flush it here.
+        // The loop only flushes when the airport changes, so the last airport is never
+        // flushed inside the loop. Flush it here.
         if (currentAirport != null) {
             stops.add(buildFlightStop(currentAirport, currentArrival, currentDeparture))
         }
 
-        // Infer missing endpoint when only one side of a direct flight was seen
-        // (e.g. one airport's API call failed or returned no data)
-        if (stops.size == 1) {
-            val onlyStop = stops.first()
-            if (onlyStop.departureTime != null && onlyStop.targetAirport != null) {
-                stops.add(FlightStop(airportCode = onlyStop.targetAirport, arrivalTime = null, departureTime = null))
-            } else if (onlyStop.arrivalTime != null) {
-                val originAirport = events.firstOrNull { it.raw.arrDep == FlightCodes.ARRIVAL_CODE }?.raw?.airport
-                if (originAirport != null) {
-                    stops.add(0, FlightStop(airportCode = originAirport, arrivalTime = null, departureTime = null))
-                }
+        return stops
+    }
+
+    /**
+     * Recovers a usable two-stop chain when only one side of a direct flight was observed
+     * (e.g. one airport's API call failed or returned no data).
+     * If only a departure was seen, appends a placeholder destination.
+     * If only an arrival was seen, prepends a placeholder origin.
+     */
+    private fun inferMissingEndpoint(stops: MutableList<FlightStop>, events: List<TaggedFlight>) {
+        if (stops.size != 1) return
+        val onlyStop = stops.first()
+        if (onlyStop.departureTime != null && onlyStop.targetAirport != null) {
+            stops.add(FlightStop(airportCode = onlyStop.targetAirport, arrivalTime = null, departureTime = null))
+        } else if (onlyStop.arrivalTime != null) {
+            val originAirport = events.firstOrNull { it.raw.arrDep == FlightCodes.ARRIVAL_CODE }?.raw?.airport
+            if (originAirport != null) {
+                stops.add(0, FlightStop(airportCode = originAirport, arrivalTime = null, departureTime = null))
             }
         }
+    }
 
-        if (stops.size < 2) return null
-
-        // Gap detection: if we leave A going to B, but next stop is C, the chain is invalid
+    /**
+     * Returns true if any stop departs toward an airport that is not the next stop in the chain.
+     * This catches incomplete chains where a leg is missing from the data.
+     */
+    private fun hasGap(stops: List<FlightStop>): Boolean {
         for (i in 0 until stops.size - 1) {
             val current = stops[i]
             val next = stops[i + 1]
             if (current.departureTime != null &&
                 current.targetAirport != null &&
                 current.targetAirport != next.airportCode
-            ) {
-                return null
-            }
+            ) return true
         }
-
-        if (flightId.length < 2) return null
-        val operator = flightId.take(2)
-        return UnifiedFlight(flightId = flightId, operator = operator, date = date, stops = stops)
+        return false
     }
 
     /**

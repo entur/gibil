@@ -3,7 +3,7 @@ common:
   shortname: gibil
   team: ror
   ingress:
-    trafficType: public
+    enabled: false
   service:
     externalPort: 80
     internalPort: 8080

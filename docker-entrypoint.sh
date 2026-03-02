@@ -7,4 +7,11 @@ echo "entrypoint"
 echo "Downloading $NETEX_DATA_URL"
 wget -O /tmp/netex_data.zip $NETEX_DATA_URL
 
+echo "Unzipping to /app/extimeData"
+mkdir -p /tmp/netex_data
+unzip -o /tmp/netex_data.zip -d /tmp/netex_data
+
+echo "Cleaning up zip"
+rm /tmp/netex_data.zip
+
 exec "$@"

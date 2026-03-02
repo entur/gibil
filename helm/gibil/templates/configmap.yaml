@@ -13,7 +13,7 @@ data:
     entur.api.base-url-stop-places=https://api.entur.io/stop-places/v1/read/stop-places
 
     # Netex data file path 
-    org.gibil.extime.data-file=/tmp/netex_data.zip
+    org.gibil.extime.data-file=/tmp/netex_data
     
     # Actuator
     management.server.port=8080

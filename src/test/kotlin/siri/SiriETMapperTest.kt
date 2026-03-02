@@ -1,66 +1,48 @@
 package siri
 
-import model.xmlFeedApi.Airport
-import model.xmlFeedApi.Flight
-import model.xmlFeedApi.FlightsContainer
-import model.xmlFeedApi.FlightStatus
+import model.FlightStop
+import model.UnifiedFlight
 import org.gibil.service.AirportQuayService
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import service.FindServiceJourneyService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import java.time.ZonedDateTime
+import java.time.LocalDate
+import java.time.LocalDateTime
 
-class SiriETMapperTest() {
+class SiriETMapperTest {
 
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
-    private val findServiceJourneyService = mockk<FindServiceJourneyService>(relaxed = true)
+    private val findServiceJourneyService = mockk<FindServiceJourneyService> {
+        // Return a VJR string that contains the flightId so the VJR check passes
+        every { matchServiceJourney(any(), any()) } answers { "AVI:ServiceJourney:${secondArg<String>()}_hash" }
+    }
     private val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
-
 
     @Test
     fun `should handle empty flight list`() {
-        val airport = createAirport(flights = emptyList())
-        val result = mapper.mapToSiri(airport, "OSL")
+        val result = mapper.mapUnifiedFlightsToSiri(emptyList())
 
         assertTrue(getJourneys(result).isEmpty())
     }
 
     @ParameterizedTest
     @CsvSource(
-        "null,SK,true",
-        "SK123,null,true"
-    )
-    fun `should skip flights with missing required fields`(flightId: String?, airline: String?) {
-        val flight = createFlight(
-            flightId = if (flightId == "null") null else flightId,
-            airline = if (airline == "null") null else airline
-        )
-        val airport = createAirport(flights = listOf(flight))
-        val result = mapper.mapToSiri(airport, "OSL")
-
-        assertTrue(getJourneys(result).isEmpty())
-    }
-
-    @ParameterizedTest
-    @CsvSource(
-        "true,outbound,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
-        "false,inbound,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
+        "OSL,BGO,outbound,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
+        "BGO,OSL,inbound,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
     )
     fun `should create correct journey structure`(
-        isDeparture: Boolean,
+        origin: String,
+        destination: String,
         expectedDirection: String,
         expectedFirstStop: String,
         expectedSecondStop: String
     ) {
-        val airport = createAirport(flights = listOf(createFlight(isDeparture = isDeparture)))
-        val result = mapper.mapToSiri(airport, "OSL")
-
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(origin = origin, destination = destination)))
         val journey = getJourneys(result)[0]
         val calls = journey.estimatedCalls.estimatedCalls
 
@@ -72,8 +54,7 @@ class SiriETMapperTest() {
 
     @Test
     fun `should map operator correctly`() {
-        val airport = createAirport(flights = listOf(createFlight(airline = "SK")))
-        val result = mapper.mapToSiri(airport, "OSL")
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(operator = "SK")))
 
         assertEquals("AVI:Operator:SK", getJourneys(result)[0].operatorRef.value)
     }
@@ -81,61 +62,60 @@ class SiriETMapperTest() {
     @Test
     fun `should handle multiple flights`() {
         val flights = listOf(
-            createFlight("SK123", "SK", isDeparture = true),
-            createFlight("DY456", "DY", isDeparture = true),
-            createFlight("WF789", "WF", isDeparture = false)
+            createFlight("SK123", "SK"),
+            createFlight("DY456", "DY"),
+            createFlight("WF789", "WF")
         )
-        val airport = createAirport(flights = flights)
-        val result = mapper.mapToSiri(airport, "OSL")
+        val result = mapper.mapUnifiedFlightsToSiri(flights)
 
         assertEquals(3, getJourneys(result).size)
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "true,0",
-        "false,1"
-    )
-    fun `should set aimed times correctly`(isDeparture: Boolean, callIndex: Int) {
-        val airport = createAirport(flights = listOf(createFlight(isDeparture = isDeparture)))
-        val result = mapper.mapToSiri(airport, "OSL")
+    @Test
+    fun `should set aimed departure and arrival times`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
+        val calls = getJourneys(result)[0].estimatedCalls.estimatedCalls
 
-        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[callIndex]
+        assertNotNull(calls[0].aimedDepartureTime)
+        assertNotNull(calls[1].aimedArrivalTime)
+    }
 
-        if (isDeparture) {
-            assertNotNull(call.aimedDepartureTime)
-        } else {
-            assertNotNull(call.aimedArrivalTime)
-        }
+    @Test
+    fun `should skip flight when no service journey match is found`() {
+        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ""
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
+
+        assertTrue(getJourneys(result).isEmpty())
     }
 
     private fun getJourneys(result: uk.org.siri.siri21.Siri) =
         result.serviceDelivery.estimatedTimetableDeliveries[0]
             .estimatedJourneyVersionFrames[0].estimatedVehicleJourneies
 
-    private fun createAirport(flights: List<Flight>) = Airport().apply {
-        flightsContainer = FlightsContainer().apply {
-            lastUpdate = ZonedDateTime.now().toString()
-            flight = flights.toMutableList()
-        }
-    }
-
     private fun createFlight(
-        flightId: String? = "SK123",
-        airline: String? = "SK",
-        destinationAirport: String = "BGO",
-        isDeparture: Boolean = true
-    ) = Flight().apply {
-        this.flightId = flightId
-        uniqueID = flightId?.hashCode()?.toString() ?: "12345"
-        this.airline = airline
-        airport = destinationAirport
-        scheduleTime = ZonedDateTime.now().toString()
-        domInt = if (isDeparture) "D" else "I"
-        arrDep = if (isDeparture) "D" else "A"
-        status = FlightStatus().apply {
-            code = "D"
-            time = ZonedDateTime.now().toString()
-        }
-    }
+        flightId: String = "SK123",
+        operator: String = "SK",
+        origin: String = "OSL",
+        destination: String = "BGO",
+        departureStatusCode: String? = null,
+        arrivalStatusCode: String? = null
+    ) = UnifiedFlight(
+        flightId = flightId,
+        operator = operator,
+        date = LocalDate.now(),
+        stops = listOf(
+            FlightStop(
+                airportCode = origin,
+                arrivalTime = null,
+                departureTime = LocalDateTime.now(),
+                departureStatusCode = departureStatusCode
+            ),
+            FlightStop(
+                airportCode = destination,
+                arrivalTime = LocalDateTime.now().plusHours(1),
+                departureTime = null,
+                arrivalStatusCode = arrivalStatusCode
+            )
+        )
+    )
 }

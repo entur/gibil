@@ -35,6 +35,9 @@ object FlightCodes {
     const val DOMESTIC_CODE = "D"
     const val INTERNATIONAL_CODE = "I"
     const val SCHENGEN_CODE = "S"
+
+    // Svalbard is classified as international (domInt="I") by Avinor, but should be treated as domestic
+    const val SVALBARD_AIRPORTS = "LYR"
 }
 
 object AirportSizeConfig {

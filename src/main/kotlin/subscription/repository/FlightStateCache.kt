@@ -1,6 +1,6 @@
 package org.gibil.subscription.repository
 
-import model.xmlFeedApi.Flight
+import model.UnifiedFlight
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -8,9 +8,10 @@ import java.util.concurrent.ConcurrentHashMap
 private val LOG = LoggerFactory.getLogger(FlightStateCache::class.java)
 
 /**
- * Caches the state of flights to determine if there have been changes since the last check.
- * It uses a ConcurrentHashMap to store the hash of the flight's relevant fields, keyed by the flight's unique ID.
- * The cache allows for efficient detection of changes in flight status, departure/arrival status, and gate information.
+ * Caches the state of flights to determine if there have been changes since the last poll cycle.
+ * Uses a ConcurrentHashMap keyed by "flightId_date" (e.g. "WF844_2026-02-26") to store a hash
+ * of each [UnifiedFlight]'s stop statuses. A change in any stop's departure or arrival status
+ * will produce a different hash, triggering a push to subscribers.
  */
 @Component
 class FlightStateCache {
@@ -18,88 +19,87 @@ class FlightStateCache {
     private val flightStateMap = ConcurrentHashMap<String, Int>()
 
     /**
-     * Checks if each flight in the provided collection (all flights from the latest API response) has changed compared to the cached state.
-     * It computes a hash for each flight based on its relevant fields and compares it to the
-     * previously stored hash in the cache. If the hash has changed or if there is no previous hash (indicating a new flight),
-     * it returns true, indicating that the flight has changed.
-     * @param Flight The flight to check for changes.
-     * @return true if the flight has changed or are new since the last check, false otherwise.
+     * Checks if a flight has changed compared to the cached state.
+     * Computes a hash over all stop statuses and times and compares against the previously stored hash.
+     * New flights (no previous hash) are treated as changed.
+     * @param flight The [UnifiedFlight] to check.
+     * @return true if the flight has changed or is new since the last check, false otherwise.
      */
-    fun hasChanged(flight: Flight): Boolean {
+    fun hasChanged(flight: UnifiedFlight): Boolean {
+        val key = cacheKey(flight)
         val currentHash = computeFlightHash(flight)
-        val previousHash = flightStateMap.put(flight.uniqueID, currentHash)
+        val previousHash = flightStateMap.put(key, currentHash)
         val changed = previousHash == null || previousHash != currentHash
 
-        if (changed){
-            LOG.debug("Flight {} changed: previousHash={}, currentHash={}",
-                flight.uniqueID, previousHash, currentHash)
+        if (changed) {
+            LOG.debug("Flight {} changed: previousHash={}, currentHash={}", key, previousHash, currentHash)
         }
         return changed
     }
 
     /**
-     * Filters the provided collection of flights to return only those that have changed compared to the cached state.
-     * It uses the hasChanged method to determine which flights have changed and returns a list of those flights.
-     * @param flights A collection of Flight objects to check for changes (allFlights in AvinorPollingService).
-     * @return A list of Flight objects that have changed since the last check.
+     * Filters the provided collection to return only flights that have changed since the last poll cycle.
+     * @param flights Collection of [UnifiedFlight] to check for changes.
+     * @return List of [UnifiedFlight] that have changed since the last check.
      */
-    fun filterChanged(flights: Collection<Flight>): List<Flight> {
+    fun filterChanged(flights: Collection<UnifiedFlight>): List<UnifiedFlight> {
         return flights.filter { hasChanged(it) }
     }
 
     /**
-     * Populate the cache with the initial state of flights. This should be called after the first successful fetch
-     * of flight data to establish a baseline for change detection.
-     * @param flights A collection of Flight objects to populate the cache with (here its the initial avinor API delivery).
+     * Populates the cache with the initial state of flights.
+     * Should be called after the first successful fetch to establish a baseline for change detection.
+     * @param flights Collection of [UnifiedFlight] representing the initial Avinor delivery.
      */
-    fun populateCache(flights: Collection<Flight>) {
+    fun populateCache(flights: Collection<UnifiedFlight>) {
         LOG.info("Populating cache with {} flights", flights.size)
         flights.forEach { flight ->
-            flightStateMap[flight.uniqueID] = computeFlightHash(flight)
+            flightStateMap[cacheKey(flight)] = computeFlightHash(flight)
         }
         LOG.info("Cache now contains {} entries", flightStateMap.size)
     }
 
     /**
-     * A method to clean the cache by retaining only the entries for the current uniqueIDs.
-     * This is useful to prevent the cache from growing indefinitely with old flight entries that are no longer relevant.
-     * It takes all the uniqueIDs from the latest API call and chekcs if they are still in the map, if not it removes them.
-     * It also logs the number of entries removed and the current size of the cache after cleaning.
-     * @param currentFlightIds A set of uniqueIDs representing the current flights from the latest API response.
+     * Removes cache entries that are no longer present in the current flight set,
+     * preventing the cache from growing indefinitely with stale entries.
+     * @param currentFlightKeys Set of cache keys (see [cacheKey]) from the latest fetch.
      */
-    fun cleanCache(currentFlightIds: Set<String>){
+    fun cleanCache(currentFlightKeys: Set<String>) {
         val beforeSize = flightStateMap.size
-        flightStateMap.keys.retainAll(currentFlightIds)
+        flightStateMap.keys.retainAll(currentFlightKeys)
         val removed = beforeSize - flightStateMap.size
         if (removed > 0) {
             LOG.info("Cleaned cache: removed {} entries, current size {}", removed, flightStateMap.size)
         }
-
     }
 
     /**
-     * Simple helper function to check current size of map for logging and testing purposes.
-     * @return The number of entries currently in the cache. (Key-Value pairs of uniqueID and hash)
+     * Returns the current number of entries in the cache, used for logging and testing.
+     * @return Number of key-value pairs currently stored in the cache.
      */
     fun getCacheSize(): Int = flightStateMap.size
 
     /**
-     * Computes a hash for a flight based on its relevant fields that are used to determine if the flight has changed.
-     * The hash is computed using the status code and time for the flight's overall status,
-     * departure status, and arrival status, as well as the gate information.
-     * This allows for efficient comparison of flight states by comparing the computed hash values, rather than comparing each field individually.
-     * @param flight The Flight object for which to compute the hash.
-     * @return An integer hash representing the relevant state of the flight.
+     * Produces a stable cache key for a [UnifiedFlight], e.g. "WF844_2026-02-26".
+     * @param flight The flight to derive a key for.
+     * @return String key combining flightId and date.
      */
-    private fun computeFlightHash(flight: Flight): Int {
-        return listOf(
-            flight.status?.code,
-            flight.status?.time,
-            flight.departureStatus?.code,
-            flight.departureStatus?.time,
-            flight.arrivalStatus?.code,
-            flight.arrivalStatus?.time,
-            flight.gate,
-        ).hashCode()
+    fun cacheKey(flight: UnifiedFlight): String = "${flight.flightId}_${flight.date}"
+
+    /**
+     * Computes a hash over all stop statuses and times in the flight chain.
+     * A change in any stop's departure or arrival status code or time will produce a different hash.
+     * @param flight The [UnifiedFlight] to hash.
+     * @return Integer hash representing the current status state of the flight.
+     */
+    private fun computeFlightHash(flight: UnifiedFlight): Int {
+        return flight.stops.flatMap { stop ->
+            listOf(
+                stop.departureStatusCode,
+                stop.departureStatusTime,
+                stop.arrivalStatusCode,
+                stop.arrivalStatusTime
+            )
+        }.hashCode()
     }
 }

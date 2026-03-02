@@ -1,8 +1,7 @@
 package siri
 
-import model.xmlFeedApi.Airport
-import model.xmlFeedApi.Flight
-import model.xmlFeedApi.FlightsContainer
+import model.FlightStop
+import model.UnifiedFlight
 import org.gibil.service.AirportQuayService
 import io.mockk.every
 import io.mockk.mockk
@@ -11,9 +10,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.time.ZonedDateTime
+import java.time.LocalDate
+import java.time.LocalDateTime
 
-class SiriETPublisherTest() {
+class SiriETPublisherTest {
 
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
@@ -24,7 +24,7 @@ class SiriETPublisherTest() {
     fun `should convert SIRI to XML string`() {
         val publisher = SiriETPublisher()
         val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
-        val siri = mapper.mapToSiri(createValidAirport("OSL"), "OSL")
+        val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
         val xml = publisher.toXml(siri)
 
@@ -37,7 +37,7 @@ class SiriETPublisherTest() {
     fun `should format XML with indentation`() {
         val publisher = SiriETPublisher()
         val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
-        val siri = mapper.mapToSiri(createValidAirport("OSL"), "OSL")
+        val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
         val formattedXml = publisher.toXml(siri, formatOutput = true)
         val unformattedXml = publisher.toXml(siri, formatOutput = false)
@@ -50,7 +50,7 @@ class SiriETPublisherTest() {
     fun `should write SIRI to file`(@TempDir tempDir: File) {
         val publisher = SiriETPublisher()
         val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
-        val siri = mapper.mapToSiri(createValidAirport("OSL"), "OSL")
+        val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
         val outputFile = File(tempDir, "output.xml")
 
         publisher.toFile(siri, outputFile, formatOutput = true)
@@ -63,12 +63,12 @@ class SiriETPublisherTest() {
     fun `should handle multiple flights`() {
         val publisher = SiriETPublisher()
         val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
-        val airport = createAirport("OSL", listOf(
-            createValidFlight("SK4321", "SK"),
-            createValidFlight("DY4322", "DY"),
-            createValidFlight("WF4323", "WF")
-        ))
-        val siri = mapper.mapToSiri(airport, "OSL")
+        val flights = listOf(
+            createFlight("SK4321", "SK"),
+            createFlight("DY4322", "DY"),
+            createFlight("WF4323", "WF")
+        )
+        val siri = mapper.mapUnifiedFlightsToSiri(flights)
 
         val xml = publisher.toXml(siri)
 
@@ -76,27 +76,18 @@ class SiriETPublisherTest() {
         assertTrue(xml.isNotEmpty())
     }
 
-    // Helper methods
-    private fun createValidAirport(code: String) =
-        createAirport(code, listOf(createValidFlight()))
-
-    private fun createAirport(code: String, flights: List<Flight>) = Airport().apply {
-        flightsContainer = FlightsContainer().apply {
-            lastUpdate = ZonedDateTime.now().toString()
-            flight = flights.toMutableList()
-        }
-    }
-
-    private fun createValidFlight(
+    private fun createFlight(
         flightId: String = "SK4321",
-        airline: String = "SK"
-    ) = Flight().apply {
-        this.flightId = flightId
-        this.airline = airline
-        this.domInt = "D"
-        this.arrDep = "D"
-        this.scheduleTime = ZonedDateTime.now().toString()
-        this.airport = "BGO"
-        this.uniqueID = flightId.hashCode().toString()
-    }
+        operator: String = "SK",
+        origin: String = "OSL",
+        destination: String = "BGO"
+    ) = UnifiedFlight(
+        flightId = flightId,
+        operator = operator,
+        date = LocalDate.now(),
+        stops = listOf(
+            FlightStop(airportCode = origin, arrivalTime = null, departureTime = LocalDateTime.now()),
+            FlightStop(airportCode = destination, arrivalTime = LocalDateTime.now().plusHours(1), departureTime = null)
+        )
+    )
 }

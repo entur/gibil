@@ -80,9 +80,9 @@ class SubscriptionManager(
 
         val initialDelivery: Siri? = when (subscription.subscriptionType) {
             SiriDataType.ESTIMATED_TIMETABLE -> {
-                val initialData = flightAggregationService.fetchAndMergeAllFlights()
-                flightStateCache.populateCache(initialData.values)
-                siriETMapper.mapMergedFlightsToSiri(initialData.values)
+                val initialData = flightAggregationService.fetchUnifiedFlights()
+                flightStateCache.populateCache(initialData)
+                siriETMapper.mapUnifiedFlightsToSiri(initialData)
             }
         }
 

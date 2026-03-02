@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ template "app.name" . }}-redeploy-cronjob
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gibil.common.labels" . | indent 4 }}
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        {{- include "gibil.cron-job-template" . | indent 8 }}
+  schedule: 0 4 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false

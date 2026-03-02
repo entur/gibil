@@ -3,7 +3,10 @@ common:
   shortname: gibil
   team: ror
   ingress:
-    trafficType: public
+    enabled: false
+  service:
+    externalPort: 80
+    internalPort: 8080
   container:
     image: <+artifacts.primary.image>
     imagePullPolicy: Always
@@ -14,42 +17,25 @@ common:
       runAsGroup: 1000
       fsGroup: 1000
     volumeMounts:
-      - name: extime-data
-        mountPath: /app/extimeData
+      - mountPath: /etc/application-config
+        name: application-config
+        readOnly: true
       - name: logs
         mountPath: /app/logs
     volumes:
-      - name: extime-data
-        emptyDir: {}
+      - configMap:
+            defaultMode: 420
+            name: gibil-application
+        name: application-config
       - name: logs
         emptyDir: {}
     probes:
-      enabled: true
-      spec:
-        startupProbe:
-          tcpSocket:
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 1
-          timeoutSeconds: 1
-          failureThreshold: 300
-        readinessProbe:
-          httpGet:
-            path: /actuator/health/readiness
-            port: 8080
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          timeoutSeconds: 10
-          failureThreshold: 3
-          successThreshold: 1
-        livenessProbe:
-          httpGet:
-            path: /actuator/health/liveness
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+      startupProbe:
+        enabled: true
+      readinessProbe:
+        path: /actuator/health/readiness
+      livenessProbe:
+        path: /actuator/health/liveness
 
   initContainers:
     - name: create-log-dirs
@@ -77,35 +63,10 @@ common:
           chmod -R 755 /app/logs
           echo "Log directories created:"
           ls -la /app/logs/
-    - name: extime-data-fetch
-      image: curlimages/curl:latest
-      securityContext:
-        allowPrivilegeEscalation: false
-        runAsNonRoot: true
-        runAsUser: 65534
-        capabilities:
-          drop: ["ALL"]
-        seccompProfile:
-          type: RuntimeDefault
-      volumeMounts:
-        - name: extime-data
-          mountPath: /app/extimeData
-      command:
-        - sh
-        - -c
-        - |
-          echo "Downloading zip file..."
-          curl -o /tmp/rb_avi-aggregated-netex.zip https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip
-          echo "Download complete. Extracting to shared volume..."
-          unzip /tmp/rb_avi-aggregated-netex.zip -d /app/extimeData
-          echo "Extraction complete. Cleaning up zip file..."
-          rm /tmp/rb_avi-aggregated-netex.zip
-          echo "Init container finished. Files in /app/extimeData:"
-          ls -la /app/extimeData/
-      resources:
-        limits:
-          cpu: 1
-          memory: 512Mi
-        requests:
-          cpu: 0.5
-          memory: 256Mi
+  configmap:
+    data:
+      JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties
+        -Dfile.encoding=UTF-8
+      TZ: Europe/Oslo
+    enabled: true
+    toEnv: true

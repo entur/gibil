@@ -1,8 +1,14 @@
 common:
+  configmap:
+    data:
+      NETEX_DATA_URL: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
   env: tst
   ingress:
     host: gibil.staging.entur.io
-  configmap:
-    enabled: true
-    data:
-      LOG_LEVEL: warn
+  replicas: 1
+
+configMap:
+  LOG_LEVEL: INFO
+
+cronJob:
+  gcpProject: entur-dev-gcp2

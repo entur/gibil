@@ -94,7 +94,7 @@ class SiriETMapperTest {
     fun `should set departure status to ON_TIME when new time matches scheduled`() {
         val scheduledTime = LocalDateTime.now()
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
-            createFlight(departureStatusCode = "E", departureStatusTime = scheduledTime)
+            createFlight(departureTime = scheduledTime, departureStatusCode = "E", departureStatusTime = scheduledTime)
         ))
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
 
@@ -146,7 +146,7 @@ class SiriETMapperTest {
     fun `should set arrival status to ON_TIME when new time matches scheduled`() {
         val scheduledTime = LocalDateTime.now().plusHours(1)
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
-            createFlight(arrivalStatusCode = "E", arrivalStatusTime = scheduledTime)
+            createFlight(arrivalTime = scheduledTime, arrivalStatusCode = "E", arrivalStatusTime = scheduledTime)
         ))
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
 
@@ -199,8 +199,10 @@ class SiriETMapperTest {
         operator: String = "SK",
         origin: String = "OSL",
         destination: String = "BGO",
+        departureTime: LocalDateTime = LocalDateTime.now(),
         departureStatusCode: String? = null,
         departureStatusTime: LocalDateTime? = null,
+        arrivalTime: LocalDateTime = LocalDateTime.now().plusHours(1),
         arrivalStatusCode: String? = null,
         arrivalStatusTime: LocalDateTime? = null
     ) = UnifiedFlight(
@@ -211,13 +213,13 @@ class SiriETMapperTest {
             FlightStop(
                 airportCode = origin,
                 arrivalTime = null,
-                departureTime = LocalDateTime.now(),
+                departureTime = departureTime,
                 departureStatusCode = departureStatusCode,
                 departureStatusTime = departureStatusTime
             ),
             FlightStop(
                 airportCode = destination,
-                arrivalTime = LocalDateTime.now().plusHours(1),
+                arrivalTime = arrivalTime,
                 departureTime = null,
                 arrivalStatusCode = arrivalStatusCode,
                 arrivalStatusTime = arrivalStatusTime

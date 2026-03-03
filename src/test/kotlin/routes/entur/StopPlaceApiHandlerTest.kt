@@ -80,7 +80,7 @@ class StopPlaceApiHandlerTest {
                 "https://api.entur.io/stop-places/v1/read/stop-places?count=100&transportModes=AIR&stopPlaceTypes=AIRPORT"
             val expectedResponse =
                 "<xml>stopPlaces</xml>"
-            every { apiService.apiCall(expectedUrl, "application/xml") } returns expectedResponse
+            every { apiService.apiCall(expectedUrl, "application/xml") } returns Result.success(expectedResponse)
 
             stopPlaceApiHandler.fetchAirportStopPlaces()
 
@@ -90,11 +90,11 @@ class StopPlaceApiHandlerTest {
         @Test
         fun `fetchAiportStopPlaces should return valid XML response`() {
             val expectedResponse = "<xml><stopPlaces><stopPlace>Oslo Lufthavn</stopPlace></stopPlaces></xml></xml>"
-            every { apiService.apiCall(any(), "application/xml") } returns expectedResponse
+            every { apiService.apiCall(any(), "application/xml") } returns Result.success(expectedResponse)
 
             val response = stopPlaceApiHandler.fetchAirportStopPlaces()
 
-            assertEquals(expectedResponse, response)
+            assertEquals(expectedResponse, response.getOrNull())
         }
     }
 }

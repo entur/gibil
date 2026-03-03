@@ -391,5 +391,105 @@ class FlightAggregationServiceTest {
 
             assertEquals(0, result.size)
         }
+
+        @Test
+        fun `should return empty list when airport list is empty`() = runBlocking {
+            mockAirportsList(emptyList())
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should return empty list when airport codes file cannot be read`() = runBlocking {
+            mockkConstructor(ClassPathResource::class)
+            every { anyConstructed<ClassPathResource>().inputStream } throws RuntimeException("File not found")
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should handle exception thrown during airport data fetch`() = runBlocking {
+            every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } throws RuntimeException("Connection timeout")
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should filter out flight with null flight id`() = runBlocking {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val nullIdFlight = Flight().apply {
+                this.flightId = null
+                this.arrDep = "D"
+                this.airport = "BGO"
+                this.scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+                this.domInt = "D"
+                this.status = FlightStatus().apply { this.code = "N" }
+            }
+
+            mockAirportData("OSL", listOf(nullIdFlight))
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should filter out flight with single character flight id`() = runBlocking {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val shortIdFlight = createFlight(
+                uniqueID = "1", flightId = "D",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("OSL", listOf(shortIdFlight))
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should include flights fetched from Svalbard airport`() = runBlocking {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val lyrDep = createFlight(
+                uniqueID = "1", flightId = "DY661", airline = "DY",
+                arrDep = "D", airport = "OSL",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "I"
+            )
+
+            mockAirportData("LYR", listOf(lyrDep))
+            mockAirportsList(listOf("LYR"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertTrue(result.any { it.flightId == "DY661" })
+        }
+
+        @Test
+        fun `should skip flights with null schedule time`() = runBlocking {
+            val nullTimeFlight = createFlight(
+                uniqueID = "1", flightId = "DY400",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = null
+            )
+
+            mockAirportData("OSL", listOf(nullTimeFlight))
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertFalse(result.any { it.flightId == "DY400" })
+        }
     }
 }

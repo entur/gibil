@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.time.LocalDate
 import java.time.LocalDateTime
+import uk.org.siri.siri21.CallStatusEnumeration
 
 class SiriETMapperTest {
 
@@ -81,6 +82,107 @@ class SiriETMapperTest {
     }
 
     @Test
+    fun `should set departure status to MISSED when flight has departed`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(departureStatusCode = "D")))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
+
+        assertEquals(CallStatusEnumeration.MISSED, call.departureStatus)
+        assertNotNull(call.expectedDepartureTime)
+    }
+
+    @Test
+    fun `should set departure status to ON_TIME when new time matches scheduled`() {
+        val scheduledTime = LocalDateTime.now()
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createFlight(departureTime = scheduledTime, departureStatusCode = "E", departureStatusTime = scheduledTime)
+        ))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
+
+        assertEquals(CallStatusEnumeration.ON_TIME, call.departureStatus)
+        assertNotNull(call.expectedDepartureTime)
+    }
+
+    @Test
+    fun `should set departure status to DELAYED when new time differs from scheduled`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createFlight(departureStatusCode = "E", departureStatusTime = LocalDateTime.now().plusMinutes(30))
+        ))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
+
+        assertEquals(CallStatusEnumeration.DELAYED, call.departureStatus)
+        assertNotNull(call.expectedDepartureTime)
+    }
+
+    @Test
+    fun `should set departure status to CANCELLED when flight is cancelled`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(departureStatusCode = "C")))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
+
+        assertEquals(CallStatusEnumeration.CANCELLED, call.departureStatus)
+        assertTrue(call.isCancellation)
+    }
+
+    @Test
+    fun `should set arrival status to ARRIVED when flight has arrived`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(arrivalStatusCode = "A")))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
+
+        assertEquals(CallStatusEnumeration.ARRIVED, call.arrivalStatus)
+        assertNotNull(call.expectedArrivalTime)
+    }
+
+    @Test
+    fun `should set arrival status to EARLY when new time is before scheduled`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createFlight(arrivalStatusCode = "E", arrivalStatusTime = LocalDateTime.now().plusMinutes(30))
+        ))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
+
+        assertEquals(CallStatusEnumeration.EARLY, call.arrivalStatus)
+        assertNotNull(call.expectedArrivalTime)
+    }
+
+    @Test
+    fun `should set arrival status to ON_TIME when new time matches scheduled`() {
+        val scheduledTime = LocalDateTime.now().plusHours(1)
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createFlight(arrivalTime = scheduledTime, arrivalStatusCode = "E", arrivalStatusTime = scheduledTime)
+        ))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
+
+        assertEquals(CallStatusEnumeration.ON_TIME, call.arrivalStatus)
+        assertNotNull(call.expectedArrivalTime)
+    }
+
+    @Test
+    fun `should set arrival status to DELAYED when new time is after scheduled`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createFlight(arrivalStatusCode = "E", arrivalStatusTime = LocalDateTime.now().plusHours(2))
+        ))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
+
+        assertEquals(CallStatusEnumeration.DELAYED, call.arrivalStatus)
+        assertNotNull(call.expectedArrivalTime)
+    }
+
+    @Test
+    fun `should set arrival status to CANCELLED when flight is cancelled`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(arrivalStatusCode = "C")))
+        val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
+
+        assertEquals(CallStatusEnumeration.CANCELLED, call.arrivalStatus)
+        assertTrue(call.isCancellation)
+    }
+
+    @Test
+    fun `should skip flight when service journey lookup throws an exception`() {
+        every { findServiceJourneyService.matchServiceJourney(any(), any()) } throws RuntimeException("ExTime unavailable")
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
+
+        assertTrue(getJourneys(result).isEmpty())
+    }
+
+    @Test
     fun `should skip flight when no service journey match is found`() {
         every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ""
         val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
@@ -97,8 +199,12 @@ class SiriETMapperTest {
         operator: String = "SK",
         origin: String = "OSL",
         destination: String = "BGO",
+        departureTime: LocalDateTime = LocalDateTime.now(),
         departureStatusCode: String? = null,
-        arrivalStatusCode: String? = null
+        departureStatusTime: LocalDateTime? = null,
+        arrivalTime: LocalDateTime = LocalDateTime.now().plusHours(1),
+        arrivalStatusCode: String? = null,
+        arrivalStatusTime: LocalDateTime? = null
     ) = UnifiedFlight(
         flightId = flightId,
         operator = operator,
@@ -107,14 +213,16 @@ class SiriETMapperTest {
             FlightStop(
                 airportCode = origin,
                 arrivalTime = null,
-                departureTime = LocalDateTime.now(),
-                departureStatusCode = departureStatusCode
+                departureTime = departureTime,
+                departureStatusCode = departureStatusCode,
+                departureStatusTime = departureStatusTime
             ),
             FlightStop(
                 airportCode = destination,
-                arrivalTime = LocalDateTime.now().plusHours(1),
+                arrivalTime = arrivalTime,
                 departureTime = null,
-                arrivalStatusCode = arrivalStatusCode
+                arrivalStatusCode = arrivalStatusCode,
+                arrivalStatusTime = arrivalStatusTime
             )
         )
     )

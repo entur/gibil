@@ -3,6 +3,7 @@ package service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.io.IOException
 import org.gibil.StopPlaceMapper
 import org.gibil.model.stopPlacesApi.StopPlaces
 import org.gibil.routes.entur.StopPlaceApiHandler
@@ -39,7 +40,7 @@ class AirportQuayServiceTest {
                 "OSL" to listOf("NSR:Quay:1173"),
                 "BGO" to listOf("NSR:Quay:1213")
             )
-            every { handler.fetchAirportStopPlaces() } returns validXml
+            every { handler.fetchAirportStopPlaces() } returns Result.success(validXml)
             every { mapper.unmarshallStopPlaceXml(validXml)} returns stopPlaces
             every { mapper.makeIataToQuayMap(stopPlaces) } returns expectedMap
 
@@ -50,8 +51,8 @@ class AirportQuayServiceTest {
         }
 
         @Test
-        fun `refreshQuayMapping does not populates map when API returns null`() {
-            every { handler.fetchAirportStopPlaces() } returns null
+        fun `refreshQuayMapping does not populate map when API call fails`() {
+            every { handler.fetchAirportStopPlaces() } returns Result.failure(IOException("API error"))
 
             airportQuayService.refreshQuayMapping()
             verify(exactly = 0) { mapper.unmarshallStopPlaceXml(any()) }
@@ -66,7 +67,7 @@ class AirportQuayServiceTest {
                 "OSL" to listOf("NSR:Quay:1173"),
                 "BGO" to listOf("NSR:Quay:1213")
             )
-            every { handler.fetchAirportStopPlaces() } returns initialValidXml
+            every { handler.fetchAirportStopPlaces() } returns Result.success(initialValidXml)
             every { mapper.unmarshallStopPlaceXml(initialValidXml)} returns initialStopPlaces
             every { mapper.makeIataToQuayMap(initialStopPlaces) } returns initialExpectedMap
 
@@ -81,7 +82,7 @@ class AirportQuayServiceTest {
                 "OSL" to listOf("NSR:Quay:9373"),
                 "BGO" to listOf("NSR:Quay:9713")
             )
-            every { handler.fetchAirportStopPlaces() } returns newValidXml
+            every { handler.fetchAirportStopPlaces() } returns Result.success(newValidXml)
             every { mapper.unmarshallStopPlaceXml(newValidXml)} returns newStopPlaces
             every { mapper.makeIataToQuayMap(newStopPlaces) } returns newExpectedMap
 
@@ -103,7 +104,7 @@ class AirportQuayServiceTest {
                 "OSL" to listOf("NSR:Quay:1173"),
                 "BGO" to listOf("NSR:Quay:1213")
             )
-            every { handler.fetchAirportStopPlaces() } returns validXml
+            every { handler.fetchAirportStopPlaces() } returns Result.success(validXml)
             every { mapper.unmarshallStopPlaceXml(validXml)} returns stopPlaces
             every { mapper.makeIataToQuayMap(stopPlaces) } returns expectedMap
 

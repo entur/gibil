@@ -43,7 +43,7 @@ class Endpoint(
         val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
             AvinorXmlFeedParamsLogic(airportCode = airport)
         )
-        return apiService.apiCall(url) ?: "Error: No response from Avinor API"
+        return apiService.apiCall(url).getOrElse { "Error: No response from Avinor API" }
     }
 
 }

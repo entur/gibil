@@ -16,7 +16,13 @@ class AvinorAirportNamesApiHandlerTest {
     @BeforeEach
     fun setUp() {
         apiService = mockk {
-            every { apiCall(any()) } returns """<airportNames><airportName code="OSL" name="Oslo Lufthavn"/><airportName code="BGO" name="Bergen Lufthavn"/></airportNames>"""
+            every { apiCall(any()) } returns Result.success(
+                """
+                <airportNames>
+                    <airportName code="OSL" name="Oslo Lufthavn"/>
+                    <airportName code="BGO" name="Bergen Lufthavn"/>                           
+                </airportNames>""".trimIndent()
+            )
         }
         apiHandler = AvinorAirportNamesApiHandler(apiService, "http://example.com")
         apiHandler.init()

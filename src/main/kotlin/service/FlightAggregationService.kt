@@ -53,18 +53,16 @@ class FlightAggregationService(
      * Fetches raw flight records from the Avinor XML feed for a single airport.
      *
      * @param airportCode The IATA code of the airport to fetch flights for.
-     * @return The list of [Flight] records, or an empty list if the call fails or returns an error.
+     * @return The list of [Flight] records, or an empty list if the call throws exception.
      */
     private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
         return try {
             val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
                 AvinorXmlFeedParamsLogic(airportCode = airportCode)
             )
-            val xmlResponse = apiService.apiCall(url) ?: return emptyList()
 
-            //TODO SHOULD EITHER BE REMOVED OR IMPROVED. CAN CAUSE PROBLEMS
-            if ("Error" in xmlResponse) {
-                LOG.error("API returned error for {}: {}", airportCode, xmlResponse)
+            val xmlResponse = apiService.apiCall(url).getOrElse { e ->
+                LOG.error("API call failed for {}: {}", airportCode, e.message)
                 return emptyList()
             }
 

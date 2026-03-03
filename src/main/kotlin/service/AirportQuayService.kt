@@ -3,7 +3,10 @@ package org.gibil.service
 import jakarta.annotation.PostConstruct
 import org.gibil.StopPlaceMapper
 import org.gibil.routes.entur.StopPlaceApiHandler
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+
+private val LOG = LoggerFactory.getLogger(AirportQuayService::class.java)
 
 @Service
 class AirportQuayService(private val handler: StopPlaceApiHandler, private val mapper: StopPlaceMapper) {
@@ -21,7 +24,10 @@ class AirportQuayService(private val handler: StopPlaceApiHandler, private val m
      * in the [iataToQuayMap].
      */
     fun refreshQuayMapping() {
-        val xml = handler.fetchAirportStopPlaces() ?: return
+        val xml = handler.fetchAirportStopPlaces().getOrElse { e ->
+            LOG.error("Failed to refresh quay mapping: {}", e.message)
+            return
+        }
         val stopPlaces = mapper.unmarshallStopPlaceXml(xml)
         iataToQuayMap = mapper.makeIataToQuayMap(stopPlaces)
     }

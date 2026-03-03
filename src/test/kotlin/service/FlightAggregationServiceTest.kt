@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import java.io.IOException
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -93,7 +94,7 @@ class FlightAggregationServiceTest {
             )
         } returns "http://test.url/$airportCode"
 
-        every { apiService.apiCall("http://test.url/$airportCode") } returns "<xml>$airportCode</xml>"
+        every { apiService.apiCall("http://test.url/$airportCode") } returns Result.success("<xml>$airportCode</xml>")
         every { xmlHandler.unmarshallXmlToAirport("<xml>$airportCode</xml>") } returns airport
     }
 
@@ -383,18 +384,7 @@ class FlightAggregationServiceTest {
         @Test
         fun `should handle API errors gracefully`() = runBlocking {
             every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
-            every { apiService.apiCall(any()) } returns "Error: API unavailable"
-            mockAirportsList(listOf("OSL"))
-
-            val result = flightAggregationService.fetchUnifiedFlights()
-
-            assertEquals(0, result.size)
-        }
-
-        @Test
-        fun `should handle null API response gracefully`() = runBlocking {
-            every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
-            every { apiService.apiCall(any()) } returns null
+            every { apiService.apiCall(any()) } returns Result.failure(IOException("API unavailable"))
             mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()

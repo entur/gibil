@@ -3,11 +3,14 @@ package org.gibil.routes.avinor.airportname
 import jakarta.annotation.PostConstruct
 import model.airportNames.AirportNames
 import org.gibil.service.ApiService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import util.SharedJaxbContext
 import java.io.StringReader
 import kotlin.text.uppercase
+
+private val LOG = LoggerFactory.getLogger(AvinorAirportNamesApiHandler::class.java)
 
 @Service
 class AvinorAirportNamesApiHandler(
@@ -27,7 +30,10 @@ class AvinorAirportNamesApiHandler(
      * Makes set of IATAS in the [airportIATASet]
      */
     private fun refreshAirportNameSet() {
-        val xml = apiService.apiCall(baseUrlAirportNames) ?: return
+        val xml = apiService.apiCall(baseUrlAirportNames).getOrElse { e ->
+            LOG.error("Failed to fetch airport names: {}", e.message)
+            return
+        }
         val unmarshaller = SharedJaxbContext.createUnmarshaller()
         val airportNames = unmarshaller.unmarshal(StringReader(xml)) as AirportNames
         airportIATASet = airportNames.airportName

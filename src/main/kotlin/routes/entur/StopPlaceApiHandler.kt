@@ -36,7 +36,7 @@ class StopPlaceApiHandler(
      * Asks for XML data
      * @return String?, XML response from API
      */
-    fun fetchAirportStopPlaces(): String? {
+    fun fetchAirportStopPlaces(): Result<String> {
         val url = stopPlaceApiUrlBuilder()
         return apiService.apiCall(url, "application/xml")
     }

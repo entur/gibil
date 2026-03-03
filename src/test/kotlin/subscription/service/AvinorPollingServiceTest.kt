@@ -3,7 +3,7 @@ package org.gibil.subscription
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import model.FlightStop
+import subscriptiontest.service.ServiceTestHelper
 import model.UnifiedFlight
 import org.gibil.subscription.repository.FlightStateCache
 import org.gibil.subscription.service.AvinorPollingService
@@ -15,37 +15,6 @@ import service.FlightAggregationService
 import siri.SiriETMapper
 import subscription.SubscriptionManager
 import uk.org.siri.siri21.Siri
-import java.time.LocalDate
-import java.time.LocalDateTime
-
-private fun mockFlight(
-    flightId: String,
-    date: String,
-    stops: List<FlightStop> = listOf(defaultStop())
-): UnifiedFlight {
-    return UnifiedFlight(
-        flightId = flightId,
-        operator = "WF",
-        date = LocalDate.parse(date),
-        stops = stops
-    )
-}
-
-private fun defaultStop(
-    airportCode: String = "OSL",
-    departureStatusCode: String? = "N",
-    arrivalStatusCode: String? = "N"
-): FlightStop {
-    return FlightStop(
-        airportCode = airportCode,
-        arrivalTime = LocalDateTime.of(2026, 2, 26, 10, 0),
-        departureTime = LocalDateTime.of(2026, 2, 26, 11, 0),
-        departureStatusCode = departureStatusCode,
-        departureStatusTime = null,
-        arrivalStatusCode = arrivalStatusCode,
-        arrivalStatusTime = null
-    )
-}
 
 @ExtendWith(MockKExtension::class)
 class AvinorPollingServiceTest {
@@ -76,7 +45,7 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should map and push when changes are detected`() {
-        val flights = listOf(mockFlight("WF844", "2026-02-26"))
+        val flights = listOf(ServiceTestHelper.mockFlight("WF844", "2026-02-26"))
         val siriPayload = mockk<Siri>()
 
         every { flightAggregationService.fetchUnifiedFlights() } returns flights
@@ -92,7 +61,7 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should not push when no changes are detected`() {
-        val flights = listOf(mockFlight("WF844", "2026-02-26"))
+        val flights = listOf(ServiceTestHelper.mockFlight("WF844", "2026-02-26"))
 
         every { flightAggregationService.fetchUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns emptyList()
@@ -105,7 +74,7 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should clean cache before filtering`() {
-        val flights = listOf(mockFlight("WF844", "2026-02-26"))
+        val flights = listOf(ServiceTestHelper.mockFlight("WF844", "2026-02-26"))
 
         every { flightAggregationService.fetchUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns emptyList()
@@ -120,7 +89,7 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should clean cache with correct keys`() {
-        val flight = mockFlight("WF844", "2026-02-26")
+        val flight = ServiceTestHelper.mockFlight("WF844", "2026-02-26")
         val flights = listOf(flight)
 
         every { flightAggregationService.fetchUnifiedFlights() } returns flights
@@ -160,8 +129,8 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should only push changed flights, not all flights`() {
-        val unchanged = mockFlight("WF100", "2026-02-26")
-        val changed = mockFlight("WF844", "2026-02-26")
+        val unchanged = ServiceTestHelper.mockFlight("WF100", "2026-02-26")
+        val changed = ServiceTestHelper.mockFlight("WF844", "2026-02-26")
         val allFlights = listOf(unchanged, changed)
         val siriPayload = mockk<Siri>()
 

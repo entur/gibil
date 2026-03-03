@@ -18,7 +18,7 @@ class ApiService(
      * @param url the complete url which the api-call is based on
      * @param acceptHeader Can input header if needed to change requested dataformat
      */
-     fun apiCall(url: String, acceptHeader: String? = null): String? {
+     fun apiCall(url: String, acceptHeader: String? = null): Result<String> = runCatching {
         val requestBuilder = Request.Builder().url(url)
         if(acceptHeader != null) {
             requestBuilder.addHeader("Accept", acceptHeader)
@@ -28,11 +28,8 @@ class ApiService(
         val response = client.newCall(request).execute()
 
         response.use {
-            return if (response.isSuccessful) {
-                response.body?.string()  // Returns raw XML
-            } else {
-                throw IOException("Error: ${response.code}")
-            }
+            if(!it.isSuccessful) throw IOException("HTTP code: ${it.code}")
+            else it.body?.string() ?: throw IOException("Empty response body")
         }
     }
 

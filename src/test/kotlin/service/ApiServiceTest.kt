@@ -36,11 +36,11 @@ class ApiServiceTest {
 
         val result = apiService.apiCall("https://example.com")
 
-        Assertions.assertEquals("<xml>data</xml>", result)
+        Assertions.assertEquals(Result.success("<xml>data</xml>"), result)
     }
 
     @Test
-    fun `apiCall returns null when body is null`() {
+    fun `apiCall returns failure when body is null`() {
         every { mockClient.newCall(any()) } returns mockCall
         every { mockCall.execute() } returns mockResponse
         every { mockResponse.isSuccessful } returns true
@@ -49,20 +49,22 @@ class ApiServiceTest {
 
         val result = apiService.apiCall("https://example.com")
 
-        Assertions.assertNull(result)
+        Assertions.assertTrue(result.isFailure)
+        Assertions.assertInstanceOf(IOException::class.java, result.exceptionOrNull())
     }
 
     @Test
-    fun `apiCall throws IOException on failure`() {
+    fun `apiCall returns failure on HTTP error`() {
         every { mockClient.newCall(any()) } returns mockCall
         every { mockCall.execute() } returns mockResponse
         every { mockResponse.isSuccessful } returns false
         every { mockResponse.code } returns 404
         every { mockResponse.close() } returns Unit
 
-        Assertions.assertThrows(IOException::class.java) {
-            apiService.apiCall("https://example.com")
-        }
+        val result = apiService.apiCall("https://example.com")
+
+        Assertions.assertTrue(result.isFailure)
+        Assertions.assertInstanceOf(IOException::class.java, result.exceptionOrNull())
     }
 
     @Test

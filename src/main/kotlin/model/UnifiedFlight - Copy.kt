@@ -14,7 +14,7 @@ import java.time.LocalDate
  * Avinor status codes: "A" = arrived, "D" = departed, "E" = new estimated time,
  * "C" = cancelled, "N" = new/on-time.
  */
-data class FlightStop(
+data class FlightStopasd(
     val airportCode: String,
     val arrivalTime: LocalDateTime?,
     val departureTime: LocalDateTime?,
@@ -29,13 +29,13 @@ data class FlightStop(
  * Groups Avinor flight events by flight ID and calendar date,
  * preventing flights from different days being stitched together.
  */
-data class FlightKey(val flightId: String, val date: LocalDate)
+data class FlightKeyasd(val flightId: String, val date: LocalDate)
 
 /**
  * Represents a complete journey (chain of stops) for a single Flight ID.
  * Handles both Direct (2 stops) and Multi-Leg (3+ stops) flights uniformly.
  */
-data class UnifiedFlight(
+data class UnifiedFlightasd(
     val flightId: String,
     val operator: String,
     val date: LocalDate,

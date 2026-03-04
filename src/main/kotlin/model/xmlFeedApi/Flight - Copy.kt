@@ -8,7 +8,7 @@ import jakarta.xml.bind.annotation.XmlTransient
 import org.gibil.FlightCodes
 
 @XmlAccessorType(XmlAccessType.FIELD)
-class Flight {
+class Flightasd {
 
     @XmlAttribute(name = "uniqueID")
     lateinit var uniqueID: String

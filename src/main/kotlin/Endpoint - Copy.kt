@@ -12,7 +12,7 @@ import siri.SiriETMapper
 import siri.SiriETPublisher
 
 @RestController
-class Endpoint(
+class Endpointsadasdas(
     private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
     private val flightAggregationService: FlightAggregationService,
     private val siriETMapper: SiriETMapper,

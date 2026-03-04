@@ -7,7 +7,7 @@ import util.SharedJaxbContext
 import java.io.StringReader
 
 @Component
-class StopPlaceMapper {
+class StopPlaceMapperasd {
 
     /**
      * Unmarshalls StopPlace XML data into JAXB classes

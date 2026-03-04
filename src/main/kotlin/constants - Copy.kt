@@ -14,12 +14,12 @@ import java.time.format.DateTimeFormatter
  */
 
 
-object PollingConfig {
+object PollingConfigasd {
     const val BATCH_SIZE = 5
     const val REQUEST_DELAY_MS = 50
 }
 
-object FlightCodes {
+object FlightCodesasd {
     //[Direction] from Avinor
     const val DEPARTURE_CODE = "D"
     const val ARRIVAL_CODE = "A"
@@ -40,23 +40,23 @@ object FlightCodes {
     const val SVALBARD_AIRPORTS = "LYR"
 }
 
-object AirportSizeConfig {
+object AirportSizeConfigasd {
     val LARGE_AIRPORTS = setOf("OSL")
     val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
 }
 
-object SiriConfig {
+object SiriConfigasd {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
 
-object FindServiceJourneyConstants {
+object FindServiceJourneyConstantsads {
     //base path when running on a local computer, and not in cloud
     val LOCAL_BASEPATH = "src/main/resources/extimeData"
 
     val CLOUD_BASEPATH = "/tmp/netex_data"
 }
 
-object AvinorApiConfig {
+object AvinorApiConfigasd {
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36
     const val TIME_FROM_DEFAULT = 2
@@ -67,11 +67,11 @@ object AvinorApiConfig {
 
 }
 
-object ServiceJourneyModel {
+object ServiceJourneyModelasdasd {
     const val NETEX_NAMESPACE = "http://www.netex.org.uk/netex"
 }
 
-object Dates {
+object Datesasd {
     val LOCALE = Locale.ENGLISH
 
     val formats = mapOf<String, DateTimeFormatter>(

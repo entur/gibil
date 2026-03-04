@@ -12,7 +12,7 @@ import org.gibil.Dates
  *
  * Some of the functions are very specific, while others are more applicable other places
  */
-object DateUtil {
+object DateUtilasdasd {
 
     /**
      * Parses an ISO-8601 timestamp string into a [ZonedDateTime].

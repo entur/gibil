@@ -67,16 +67,18 @@ object DateUtil {
         }
     }
 
-    fun formatDateTimeZoneToTime(dateTimeString: String): List<String> {
+    fun formatDateTimeZoneToTime(departureTimeString: String, arrivalTimeString: String): List<String> {
         try {
             //parse parameter into a ZonedDateTime object
-            val dateTimeWithZone = ZonedDateTime.parse(dateTimeString)
+            val dateTimeDepartureWithZone = ZonedDateTime.parse(departureTimeString)
+            val dateTimeArrivalWithZone = ZonedDateTime.parse(arrivalTimeString)
 
             // Norwegian timezone
             val norwayZone = ZoneId.of("Europe/Oslo")
 
             // Convert to Norwegian timezone
-            val norwayDateTime = dateTimeWithZone.withZoneSameInstant(norwayZone)
+            val norwayDateTimeDeparture = dateTimeDepartureWithZone.withZoneSameInstant(norwayZone)
+            val norwayDateTimeArrival = dateTimeArrivalWithZone.withZoneSameInstant(norwayZone)
 
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", Dates.LOCALE)
@@ -85,17 +87,19 @@ object DateUtil {
             val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)
 
             // Implement formats onto object and create partial daytyperef-value
-            val month = norwayDateTime.format(formatMonth)
-            val dayName = norwayDateTime.format(formatDayShortName)
-            val day = norwayDateTime.format(formatDate)
+            val month = norwayDateTimeDeparture.format(formatMonth)
+            val dayName = norwayDateTimeDeparture.format(formatDayShortName)
+            val day = norwayDateTimeDeparture.format(formatDate)
 
             val dayType = "${month}_${dayName}_${day}"
 
-            val norwegianDepartureTime = norwayDateTime.format(formatFull)
+            val norwegianDepartureTime = norwayDateTimeDeparture.format(formatFull)
 
-            return listOf(norwegianDepartureTime, dayType)
+            val norwegianArrivalTime = norwayDateTimeArrival.format(formatFull)
+
+            return listOf(norwegianDepartureTime, norwegianArrivalTime, dayType)
         } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid date-time format: $dateTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
+            throw IllegalArgumentException("Invalid date-time format: $departureTimeString or $arrivalTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
 }
 

@@ -17,10 +17,16 @@ data class ServiceJourney(
     @field:XmlElement(name = "PublicCode", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     var publicCode: String = "",
 
+    @field:XmlElement(name = "LineRef", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
+    var lineRefElement: LineRef = LineRef(),
+
     @field:XmlElement(name = "passingTimes", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     private var passingTimesWrapper: PassingTimesWrapper? = null
 
 ) {
+    val lineRef: String
+        get() = lineRefElement.ref
+
     // Computed property to get list of dayType strings
     val dayTypes: List<String>
         get() = dayTypeRefs.map { it.ref }
@@ -44,4 +50,10 @@ data class ServiceJourney(
 data class PassingTimesWrapper(
     @field:XmlElement(name = "TimetabledPassingTime", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     var timetabledPassingTimes: MutableList<TimetabledPassingTime> = mutableListOf()
+)
+
+@XmlAccessorType(XmlAccessType.FIELD)
+data class LineRef(
+    @field:XmlAttribute(name = "ref")
+    var ref: String = ""
 )

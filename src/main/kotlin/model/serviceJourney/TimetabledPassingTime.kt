@@ -7,7 +7,4 @@ import org.gibil.ServiceJourneyModel
 data class TimetabledPassingTime(
     @field:XmlElement(name = "DepartureTime", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     var departureTime: String? = null,
-
-    @field:XmlElement(name = "ArrivalTime", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
-    var arrivalTime: String? = null
 )

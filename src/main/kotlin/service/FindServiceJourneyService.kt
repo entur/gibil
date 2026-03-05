@@ -68,9 +68,9 @@ class FindServiceJourneyService(
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(dateInfoRaw: String, flightCode: String): String {
+    fun matchServiceJourney(departureTimeRaw: String, flightCode: String): String {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
-        val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
+        val dateInfo = formatDateTimeZoneToTime(departureTimeRaw)
 
         //finding all service journeys and searching through them for a match
         serviceJourneyList.forEach { journey ->
@@ -78,7 +78,10 @@ class FindServiceJourneyService(
                 dateInfo[1] in dayType
             }
 
-            val dateInfoMatch = dateInfo[0] in journey.departureTime && dayTypeMatch
+            val departureTimeMatch = dateInfo[0] in journey.departureTime
+
+            val dateInfoMatch = departureTimeMatch && dayTypeMatch
+
             val flightCodeMatch = journey.publicCode == flightCode
 
             if (dateInfoMatch && flightCodeMatch) {
@@ -93,6 +96,6 @@ class FindServiceJourneyService(
             codeMatches.size,
             codeMatches.map { it.departureTime }
         )
-        throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")
+        throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode; Departure ${dateInfo[0]}, Date ${dateInfo[1]}")
     }
 }

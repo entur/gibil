@@ -37,13 +37,6 @@ data class ServiceJourney(
             val times = passingTimesWrapper?.timetabledPassingTimes ?: emptyList()
             return times.mapNotNull { it.departureTime }
         }
-
-    // Computed property to get arrival time
-    val arrivalTime: List<String>
-        get() {
-            val times = passingTimesWrapper?.timetabledPassingTimes ?: emptyList()
-            return times.mapNotNull { it.arrivalTime }
-        }
 }
 
 @XmlAccessorType(XmlAccessType.FIELD)

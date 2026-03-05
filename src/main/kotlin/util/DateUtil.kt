@@ -67,18 +67,16 @@ object DateUtil {
         }
     }
 
-    fun formatDateTimeZoneToTime(departureTimeString: String, arrivalTimeString: String): List<String> {
+    fun formatDateTimeZoneToTime(departureTimeString: String): List<String> {
         try {
             //parse parameter into a ZonedDateTime object
             val dateTimeDepartureWithZone = ZonedDateTime.parse(departureTimeString)
-            val dateTimeArrivalWithZone = ZonedDateTime.parse(arrivalTimeString)
 
             // Norwegian timezone
             val norwayZone = ZoneId.of("Europe/Oslo")
 
             // Convert to Norwegian timezone
             val norwayDateTimeDeparture = dateTimeDepartureWithZone.withZoneSameInstant(norwayZone)
-            val norwayDateTimeArrival = dateTimeArrivalWithZone.withZoneSameInstant(norwayZone)
 
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", Dates.LOCALE)
@@ -95,11 +93,9 @@ object DateUtil {
 
             val norwegianDepartureTime = norwayDateTimeDeparture.format(formatFull)
 
-            val norwegianArrivalTime = norwayDateTimeArrival.format(formatFull)
-
-            return listOf(norwegianDepartureTime, norwegianArrivalTime, dayType)
+            return listOf(norwegianDepartureTime, dayType)
         } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid date-time format: $departureTimeString or $arrivalTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
+            throw IllegalArgumentException("Invalid date-time format: $departureTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
 }
 

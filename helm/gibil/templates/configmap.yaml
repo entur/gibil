@@ -26,6 +26,3 @@ data:
 
     # Logging
     logging.level.root={{ .Values.configMap.LOG_LEVEL }}
-
-    # Enable virtual threads
-    spring.threads.virtual.enabled=true

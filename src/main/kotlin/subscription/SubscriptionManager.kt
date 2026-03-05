@@ -25,7 +25,7 @@ private val LOG: Logger = LoggerFactory.getLogger(SubscriptionManager::class.jav
  */
 @Repository
 class SubscriptionManager(
-    @param:Autowired private val SubscriptionHttpHelper: SubscriptionHttpHelper,
+    @param:Autowired private val subscriptionHttpHelper: SubscriptionHttpHelper,
     @param:Autowired private val siriETMapper: SiriETMapper,
     @param:Autowired private val flightAggregationService: FlightAggregationService,
     @param:Autowired private val flightStateCache: FlightStateCache
@@ -51,7 +51,7 @@ class SubscriptionManager(
             for (subscription in subscriptions.values) {
                 if (subscription.subscriptionType == SiriDataType.ESTIMATED_TIMETABLE) {
                     try {
-                        runBlocking { SubscriptionHttpHelper.postData(subscription.address, SiriXml.toXml(siri)) }
+                        runBlocking { subscriptionHttpHelper.postData(subscription.address, SiriXml.toXml(siri)) }
                     } catch (e: Exception) {
                         val subscriptionId = subscription.subscriptionId
                         val failures = subscriptionFailCounter.merge(subscriptionId, 1, Int::plus) ?: 0
@@ -87,7 +87,7 @@ class SubscriptionManager(
         }
 
         try {
-            runBlocking { SubscriptionHttpHelper.postData(subscription.address, SiriXml.toXml(initialDelivery)) }
+            runBlocking { subscriptionHttpHelper.postData(subscription.address, SiriXml.toXml(initialDelivery)) }
         } catch (_: Exception) {
             LOG.warn("Initial delivery failed to address {}", subscription.address)
         }
@@ -133,7 +133,7 @@ class SubscriptionManager(
                         terminateSubscription(subscription.subscriptionId)
                     } else {
                         LOG.info("Posting heartbeat to {}", subscription)
-                        val responseCode = runBlocking { SubscriptionHttpHelper.postHeartbeat(subscription.address, subscription.subscriptionId) }
+                        val responseCode = runBlocking { subscriptionHttpHelper.postHeartbeat(subscription.address, subscription.subscriptionId) }
                         if (responseCode != 200) {
                             markFailed(subscription)
                         }

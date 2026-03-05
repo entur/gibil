@@ -1,9 +1,3 @@
-#
-# Shared Workflows - Helm Lint
-#
-# TODO: This file comes from entur/.github/workflows/helm-lint.yml
-#       Adopt to your needs, this file is yours now.
-#
 # Reusable Workflows used:
 # * Helm Lint
 #   * Readme <https://github.com/entur/gha-helm/blob/main/README-lint.md>

@@ -1,6 +1,6 @@
 package util
 
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -45,20 +45,9 @@ object DateUtil {
         }
     }
 
-    /**
-     * Parses a schedule time string into a [LocalDateTime], returning null for blank,
-     * null, or unparseable input. Wraps [parseTimestamp] and converts the result to local date-time.
-     *
-     * @param timeStr The timestamp string to parse, or null/blank.
-     * @return A [LocalDateTime], or null if the input cannot be parsed.
-     */
-    fun parseTime(timeStr: String?): LocalDateTime? {
-        if (timeStr.isNullOrBlank()) return null
-        return try {
-            parseTimestamp(timeStr)?.toLocalDateTime()
-        } catch (e: IllegalArgumentException) {
-            null
-        }
+    fun parseTime(timeStr: String?): Instant? {
+        if(timeStr.isNullOrBlank()) return null
+        return parseTimestamp(timeStr)?.toInstant()
     }
 
     /**

@@ -2,8 +2,8 @@ package subscriptiontest.service
 
 import model.FlightStop
 import model.UnifiedFlight
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 object ServiceTestHelper {
 
@@ -27,8 +27,8 @@ object ServiceTestHelper {
     ): FlightStop {
         return FlightStop(
             airportCode = airportCode,
-            arrivalTime = LocalDateTime.of(2026, 2, 26, 10, 0),
-            departureTime = LocalDateTime.of(2026, 2, 26, 11, 0),
+            arrivalTime = Instant.parse("2026-02-26T10:00:00Z"),
+            departureTime = Instant.parse("2026-02-26T11:00:00Z"),
             departureStatusCode = departureStatusCode,
             departureStatusTime = null,
             arrivalStatusCode = arrivalStatusCode,

@@ -21,8 +21,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import util.DateUtil.parseTime
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -99,7 +100,7 @@ class FlightAggregationService(
     private data class TaggedFlight(
         val sourceAirport: String,
         val raw: Flight,
-        val time: LocalDateTime
+        val time: Instant
     )
 
     /**
@@ -132,8 +133,12 @@ class FlightAggregationService(
                 flights
                     .filter { isDomesticOrSvalbard(code, it) }
                     .forEach { flight ->
-                        parseTime(flight.scheduleTime)?.let { parsedTime ->
-                            allTaggedFlights.add(TaggedFlight(code, flight, parsedTime))
+                        try {
+                            parseTime(flight.scheduleTime)?.let { parsedTime ->
+                                allTaggedFlights.add(TaggedFlight(code, flight, parsedTime))
+                            }
+                        } catch (e: Exception) {
+                            LOG.warn("Malformed schedule time for flight {} at {}: {}", flight.flightId, code, e.message)
                         }
                     }
             }
@@ -141,12 +146,12 @@ class FlightAggregationService(
 
         // GROUP: by flightId + date to avoid mixing flights from different days
         val grouped = allTaggedFlights.groupBy {
-            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time.toLocalDate())
+            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate())
         }
 
         // STITCH: convert each group into an ordered chain of stops
         val unifiedFlights = grouped.mapNotNull { (key, events) ->
-            if (key.flightId == "UNKNOWN") null
+            if(key.flightId == "UNKNOWN") null
             else stitchFlightLegs(key.flightId, key.date, events)
         }
 
@@ -284,9 +289,11 @@ class FlightAggregationService(
             arrivalTime = arrivalEvent?.time,
             departureTime = departureEvent?.time,
             departureStatusCode = departureEvent?.raw?.status?.code,
-            departureStatusTime = departureEvent?.raw?.status?.time?.let { parseTime(it) },
+            departureStatusTime = try { departureEvent?.raw?.status?.time?.let { parseTime(it) } }
+            catch (e: Exception) { LOG.warn("Malformed departure status time for {}: {}", airportCode, e.message); null },
             arrivalStatusCode = arrivalEvent?.raw?.status?.code,
-            arrivalStatusTime = arrivalEvent?.raw?.status?.time?.let { parseTime(it) },
+            arrivalStatusTime   = try { arrivalEvent?.raw?.status?.time?.let { parseTime(it) } }
+            catch (e: Exception) { LOG.warn("Malformed arrival status time for {}: {}", airportCode, e.message); null },
             targetAirport = target
         )
     }

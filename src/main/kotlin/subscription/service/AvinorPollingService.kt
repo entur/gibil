@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import service.FlightAggregationService
+import service.ServiceJourneyResolver
 import siri.SiriETMapper
 import subscription.SubscriptionManager
 
@@ -17,6 +18,7 @@ private val LOG = LoggerFactory.getLogger(AvinorPollingService::class.java)
 class AvinorPollingService(
     private val flightAggregationService: FlightAggregationService,
     private val flightStateCache: FlightStateCache,
+    private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,
     private val subscriptionManager: SubscriptionManager
 ) {
@@ -43,7 +45,8 @@ class AvinorPollingService(
             if (changedFlights.isNotEmpty()) {
                 LOG.info("Detected {} changed flights out of {}", changedFlights.size, allFlights.size)
 
-                val siri = siriETMapper.mapUnifiedFlightsToSiri(changedFlights)
+                val resolved = serviceJourneyResolver.resolve(changedFlights)
+                val siri = siriETMapper.mapUnifiedFlightsToSiri(resolved)
 
                 subscriptionManager.pushSiriToSubscribers(siri)
             } else {

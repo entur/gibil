@@ -5,7 +5,6 @@ import model.UnifiedFlight
 import org.gibil.service.AirportQuayService
 import io.mockk.every
 import io.mockk.mockk
-import service.FindServiceJourneyService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
@@ -18,12 +17,11 @@ class SiriETPublisherTest {
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
-    private val findServiceJourneyService = mockk<FindServiceJourneyService>(relaxed = true)
 
     @Test
     fun `should convert SIRI to XML string`() {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
+        val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
         val xml = publisher.toXml(siri)
@@ -36,7 +34,7 @@ class SiriETPublisherTest {
     @Test
     fun `should format XML with indentation`() {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
+        val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
         val formattedXml = publisher.toXml(siri, formatOutput = true)
@@ -49,7 +47,7 @@ class SiriETPublisherTest {
     @Test
     fun `should write SIRI to file`(@TempDir tempDir: File) {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
+        val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
         val outputFile = File(tempDir, "output.xml")
 
@@ -62,7 +60,7 @@ class SiriETPublisherTest {
     @Test
     fun `should handle multiple flights`() {
         val publisher = SiriETPublisher()
-        val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
+        val mapper = SiriETMapper(airportQuayService)
         val flights = listOf(
             createFlight("SK4321", "SK"),
             createFlight("DY4322", "DY"),
@@ -85,6 +83,7 @@ class SiriETPublisherTest {
         flightId = flightId,
         operator = operator,
         date = LocalDate.now(),
+        serviceJourneyRef = "AVI:ServiceJourney:${flightId}_hash",
         stops = listOf(
             FlightStop(airportCode = origin, arrivalTime = null, departureTime = LocalDateTime.now()),
             FlightStop(airportCode = destination, arrivalTime = LocalDateTime.now().plusHours(1), departureTime = null)

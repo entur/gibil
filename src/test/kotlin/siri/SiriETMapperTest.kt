@@ -4,7 +4,6 @@ import model.FlightStop
 import model.UnifiedFlight
 import org.gibil.service.AirportQuayService
 import io.mockk.*
-import service.FindServiceJourneyService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -17,11 +16,7 @@ class SiriETMapperTest {
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
-    private val findServiceJourneyService = mockk<FindServiceJourneyService> {
-        // Return a VJR string that contains the flightId so the VJR check passes
-        every { matchServiceJourney(any(), any()) } answers { "AVI:ServiceJourney:${secondArg<String>()}_hash" }
-    }
-    private val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
+    private val mapper = SiriETMapper(airportQuayService)
 
     @Test
     fun `should handle empty flight list`() {
@@ -81,9 +76,8 @@ class SiriETMapperTest {
     }
 
     @Test
-    fun `should skip flight when no service journey match is found`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ""
-        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
+    fun `should skip flight when no service journey ref is set`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(serviceJourneyRef = null)))
 
         assertTrue(getJourneys(result).isEmpty())
     }
@@ -98,11 +92,13 @@ class SiriETMapperTest {
         origin: String = "OSL",
         destination: String = "BGO",
         departureStatusCode: String? = null,
-        arrivalStatusCode: String? = null
+        arrivalStatusCode: String? = null,
+        serviceJourneyRef: String? = "AVI:ServiceJourney:SK123_hash"
     ) = UnifiedFlight(
         flightId = flightId,
         operator = operator,
         date = LocalDate.now(),
+        serviceJourneyRef = serviceJourneyRef,
         stops = listOf(
             FlightStop(
                 airportCode = origin,

@@ -264,55 +264,6 @@ class FlightAggregationServiceTest {
         }
 
         @Test
-        fun `should infer missing arrival stop from departure target`() = runBlocking {
-            val now = ZonedDateTime.now(ZoneOffset.UTC)
-
-            // Only departure from OSL to BGO, no arrival data from BGO
-            val oslDep = createFlight(
-                uniqueID = "1", flightId = "DY200", airline = "DY",
-                arrDep = "D", airport = "BGO",
-                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
-            )
-
-            mockAirportData("OSL", listOf(oslDep))
-            mockAirportsList(listOf("OSL"))
-
-            val result = flightAggregationService.fetchUnifiedFlights()
-
-            assertEquals(1, result.size)
-            val flight = result.first()
-            assertEquals(2, flight.stops.size)
-            assertEquals("OSL", flight.origin)
-            assertEquals("BGO", flight.destination)
-        }
-
-        @Test
-        fun `should infer missing departure stop from arrival origin`() {
-            runBlocking {
-                val now = ZonedDateTime.now(ZoneOffset.UTC)
-
-                // Only arrival at BGO from OSL, no departure data from OSL
-                val bgoArr = createFlight(
-                    uniqueID = "1", flightId = "DY300", airline = "DY",
-                    arrDep = "A", airport = "OSL",
-                    scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
-                )
-
-                mockAirportData("BGO", listOf(bgoArr))
-                mockAirportsList(listOf("BGO"))
-
-                val result = flightAggregationService.fetchUnifiedFlights()
-
-                assertEquals(1, result.size)
-                val flight = result.first()
-                assertEquals(2, flight.stops.size)
-                assertEquals("OSL", flight.origin)
-                assertEquals("BGO", flight.destination)
-                assertNotNull(flight.stops.last().arrivalTime)
-            }
-        }
-
-        @Test
         fun `should filter out international flights`() = runBlocking {
             val now = ZonedDateTime.now(ZoneOffset.UTC)
 
@@ -320,6 +271,12 @@ class FlightAggregationServiceTest {
                 uniqueID = "1", flightId = "DY123",
                 arrDep = "D", airport = "BGO",
                 scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "D"
+            )
+            val domesticArrival = createFlight(
+                uniqueID = "3", flightId = "DY123",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME),
                 domInt = "D"
             )
             val internationalFlight = createFlight(
@@ -330,7 +287,8 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("OSL", listOf(domesticFlight, internationalFlight))
-            mockAirportsList(listOf("OSL"))
+            mockAirportData("BGO", listOf(domesticArrival))
+            mockAirportsList(listOf("OSL", "BGO"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -348,9 +306,16 @@ class FlightAggregationServiceTest {
                 scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
                 domInt = "I"  // Avinor classifies LYR as international
             )
+            val lyrArr = createFlight(
+                uniqueID = "2", flightId = "DY660", airline = "DY",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "I"
+            )
 
             mockAirportData("OSL", listOf(oslDep))
-            mockAirportsList(listOf("OSL"))
+            mockAirportData("LYR", listOf(lyrArr))
+            mockAirportsList(listOf("OSL", "LYR"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -467,9 +432,16 @@ class FlightAggregationServiceTest {
                 scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
                 domInt = "I"
             )
+            val oslArr = createFlight(
+                uniqueID = "2", flightId = "DY661", airline = "DY",
+                arrDep = "A", airport = "LYR",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "I"
+            )
 
             mockAirportData("LYR", listOf(lyrDep))
-            mockAirportsList(listOf("LYR"))
+            mockAirportData("OSL", listOf(oslArr))
+            mockAirportsList(listOf("LYR", "OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 

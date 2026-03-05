@@ -179,7 +179,6 @@ class FlightAggregationService(
         if (events.isEmpty() || flightId.length < 2) return null
 
         val stops = buildStopsFromEvents(events)
-        inferMissingEndpoint(stops, events)
 
         if (stops.size < 2 || hasGap(stops)) return null
 
@@ -224,25 +223,6 @@ class FlightAggregationService(
         }
 
         return stops
-    }
-
-    /**
-     * Recovers a usable two-stop chain when only one side of a direct flight was observed
-     * (e.g. one airport's API call failed or returned no data).
-     * If only a departure was seen, appends a placeholder destination.
-     * If only an arrival was seen, prepends a placeholder origin.
-     */
-    private fun inferMissingEndpoint(stops: MutableList<FlightStop>, events: List<TaggedFlight>) {
-        if (stops.size != 1) return
-        val onlyStop = stops.first()
-        if (onlyStop.departureTime != null && onlyStop.targetAirport != null) {
-            stops.add(FlightStop(airportCode = onlyStop.targetAirport, arrivalTime = null, departureTime = null))
-        } else if (onlyStop.arrivalTime != null) {
-            val originAirport = events.firstOrNull { it.raw.arrDep == FlightCodes.ARRIVAL_CODE }?.raw?.airport
-            if (originAirport != null) {
-                stops.add(0, FlightStop(airportCode = originAirport, arrivalTime = null, departureTime = null))
-            }
-        }
     }
 
     /**

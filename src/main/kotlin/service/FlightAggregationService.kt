@@ -22,6 +22,8 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import util.DateUtil.parseTime
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -144,7 +146,7 @@ class FlightAggregationService(
 
         // GROUP: by flightId + date to avoid mixing flights from different days
         val grouped = allTaggedFlights.groupBy {
-            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time)
+            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate())
         }
 
         // STITCH: convert each group into an ordered chain of stops
@@ -178,7 +180,7 @@ class FlightAggregationService(
      *
      * Returns null if the chain is invalid (gaps between stops, or fewer than 2 stops).
      */
-    private fun stitchFlightLegs(flightId: String, date: Instant, events: List<TaggedFlight>): UnifiedFlight? {
+    private fun stitchFlightLegs(flightId: String, date: LocalDate, events: List<TaggedFlight>): UnifiedFlight? {
         if (events.isEmpty() || flightId.length < 2) return null
 
         val stops = buildStopsFromEvents(events)

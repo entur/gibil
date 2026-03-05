@@ -7,7 +7,7 @@ import handler.ServiceJourneyParser
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
-import util.DateUtil.formatDateTimeZoneToTime
+import util.DateUtil.formatForServiceJourney
 import org.slf4j.LoggerFactory
 import org.gibil.FindServiceJourneyConstants
 import org.springframework.stereotype.Service
@@ -64,13 +64,13 @@ class FindServiceJourneyService(
 
     /**
      * Matches a service journey based on date information and flight code.
-     * @param dateInfoRaw A string representing the date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
+     * @param departureInfoRaw A string representing the date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(dateInfoRaw: String, flightCode: String): String {
+    fun matchServiceJourney(departureInfoRaw: String, flightCode: String): String {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
-        val dateInfo = formatDateTimeZoneToTime(dateInfoRaw)
+        val dateInfo = formatForServiceJourney(departureInfoRaw)
 
         //finding all service journeys and searching through them for a match
         serviceJourneyList.forEach { journey ->

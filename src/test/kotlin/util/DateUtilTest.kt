@@ -2,7 +2,7 @@ package util
 
 import org.junit.jupiter.api.*
 import kotlin.test.Test
-import util.DateUtil.formatDateTimeZoneToTime
+import util.DateUtil.formatForServiceJourney
 import util.DateUtil.parseTimestamp
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -20,7 +20,7 @@ class DateUtilTest {
 
     @Test
     fun `FormatDateTimeZoneToTime should return correct formats`() {
-        val formattedDates = formatDateTimeZoneToTime(dateTimeZoneExample)
+        val formattedDates = formatForServiceJourney(dateTimeZoneExample)
 
         Assertions.assertTrue(formattedDates[0] == "08:00:00", "First returned item in list should be HH:mm:ss")
         Assertions.assertTrue(
@@ -32,7 +32,7 @@ class DateUtilTest {
     @Test
     fun `FormatDateTimeZoneToTime should throw exception when invalid date format is given`() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
-            formatDateTimeZoneToTime(exampleNanDate)
+            formatForServiceJourney(exampleNanDate)
         }
     }
 

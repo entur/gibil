@@ -8,29 +8,25 @@ import org.gibil.SiriConfig
 import org.gibil.service.AirportQuayService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import service.FindServiceJourneyService
 import uk.org.siri.siri21.*
 import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import kotlin.math.abs
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
 /**
  * Maps [UnifiedFlight] chains into SIRI Estimated Timetable (ET) documents.
- * Resolves airport quay IDs via [AirportQuayService], looks up ExTime service journey
- * references via [FindServiceJourneyService], and translates Avinor status codes
+ * Resolves airport quay IDs via [AirportQuayService] and translates Avinor status codes
  * into SIRI [CallStatusEnumeration] values.
  *
- * Flights that cannot be matched to a valid service journey reference are excluded
- * from the output rather than emitted with placeholder error values.
+ * Expects flights to already carry a [UnifiedFlight.serviceJourneyRef] set by
+ * [service.ServiceJourneyResolver]. Flights without a ref are skipped.
  */
 @Service
 class SiriETMapper(
-    private val airportQuayService: AirportQuayService,
-    private val findServiceJourneyService: FindServiceJourneyService
+    private val airportQuayService: AirportQuayService
 ) {
 
     companion object {
@@ -40,18 +36,6 @@ class SiriETMapper(
         private const val LINE_PREFIX = "AVI:Line:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
         private val UTC_ZONE = ZoneOffset.UTC
-    }
-
-    /**
-     * Extension function that generates a deterministic numeric ID hash from a String.
-     * Uses a variant of the DJB2 algorithm, matching ExTime's route ID format.
-     *
-     * @param length The max number of digits in the returned hash string.
-     * @return A numeric string of up to [length] digits derived from hashing this String.
-     */
-    private fun String.idHash(length: Int): String {
-        val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
-        return abs(hashcode).toString().take(length)
     }
 
     /**
@@ -92,9 +76,8 @@ class SiriETMapper(
     /**
      * Maps a single [UnifiedFlight] to a SIRI [EstimatedVehicleJourney].
      *
-     * Returns null (and logs an error) if the first stop has no departure time or if no
-     * valid service journey reference can be found in ExTime, so the caller can silently
-     * exclude the flight from the output.
+     * Returns null if [UnifiedFlight.serviceJourneyRef] is not set, so the caller can
+     * silently exclude unmatched flights from the output.
      *
      * @param flight The unified flight chain to map.
      * @return The mapped journey, or null if the flight should be excluded from the output.
@@ -118,39 +101,17 @@ class SiriETMapper(
         directionRef.value = if (flight.origin == flight.destination || flight.origin == ordered[0]) "outbound" else "inbound"
         journey.directionRef = directionRef
 
+        val ref = flight.serviceJourneyRef
+        if (ref == null) {
+            LOG.warn("No service journey ref for {}, skipping", flight.flightId)
+            return null
+        }
+
         val framedVehicleJourneyRef = FramedVehicleJourneyRefStructure()
         val dataFrameRef = DataFrameRefStructure()
         dataFrameRef.value = flight.date.toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
-
-        // VJR hash uses the full stop sequence (not size-sorted) to match ExTime's route ID format
-        val fullRoute = "${flight.operator}_${flight.stops.joinToString("-") { it.airportCode }}"
-        val routeHash = fullRoute.idHash(10)
-
-        val departureTimeStr = flight.stops.first().departureTime?.atZone(UTC_ZONE)?.toString()
-        if (departureTimeStr == null) {
-            LOG.error("Missing departure time for VehicleJourneyRef: flightId={}", flight.flightId)
-            return null
-        }
-        try {
-            val findFlightSequence =
-                findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
-            if (flight.flightId in findFlightSequence) {
-                framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
-                // Route hash check is advisory for multi-leg/circular flights:
-                // our stop sequence may differ from ExTime's route format
-                if (routeHash !in findFlightSequence) {
-                    LOG.debug("Route hash mismatch for {} (expected {} in {}), using service journey anyway",
-                        flight.flightId, routeHash, findFlightSequence)
-                }
-            } else {
-                LOG.error("No VJR match for {}, errors/{}", flight.flightId, Dates.currentDateMMMddyyyy())
-                return null
-            }
-        } catch (e: Exception) {
-            LOG.error("Error finding VJR-ID for flightId {}: {}", flight.flightId, e.message)
-            return null
-        }
+        framedVehicleJourneyRef.datedVehicleJourneyRef = ref
 
         journey.framedVehicleJourneyRef = framedVehicleJourneyRef
         journey.dataSource = DATA_SOURCE

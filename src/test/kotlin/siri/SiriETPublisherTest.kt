@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class SiriETPublisherTest {
 
@@ -85,8 +86,8 @@ class SiriETPublisherTest {
         date = LocalDate.now(),
         serviceJourneyRef = "AVI:ServiceJourney:${flightId}_hash",
         stops = listOf(
-            FlightStop(airportCode = origin, arrivalTime = null, departureTime = LocalDateTime.now()),
-            FlightStop(airportCode = destination, arrivalTime = LocalDateTime.now().plusHours(1), departureTime = null)
+            FlightStop(airportCode = origin, arrivalTime = null, departureTime = Instant.now()),
+            FlightStop(airportCode = destination, arrivalTime = Instant.now().plus(1, ChronoUnit.HOURS), departureTime = null)
         )
     )
 }

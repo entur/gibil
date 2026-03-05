@@ -25,7 +25,7 @@ class ServiceJourneyResolver(
         var matched = 0
 
         val result = flights.map { flight ->
-            val departureTimeStr = flight.stops.first().departureTime.toString()
+            val departureTimeStr = flight.stops.first().departureTime?.toString()
 
             if (departureTimeStr == null) {
                 LOG.warn("No departure time for resolution: flightId={}", flight.flightId)

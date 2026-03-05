@@ -3,7 +3,6 @@ package service
 import model.UnifiedFlight
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.ZoneOffset
 
 private val LOG = LoggerFactory.getLogger(ServiceJourneyResolver::class.java)
 
@@ -26,8 +25,7 @@ class ServiceJourneyResolver(
         var matched = 0
 
         val result = flights.map { flight ->
-            val departureTimeStr = flight.stops.first().departureTime
-                ?.atZone(ZoneOffset.UTC)?.toString()
+            val departureTimeStr = flight.stops.first().departureTime.toString()
 
             if (departureTimeStr == null) {
                 LOG.warn("No departure time for resolution: flightId={}", flight.flightId)

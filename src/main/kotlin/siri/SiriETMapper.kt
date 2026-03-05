@@ -219,6 +219,7 @@ class SiriETMapper(
             FlightCodes.CANCELLED_CODE -> {
                 call.departureStatus = CallStatusEnumeration.CANCELLED
                 call.setCancellation(true)
+                call.expectedDepartureTime = scheduledZdt
             }
             else -> {
                 call.departureStatus = CallStatusEnumeration.ON_TIME
@@ -260,6 +261,7 @@ class SiriETMapper(
             FlightCodes.CANCELLED_CODE -> {
                 call.arrivalStatus = CallStatusEnumeration.CANCELLED
                 call.setCancellation(true)
+                call.expectedArrivalTime = scheduledZdt
             }
             else -> {
                 call.arrivalStatus = CallStatusEnumeration.ON_TIME

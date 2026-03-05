@@ -312,18 +312,29 @@ class FlightAggregationService(
             )
         }
 
+        val statusTimes = flight.stops.flatMap { stop ->
+            listOfNotNull(
+                stop.departureStatusTime?.atZone(ZoneOffset.UTC),
+                stop.arrivalStatusTime?.atZone(ZoneOffset.UTC)
+            )
+        }
+
+        // For the "too old" check, prefer status times (actual real-world event times).
+        // Falling back to scheduled times if no status times are available.
+        val timesForMaxCheck = statusTimes.ifEmpty { allTimes }
+
         if (allTimes.isEmpty()) return true
 
-        // Drop chains whose last stop is already more than MAX_PAST_MINUTES in the past
-        if (allTimes.max().isBefore(minTime)) {
+        // Drop chains whose last real event is already more than MAX_PAST_MINUTES in the past
+        if (timesForMaxCheck.isNotEmpty() && timesForMaxCheck.max().isBefore(minTime)) {
             val route = flight.stops.joinToString(" → ") { stop ->
                 val dep = stop.departureTime?.atZone(ZoneOffset.UTC)?.toString() ?: "-"
                 val arr = stop.arrivalTime?.atZone(ZoneOffset.UTC)?.toString() ?: "-"
                 "${stop.airportCode}(dep=$dep arr=$arr)"
             }
             LOG.trace(
-                "FILTERED: flightId={} | route={} | reason=too old — latest stop {} is before minTime {} | now={}",
-                flight.flightId, route, allTimes.max(), minTime, now
+                "FILTERED: flightId={} | route={} | reason=too old — latest status {} is before minTime {} | now={}",
+                flight.flightId, route, timesForMaxCheck.max(), minTime, now
             )
             return false
         }

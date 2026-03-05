@@ -1,7 +1,6 @@
 package model
 
-import java.time.LocalDateTime
-import java.time.LocalDate
+import java.time.Instant
 
 /**
  * Represents a single visit to an airport within a flight chain.
@@ -16,12 +15,12 @@ import java.time.LocalDate
  */
 data class FlightStop(
     val airportCode: String,
-    val arrivalTime: LocalDateTime?,
-    val departureTime: LocalDateTime?,
+    val arrivalTime: Instant?,
+    val departureTime: Instant?,
     val departureStatusCode: String? = null,
-    val departureStatusTime: LocalDateTime? = null,
+    val departureStatusTime: Instant? = null,
     val arrivalStatusCode: String? = null,
-    val arrivalStatusTime: LocalDateTime? = null,
+    val arrivalStatusTime: Instant? = null,
     val targetAirport: String? = null // Next airport in the chain (used for gap detection)
 )
 
@@ -29,7 +28,7 @@ data class FlightStop(
  * Groups Avinor flight events by flight ID and calendar date,
  * preventing flights from different days being stitched together.
  */
-data class FlightKey(val flightId: String, val date: LocalDate)
+data class FlightKey(val flightId: String, val date: Instant)
 
 /**
  * Represents a complete journey (chain of stops) for a single Flight ID.
@@ -38,7 +37,7 @@ data class FlightKey(val flightId: String, val date: LocalDate)
 data class UnifiedFlight(
     val flightId: String,
     val operator: String,
-    val date: LocalDate,
+    val date: Instant,
     val stops: List<FlightStop>,
     val serviceJourneyRef: String? = null
 ) {

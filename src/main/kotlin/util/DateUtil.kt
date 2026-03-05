@@ -1,6 +1,6 @@
 package util
 
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -45,26 +45,9 @@ object DateUtil {
         }
     }
 
-    /**
-     * Specifically made for ServiceJourneys.
-     * Formats a date-time string with timezone information into a list containing the time and a partial DayType.
-     * @param dateTimeString string representing a date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
-     * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
-     */
-    /**
-     * Parses a schedule time string into a [LocalDateTime], returning null for blank,
-     * null, or unparseable input. Wraps [parseTimestamp] and converts the result to local date-time.
-     *
-     * @param timeStr The timestamp string to parse, or null/blank.
-     * @return A [LocalDateTime], or null if the input cannot be parsed.
-     */
-    fun parseTime(timeStr: String?): LocalDateTime? {
-        if (timeStr.isNullOrBlank()) return null
-        return try {
-            parseTimestamp(timeStr)?.toLocalDateTime()
-        } catch (e: IllegalArgumentException) {
-            null
-        }
+    fun parseTime(timeStr: String?): Instant? {
+        if(timeStr.isNullOrBlank()) return null
+        return parseTimestamp(timeStr)?.toInstant()
     }
 
     fun formatDateTimeZoneToTime(dateTimeString: String): List<String> {

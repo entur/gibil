@@ -264,6 +264,42 @@ class FlightAggregationServiceTest {
         }
 
         @Test
+        fun `should exclude flight when only departure is observed`() = runBlocking {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+
+            val oslDep = createFlight(
+                uniqueID = "1", flightId = "DY200", airline = "DY",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("OSL", listOf(oslDep))
+            mockAirportsList(listOf("OSL"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertFalse(result.any { it.flightId == "DY200" })
+        }
+
+        @Test
+        fun `should exclude flight when only arrival is observed`() = runBlocking {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+
+            val bgoArr = createFlight(
+                uniqueID = "1", flightId = "DY300", airline = "DY",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            mockAirportData("BGO", listOf(bgoArr))
+            mockAirportsList(listOf("BGO"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertFalse(result.any { it.flightId == "DY300" })
+        }
+
+        @Test
         fun `should filter out international flights`() = runBlocking {
             val now = ZonedDateTime.now(ZoneOffset.UTC)
 

@@ -40,7 +40,8 @@ data class UnifiedFlight(
     val operator: String,
     val date: LocalDate,
     val stops: List<FlightStop>,
-    val serviceJourneyRef: String? = null
+    val serviceJourneyRef: String? = null,
+    val lineRef: String? = null
 ) {
     // Convenience accessors
     val origin: String get() = stops.first().airportCode

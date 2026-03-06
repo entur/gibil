@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledExecutorService
 class SubscriptionManagerTest {
 
     private lateinit var subscriptionManager: SubscriptionManager
-    private lateinit var SubscriptionHttpHelper: SubscriptionHttpHelper
+    private lateinit var subscriptionHttpHelper: SubscriptionHttpHelper
     private lateinit var siriETMapper: SiriETMapper
     private lateinit var flightAggregationService: FlightAggregationService
     private lateinit var flightStateCache: FlightStateCache
@@ -29,17 +29,17 @@ class SubscriptionManagerTest {
 
     @BeforeEach
     fun setup() {
-        SubscriptionHttpHelper = mockk()
+        subscriptionHttpHelper = mockk()
         siriETMapper = mockk()
         flightAggregationService = mockk()
         flightStateCache = mockk(relaxed = true)
         serviceJourneyResolver = mockk()
-        subscriptionManager = SubscriptionManager(SubscriptionHttpHelper, siriETMapper, flightAggregationService, flightStateCache, serviceJourneyResolver)
+        subscriptionManager = SubscriptionManager(subscriptionHttpHelper, siriETMapper, flightAggregationService, flightStateCache, serviceJourneyResolver)
 
         every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
         every { serviceJourneyResolver.resolve(any()) } returns emptyList()
         every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
+        coEvery { subscriptionHttpHelper.postData(any(), any()) } returns 200
     }
 
     @Test
@@ -48,17 +48,17 @@ class SubscriptionManagerTest {
 
         subscriptionManager.addSubscription(subscription)
 
-        coVerify(exactly = 1) { SubscriptionHttpHelper.postData(subscription.address, any()) }
+        coVerify(exactly = 1) { subscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
     fun `Should handle failed initial delivery`() {
         val subscription = createTestSubscription()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } throws Exception("Connection error")
+        coEvery { subscriptionHttpHelper.postData(any(), any()) } throws Exception("Connection error")
 
         subscriptionManager.addSubscription(subscription)
 
-        coVerify(exactly = 1) { SubscriptionHttpHelper.postData(subscription.address, any()) }
+        coVerify(exactly = 1) { subscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -69,15 +69,15 @@ class SubscriptionManagerTest {
         subscriptionManager.addSubscription(subscription1)
         subscriptionManager.addSubscription(subscription2)
 
-        clearMocks(SubscriptionHttpHelper, answers = false)
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
+        clearMocks(subscriptionHttpHelper, answers = false)
+        coEvery { subscriptionHttpHelper.postData(any(), any()) } returns 200
 
         val siri = createSiriWithET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 2) { SubscriptionHttpHelper.postData(any(), any()) }
-        coVerify { SubscriptionHttpHelper.postData(subscription1.address, any()) }
-        coVerify { SubscriptionHttpHelper.postData(subscription2.address, any()) }
+        coVerify(exactly = 2) { subscriptionHttpHelper.postData(any(), any()) }
+        coVerify { subscriptionHttpHelper.postData(subscription1.address, any()) }
+        coVerify { subscriptionHttpHelper.postData(subscription2.address, any()) }
     }
 
     @Test
@@ -85,25 +85,25 @@ class SubscriptionManagerTest {
         val subscription = createTestSubscription()
 
         subscriptionManager.addSubscription(subscription)
-        clearMocks(SubscriptionHttpHelper, answers = false)
+        clearMocks(subscriptionHttpHelper, answers = false)
 
         val siri = createSiriWithoutET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 0) { SubscriptionHttpHelper.postData(any(), any()) }
+        coVerify(exactly = 0) { subscriptionHttpHelper.postData(any(), any()) }
     }
 
     @Test
     fun `Should handle push failure and increment failure counter`() {
         val subscription = createTestSubscription()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } throws Exception("Network error")
+        coEvery { subscriptionHttpHelper.postData(any(), any()) } throws Exception("Network error")
 
         subscriptionManager.addSubscription(subscription)
 
         val siri = createSiriWithET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(atLeast = 1) { SubscriptionHttpHelper.postData(subscription.address, any()) }
+        coVerify(atLeast = 1) { subscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -114,11 +114,11 @@ class SubscriptionManagerTest {
         subscriptionManager.terminateSubscription(subscription.subscriptionId)
 
         val siri = createSiriWithET()
-        clearMocks(SubscriptionHttpHelper, answers = false)
+        clearMocks(subscriptionHttpHelper, answers = false)
 
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 0) { SubscriptionHttpHelper.postData(subscription.address, any()) }
+        coVerify(exactly = 0) { subscriptionHttpHelper.postData(subscription.address, any()) }
     }
 
     @Test
@@ -130,14 +130,14 @@ class SubscriptionManagerTest {
         subscriptionManager.addSubscription(subscription2)
 
         subscriptionManager.terminateSubscription(subscription1.subscriptionId)
-        clearMocks(SubscriptionHttpHelper, answers = false)
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
+        clearMocks(subscriptionHttpHelper, answers = false)
+        coEvery { subscriptionHttpHelper.postData(any(), any()) } returns 200
 
         val siri = createSiriWithET()
         subscriptionManager.pushSiriToSubscribers(siri)
 
-        coVerify(exactly = 0) { SubscriptionHttpHelper.postData(subscription1.address, any()) }
-        coVerify(exactly = 1) { SubscriptionHttpHelper.postData(subscription2.address, any()) }
+        coVerify(exactly = 0) { subscriptionHttpHelper.postData(subscription1.address, any()) }
+        coVerify(exactly = 1) { subscriptionHttpHelper.postData(subscription2.address, any()) }
     }
 
     @Test
@@ -156,13 +156,13 @@ class SubscriptionManagerTest {
         subscriptionManager.addSubscription(subscription)
 
         // Simulate 5 failed heartbeats to trip the threshold
-        coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } returns 500
+        coEvery { subscriptionHttpHelper.postHeartbeat(any(), any()) } returns 500
         repeat(5) { runnableSlot.captured.run() }
 
         // 6th run should now see hasFailed = true and terminate
         runnableSlot.captured.run()
 
-        coVerify(atLeast = 5) { SubscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
+        coVerify(atLeast = 5) { subscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
 
         unmockkStatic(Executors::class)
     }
@@ -179,14 +179,14 @@ class SubscriptionManagerTest {
         mockkStatic(Executors::class)
         every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
 
-        coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } throws Exception("Connection refused")
+        coEvery { subscriptionHttpHelper.postHeartbeat(any(), any()) } throws Exception("Connection refused")
 
         subscriptionManager.addSubscription(subscription)
 
         // Should not throw — exception is caught internally
         runnableSlot.captured.run()
 
-        coVerify(exactly = 1) { SubscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
+        coVerify(exactly = 1) { subscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
 
         unmockkStatic(Executors::class)
     }
@@ -203,12 +203,12 @@ class SubscriptionManagerTest {
         mockkStatic(Executors::class)
         every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
 
-        coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } returns 503
+        coEvery { subscriptionHttpHelper.postHeartbeat(any(), any()) } returns 503
 
         subscriptionManager.addSubscription(subscription)
         runnableSlot.captured.run()
 
-        coVerify(exactly = 1) { SubscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
+        coVerify(exactly = 1) { subscriptionHttpHelper.postHeartbeat(subscription.address, any()) }
 
         unmockkStatic(Executors::class)
     }

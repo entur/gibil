@@ -5,27 +5,27 @@
             <providers>
                 <pattern>
                     <pattern>
-                        {
-                        "serviceContext": {
-                            "service": "gibil"
-                        },
-                        "message": "%message\n%ex{full}",
-                        "severity": "%level",
-                        "threadId": "%t",
-                        "reportLocation": {
-                            "filePath": "%logger",
-                            "lineNumber": "%line",
-                            "functionName": "%method"
-                        }
-                        }
+                        {"serviceContext":{"service":"gibil"}}
                     </pattern>
                 </pattern>
+                <message>
+                    <fieldName>message</fieldName>
+                </message>
+                <stackTrace>
+                    <fieldName>stackTrace</fieldName>
+                </stackTrace>
+                <logLevel>
+                    <fieldName>severity</fieldName>
+                </logLevel>
+                <threadName>
+                    <fieldName>threadName</fieldName>
+                </threadName>
+                <loggerName>
+                    <fieldName>loggerName</fieldName>
+                </loggerName>
             </providers>
         </encoder>
     </appender>
-    <logger name="com" level="INFO"/>
-    <logger name="no" level="INFO"/>
-    <logger name="org" level="INFO"/>
     <logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
     <logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
     <logger name="org.apache.coyote.http11.Http11NioProtocol" level="WARN"/>

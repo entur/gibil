@@ -4,6 +4,8 @@ import io.mockk.every
 import io.mockk.mockk
 import model.FlightStop
 import model.UnifiedFlight
+import model.serviceJourney.LineRefWrapper
+import model.serviceJourney.ServiceJourney
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -16,12 +18,25 @@ class ServiceJourneyResolverTest {
     private val resolver = ServiceJourneyResolver(findServiceJourneyService)
 
     @Test
-    fun `should attach ref when match is found`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns "AVI:ServiceJourney:SK123_hash"
+    fun `should attach serviceJourneyRef when match is found`() {
+        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ServiceJourney(serviceJourneyId = "AVI:ServiceJourney:SK123_hash")
 
         val result = resolver.resolve(listOf(createFlight("SK123")))
 
         assertEquals("AVI:ServiceJourney:SK123_hash", result[0].serviceJourneyRef)
+        assertNull(result[0].lineRef)
+    }
+
+    @Test
+    fun `should attach lineRef when match contains one`() {
+        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ServiceJourney(
+            serviceJourneyId = "AVI:ServiceJourney:SK123_hash",
+            lineRef = LineRefWrapper(ref = "AVI:LineRef:SK_OSL-BGO")
+        )
+
+        val result = resolver.resolve(listOf(createFlight("SK123")))
+
+        assertEquals("AVI:LineRef:SK_OSL-BGO", result[0].lineRef)
     }
 
     @Test
@@ -31,6 +46,7 @@ class ServiceJourneyResolverTest {
         val result = resolver.resolve(listOf(createFlight()))
 
         assertNull(result[0].serviceJourneyRef)
+        assertNull(result[0].lineRef)
     }
 
     @Test
@@ -54,7 +70,7 @@ class ServiceJourneyResolverTest {
     @Test
     fun `should process all flights independently when one fails`() {
         every { findServiceJourneyService.matchServiceJourney(any(), "SK123") } throws ServiceJourneyNotFoundException("no match")
-        every { findServiceJourneyService.matchServiceJourney(any(), "DY456") } returns "AVI:ServiceJourney:DY456_hash"
+        every { findServiceJourneyService.matchServiceJourney(any(), "DY456") } returns ServiceJourney(serviceJourneyId = "AVI:ServiceJourney:DY456_hash")
 
         val result = resolver.resolve(listOf(createFlight("SK123"), createFlight("DY456")))
 

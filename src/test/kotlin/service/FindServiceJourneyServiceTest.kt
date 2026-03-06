@@ -26,8 +26,8 @@ class FindServiceJourneyServiceTest {
         val foundMatch1 = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1])
         val foundMatch2 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1])
 
-        Assertions.assertTrue { "SK4011-01-358551288" in foundMatch1 }
-        Assertions.assertTrue { "DY628-01-523288933" in foundMatch2 }
+        Assertions.assertTrue { "SK4011-01-358551288" in foundMatch1.serviceJourneyId }
+        Assertions.assertTrue { "DY628-01-523288933" in foundMatch2.serviceJourneyId }
     }
 
     @Test
@@ -49,6 +49,6 @@ class FindServiceJourneyServiceTest {
     fun `FindServiceJourney should find ID when flight is around midnight`() {
         val foundMatch = service.matchServiceJourney(exampleMidnight[0], exampleMidnight[1])
 
-        Assertions.assertTrue { "DY9999-01-123456789" in foundMatch }
+        Assertions.assertTrue { "DY9999-01-123456789" in foundMatch.serviceJourneyId }
     }
 }

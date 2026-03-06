@@ -9,7 +9,6 @@ import org.gibil.service.AirportQuayService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.org.siri.siri21.*
-import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -33,7 +32,6 @@ class SiriETMapper(
         private const val PRODUCER_REF = "AVINOR"
         private const val DATA_SOURCE = "AVINOR"
         private const val OPERATOR_PREFIX = "AVI:Operator:"
-        private const val LINE_PREFIX = "AVI:Line:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
         private val UTC_ZONE = ZoneOffset.UTC
     }
@@ -85,27 +83,28 @@ class SiriETMapper(
     private fun mapFlightToJourney(flight: UnifiedFlight): EstimatedVehicleJourney? {
         val journey = EstimatedVehicleJourney()
 
-        // LineRef uses size-ordered airports (largest first)
-        val ordered = orderAirportsBySize(listOf(flight.origin, flight.destination))
+        val ref = flight.serviceJourneyRef
+        if (ref == null) {
+            LOG.warn("No service journey ref for {}, skipping", flight.flightId)
+            return null
+        }
+
+        val lineRefValue = flight.lineRef ?: run {
+            LOG.warn("No line ref for {}, skipping", flight.flightId)
+            return null
+        }
         val lineRef = LineRef()
-        lineRef.value = "$LINE_PREFIX${flight.operator}_${ordered[0]}-${ordered[1]}"
+        lineRef.value = lineRefValue
         journey.lineRef = lineRef
 
         val operatorRef = OperatorRefStructure()
         operatorRef.value = "$OPERATOR_PREFIX${flight.operator}"
         journey.operatorRef = operatorRef
 
+        //DirectionRef is required, but is not used therefore it is set to 0
         val directionRef = DirectionRefStructure()
-        // Circular routes (origin == destination) default to "outbound".
-        // Otherwise outbound if departing the larger (hub) airport, inbound otherwise.
-        directionRef.value = if (flight.origin == flight.destination || flight.origin == ordered[0]) "outbound" else "inbound"
+        directionRef.value = "0"
         journey.directionRef = directionRef
-
-        val ref = flight.serviceJourneyRef
-        if (ref == null) {
-            LOG.warn("No service journey ref for {}, skipping", flight.flightId)
-            return null
-        }
 
         val framedVehicleJourneyRef = FramedVehicleJourneyRefStructure()
         val dataFrameRef = DataFrameRefStructure()

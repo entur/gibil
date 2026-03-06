@@ -68,7 +68,7 @@ class FindServiceJourneyService(
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(departureInfoRaw: String, flightCode: String): String {
+    fun matchServiceJourney(departureInfoRaw: String, flightCode: String): ServiceJourney {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
         val dateInfo = formatForServiceJourney(departureInfoRaw)
 
@@ -82,7 +82,7 @@ class FindServiceJourneyService(
             val flightCodeMatch = journey.publicCode == flightCode
 
             if (dateInfoMatch && flightCodeMatch) {
-                return journey.serviceJourneyId
+                return journey
             }
         }
 

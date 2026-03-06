@@ -3,7 +3,6 @@ package subscription
 import org.entur.siri21.util.SiriXml
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import uk.org.siri.siri21.Siri
 import kotlinx.coroutines.runBlocking
@@ -12,6 +11,7 @@ import org.gibil.subscription.model.SiriDataType
 import org.gibil.subscription.model.Subscription
 import org.gibil.subscription.repository.FlightStateCache
 import service.FlightAggregationService
+import service.ServiceJourneyResolver
 import siri.SiriETMapper
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -25,10 +25,11 @@ private val LOG: Logger = LoggerFactory.getLogger(SubscriptionManager::class.jav
  */
 @Repository
 class SubscriptionManager(
-    @param:Autowired private val subscriptionHttpHelper: SubscriptionHttpHelper,
-    @param:Autowired private val siriETMapper: SiriETMapper,
-    @param:Autowired private val flightAggregationService: FlightAggregationService,
-    @param:Autowired private val flightStateCache: FlightStateCache
+    private val subscriptionHttpHelper: SubscriptionHttpHelper,
+    private val siriETMapper: SiriETMapper,
+    private val flightAggregationService: FlightAggregationService,
+    private val flightStateCache: FlightStateCache,
+    private val serviceJourneyResolver: ServiceJourneyResolver
 ) {
     private val subscriptions = ConcurrentHashMap<String, Subscription>()
     private val subscriptionFailCounter = ConcurrentHashMap<String, Int>()
@@ -81,8 +82,9 @@ class SubscriptionManager(
         val initialDelivery: Siri? = when (subscription.subscriptionType) {
             SiriDataType.ESTIMATED_TIMETABLE -> {
                 val initialData = flightAggregationService.fetchUnifiedFlights()
-                flightStateCache.populateCache(initialData)
-                siriETMapper.mapUnifiedFlightsToSiri(initialData)
+                val resolvedInitialData = serviceJourneyResolver.resolve(initialData)
+                flightStateCache.populateCache(resolvedInitialData)
+                siriETMapper.mapUnifiedFlightsToSiri(resolvedInitialData)
             }
         }
 

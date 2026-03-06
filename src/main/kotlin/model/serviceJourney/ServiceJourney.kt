@@ -17,6 +17,9 @@ data class ServiceJourney(
     @field:XmlElement(name = "PublicCode", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     var publicCode: String = "",
 
+    @field:XmlElement(name = "LineRef", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
+    var lineRef: LineRefWrapper? = null,
+
     @field:XmlElement(name = "passingTimes", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     private var passingTimesWrapper: PassingTimesWrapper? = null
 
@@ -39,6 +42,12 @@ data class ServiceJourney(
             return times.mapNotNull { it.arrivalTime }
         }
 }
+
+@XmlAccessorType(XmlAccessType.FIELD)
+data class LineRefWrapper(
+    @field:XmlAttribute(name = "ref")
+    var ref: String = ""
+)
 
 @XmlAccessorType(XmlAccessType.FIELD)
 data class PassingTimesWrapper(

@@ -29,13 +29,12 @@ class SiriETMapperTest {
 
     @ParameterizedTest
     @CsvSource(
-        "OSL,BGO,outbound,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
-        "BGO,OSL,inbound,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
+        "OSL,BGO,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
+        "BGO,OSL,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
     )
     fun `should create correct journey structure`(
         origin: String,
         destination: String,
-        expectedDirection: String,
         expectedFirstStop: String,
         expectedSecondStop: String
     ) {
@@ -43,7 +42,7 @@ class SiriETMapperTest {
         val journey = getJourneys(result)[0]
         val calls = journey.estimatedCalls.estimatedCalls
 
-        assertEquals(expectedDirection, journey.directionRef.value)
+        assertEquals("0", journey.directionRef.value)
         assertEquals(2, calls.size)
         assertEquals(expectedFirstStop, calls[0].stopPointRef.value)
         assertEquals(expectedSecondStop, calls[1].stopPointRef.value)
@@ -78,8 +77,15 @@ class SiriETMapperTest {
     }
 
     @Test
-    fun `should skip flight when no service journey ref is set`() {
+    fun `should skip flight when no serviceJourneyRef is set`() {
         val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(serviceJourneyRef = null)))
+
+        assertTrue(getJourneys(result).isEmpty())
+    }
+
+    @Test
+    fun `should skip flight when no lineRef is set`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(lineRef = null)))
 
         assertTrue(getJourneys(result).isEmpty())
     }
@@ -192,12 +198,14 @@ class SiriETMapperTest {
         arrivalTime: Instant = Instant.now().plus(1, ChronoUnit.HOURS),
         arrivalStatusCode: String? = null,
         arrivalStatusTime: Instant? = null,
-        serviceJourneyRef: String? = "AVI:ServiceJourney:SK123_hash"
+        serviceJourneyRef: String? = "AVI:ServiceJourney:SK123_hash",
+        lineRef: String? = "AVI:LineRef:SK_OSL-BGO"
     ) = UnifiedFlight(
         flightId = flightId,
         operator = operator,
         date = LocalDate.now(),
         serviceJourneyRef = serviceJourneyRef,
+        lineRef = lineRef,
         stops = listOf(
             FlightStop(
                 airportCode = origin,

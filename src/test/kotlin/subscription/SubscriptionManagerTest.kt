@@ -8,6 +8,7 @@ import org.gibil.subscription.repository.FlightStateCache
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import service.FlightAggregationService
+import service.ServiceJourneyResolver
 import siri.SiriETMapper
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure
 import uk.org.siri.siri21.ServiceDelivery
@@ -24,6 +25,7 @@ class SubscriptionManagerTest {
     private lateinit var siriETMapper: SiriETMapper
     private lateinit var flightAggregationService: FlightAggregationService
     private lateinit var flightStateCache: FlightStateCache
+    private lateinit var serviceJourneyResolver: ServiceJourneyResolver
 
     @BeforeEach
     fun setup() {
@@ -31,15 +33,18 @@ class SubscriptionManagerTest {
         siriETMapper = mockk()
         flightAggregationService = mockk()
         flightStateCache = mockk(relaxed = true)
-        subscriptionManager = SubscriptionManager(SubscriptionHttpHelper, siriETMapper, flightAggregationService, flightStateCache)
+        serviceJourneyResolver = mockk()
+        subscriptionManager = SubscriptionManager(SubscriptionHttpHelper, siriETMapper, flightAggregationService, flightStateCache, serviceJourneyResolver)
+
+        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
+        every { serviceJourneyResolver.resolve(any()) } returns emptyList()
+        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
+        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
     }
 
     @Test
     fun `Should add a subscription successfully`() {
         val subscription = createTestSubscription()
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
 
@@ -49,8 +54,6 @@ class SubscriptionManagerTest {
     @Test
     fun `Should handle failed initial delivery`() {
         val subscription = createTestSubscription()
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { SubscriptionHttpHelper.postData(any(), any()) } throws Exception("Connection error")
 
         subscriptionManager.addSubscription(subscription)
@@ -62,10 +65,6 @@ class SubscriptionManagerTest {
     fun `Should push SIRI data to subscribers`() {
         val subscription1 = createTestSubscription(id = "sub001")
         val subscription2 = createTestSubscription(id = "sub002")
-
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription1)
         subscriptionManager.addSubscription(subscription2)
@@ -84,9 +83,6 @@ class SubscriptionManagerTest {
     @Test
     fun `Should not push SIRI data if no ET deliveries`() {
         val subscription = createTestSubscription()
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
         clearMocks(SubscriptionHttpHelper, answers = false)
@@ -100,8 +96,6 @@ class SubscriptionManagerTest {
     @Test
     fun `Should handle push failure and increment failure counter`() {
         val subscription = createTestSubscription()
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { SubscriptionHttpHelper.postData(any(), any()) } throws Exception("Network error")
 
         subscriptionManager.addSubscription(subscription)
@@ -115,9 +109,6 @@ class SubscriptionManagerTest {
     @Test
     fun `Should terminate subscription successfully`() {
         val subscription = createTestSubscription()
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription)
         subscriptionManager.terminateSubscription(subscription.subscriptionId)
@@ -134,10 +125,6 @@ class SubscriptionManagerTest {
     fun `Should not affect other subscriptions when one is terminated`() {
         val subscription1 = createTestSubscription("sub001", address = "http://localhost:8080/notify1")
         val subscription2 = createTestSubscription("sub002", address = "http://localhost:8080/notify2")
-
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
 
         subscriptionManager.addSubscription(subscription1)
         subscriptionManager.addSubscription(subscription2)
@@ -166,10 +153,6 @@ class SubscriptionManagerTest {
         mockkStatic(Executors::class)
         every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
-
         subscriptionManager.addSubscription(subscription)
 
         // Simulate 5 failed heartbeats to trip the threshold
@@ -196,9 +179,6 @@ class SubscriptionManagerTest {
         mockkStatic(Executors::class)
         every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
         coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } throws Exception("Connection refused")
 
         subscriptionManager.addSubscription(subscription)
@@ -223,9 +203,6 @@ class SubscriptionManagerTest {
         mockkStatic(Executors::class)
         every { Executors.newSingleThreadScheduledExecutor() } returns mockExecutor
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
-        every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
-        coEvery { SubscriptionHttpHelper.postData(any(), any()) } returns 200
         coEvery { SubscriptionHttpHelper.postHeartbeat(any(), any()) } returns 503
 
         subscriptionManager.addSubscription(subscription)

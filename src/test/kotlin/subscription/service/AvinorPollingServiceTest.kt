@@ -5,6 +5,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import subscriptiontest.service.ServiceTestHelper
 import model.UnifiedFlight
+import org.gibil.health.PollingHealthRegistry
 import org.gibil.subscription.repository.FlightStateCache
 import org.gibil.subscription.service.AvinorPollingService
 import org.junit.jupiter.api.Assertions.*
@@ -25,6 +26,7 @@ class AvinorPollingServiceTest {
     @MockK lateinit var serviceJourneyResolver: ServiceJourneyResolver
     @MockK lateinit var siriETMapper: SiriETMapper
     @MockK lateinit var subscriptionManager: SubscriptionManager
+    @MockK lateinit var healthRegistry: PollingHealthRegistry
 
     private lateinit var service: AvinorPollingService
 
@@ -35,7 +37,8 @@ class AvinorPollingServiceTest {
             flightStateCache,
             serviceJourneyResolver,
             siriETMapper,
-            subscriptionManager
+            subscriptionManager,
+            healthRegistry
         )
         every { serviceJourneyResolver.resolve(any()) } answers { firstArg() }
         // Shared stubs used in most tests
@@ -56,6 +59,7 @@ class AvinorPollingServiceTest {
         every { flightStateCache.filterChanged(flights) } returns flights
         every { siriETMapper.mapUnifiedFlightsToSiri(flights) } returns siriPayload
         every { subscriptionManager.pushSiriToSubscribers(siriPayload) } just Runs
+        every { healthRegistry.recordSuccess(any()) } just Runs
 
         service.pollAndPushUpdates()
 
@@ -69,6 +73,7 @@ class AvinorPollingServiceTest {
 
         every { flightAggregationService.fetchUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns emptyList()
+        every { healthRegistry.recordSuccess(any()) } just Runs
 
         service.pollAndPushUpdates()
 
@@ -107,6 +112,7 @@ class AvinorPollingServiceTest {
     @Test
     fun `should not throw when fetchUnifiedFlights throws`() {
         every { flightAggregationService.fetchUnifiedFlights() } throws RuntimeException("API down")
+        every { healthRegistry.recordFailure(any(), any()) } just Runs
 
         assertDoesNotThrow { service.pollAndPushUpdates() }
     }
@@ -114,6 +120,7 @@ class AvinorPollingServiceTest {
     @Test
     fun `should not push when fetchUnifiedFlights throws`() {
         every { flightAggregationService.fetchUnifiedFlights() } throws RuntimeException("API down")
+        every { healthRegistry.recordFailure(any(), any()) } just Runs
 
         service.pollAndPushUpdates()
 
@@ -142,6 +149,7 @@ class AvinorPollingServiceTest {
         every { flightStateCache.filterChanged(allFlights) } returns listOf(changed)
         every { siriETMapper.mapUnifiedFlightsToSiri(listOf(changed)) } returns siriPayload
         every { subscriptionManager.pushSiriToSubscribers(siriPayload) } just Runs
+        every { healthRegistry.recordSuccess(any()) } just Runs
 
         service.pollAndPushUpdates()
 

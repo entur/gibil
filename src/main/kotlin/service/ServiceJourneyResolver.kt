@@ -27,15 +27,15 @@ class ServiceJourneyResolver(
         val result = flights.map { flight ->
             val departureTimeStr = flight.stops.first().departureTime?.toString()
 
-            if (departureTimeStr == null) {
+            if(departureTimeStr == null) {
                 LOG.warn("No departure time for resolution: flightId={}", flight.flightId)
                 return@map flight
             }
 
             try {
-                val ref = findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
+                val match = findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
                 matched++
-                flight.copy(serviceJourneyRef = ref)
+                flight.copy(serviceJourneyRef = match.serviceJourneyId, lineRef = match.lineRef?.ref)
             } catch (e: ServiceJourneyNotFoundException) {
                 LOG.debug("No NeTEx match for {}: {}", flight.flightId, e.message)
                 flight

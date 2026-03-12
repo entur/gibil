@@ -18,7 +18,7 @@ import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.service.ApiService
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.ClassPathResource
+import org.gibil.model.AirportIATA
 import org.springframework.stereotype.Service
 import util.DateUtil.parseTime
 import java.time.Instant
@@ -76,24 +76,6 @@ class FlightAggregationService(
     }
 
     /**
-     * Reads the list of Avinor airport IATA codes from the `airports.txt` classpath resource.
-     *
-     * @return The list of airport codes, or an empty list if the file cannot be read.
-     */
-    private fun loadAirportCodes(): List<String> {
-        return try {
-            ClassPathResource("airports.txt")
-                .inputStream
-                .bufferedReader()
-                .readLines()
-                .filter { it.isNotBlank() }
-        } catch (e: Exception) {
-            LOG.error("Error loading airport codes: {}", e.message)
-            emptyList()
-        }
-    }
-
-    /**
      * Wraps a raw Avinor [Flight] with the airport it was fetched from and its parsed schedule time.
      * Used as an intermediate representation before stop stitching.
      */
@@ -109,7 +91,7 @@ class FlightAggregationService(
      * Used by the /siri endpoint.
      */
     fun fetchUnifiedFlights(): List<UnifiedFlight> = runBlocking {
-        val airportCodes = loadAirportCodes()
+        val airportCodes = AirportIATA.entries.map { it.name }
 
         if (airportCodes.isEmpty()) {
             LOG.error("Airport list is empty")

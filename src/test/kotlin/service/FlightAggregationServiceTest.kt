@@ -98,15 +98,6 @@ class FlightAggregationServiceTest {
         every { xmlHandler.unmarshallXmlToAirport("<xml>$airportCode</xml>") } returns airport
     }
 
-    private fun mockAirportsList(airports: List<String>) {
-        val airportsText = airports.joinToString("\n")
-
-        mockkConstructor(ClassPathResource::class)
-        every {
-            anyConstructed<ClassPathResource>().inputStream
-        } returns airportsText.byteInputStream()
-    }
-
     @Nested
     inner class FetchUnifiedFlights {
 
@@ -127,7 +118,6 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(oslDep))
             mockAirportData("BGO", listOf(bgoArr))
-            mockAirportsList(listOf("OSL", "BGO"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -171,7 +161,6 @@ class FlightAggregationServiceTest {
             mockAirportData("TOS", listOf(tosDep))
             mockAirportData("BOO", listOf(booArr, booDep))
             mockAirportData("SVJ", listOf(svjArr))
-            mockAirportsList(listOf("TOS", "BOO", "SVJ"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -223,7 +212,6 @@ class FlightAggregationServiceTest {
             mockAirportData("BOO", listOf(booDep, booArr))
             mockAirportData("RET", listOf(retArr, retDep))
             mockAirportData("LKN", listOf(lknArr, lknDep))
-            mockAirportsList(listOf("BOO", "RET", "LKN"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -256,7 +244,6 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(oslDep))
             mockAirportData("TRD", listOf(trdArr))
-            mockAirportsList(listOf("OSL", "TRD"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -274,7 +261,6 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("OSL", listOf(oslDep))
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -292,7 +278,6 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("BGO", listOf(bgoArr))
-            mockAirportsList(listOf("BGO"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -324,7 +309,6 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(domesticFlight, internationalFlight))
             mockAirportData("BGO", listOf(domesticArrival))
-            mockAirportsList(listOf("OSL", "BGO"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -351,7 +335,6 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(oslDep))
             mockAirportData("LYR", listOf(lyrArr))
-            mockAirportsList(listOf("OSL", "LYR"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -374,7 +357,6 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("OSL", listOf(tooOld, tooFar))
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -386,7 +368,6 @@ class FlightAggregationServiceTest {
         fun `should handle API errors gracefully`() = runBlocking {
             every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
             every { apiService.apiCall(any()) } returns Result.failure(IOException("API unavailable"))
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -395,7 +376,6 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should return empty list when airport list is empty`() = runBlocking {
-            mockAirportsList(emptyList())
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -415,7 +395,6 @@ class FlightAggregationServiceTest {
         @Test
         fun `should handle exception thrown during airport data fetch`() = runBlocking {
             every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } throws RuntimeException("Connection timeout")
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -435,7 +414,6 @@ class FlightAggregationServiceTest {
             }
 
             mockAirportData("OSL", listOf(nullIdFlight))
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -452,7 +430,6 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("OSL", listOf(shortIdFlight))
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -477,7 +454,6 @@ class FlightAggregationServiceTest {
 
             mockAirportData("LYR", listOf(lyrDep))
             mockAirportData("OSL", listOf(oslArr))
-            mockAirportsList(listOf("LYR", "OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -493,7 +469,6 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("OSL", listOf(nullTimeFlight))
-            mockAirportsList(listOf("OSL"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 

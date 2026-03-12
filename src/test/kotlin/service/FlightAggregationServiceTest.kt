@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.core.io.ClassPathResource
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import java.io.IOException
 import java.time.ZoneOffset
@@ -250,10 +251,9 @@ class FlightAggregationServiceTest {
         }
 
         @Test
-        fun `should infer missing arrival stop from departure target`() = runBlocking {
+        fun `should exclude flight when only departure is observed`() = runBlocking {
             val now = ZonedDateTime.now(ZoneOffset.UTC)
 
-            // Only departure from OSL to BGO, no arrival data from BGO
             val oslDep = createFlight(
                 uniqueID = "1", flightId = "DY200", airline = "DY",
                 arrDep = "D", airport = "BGO",
@@ -264,36 +264,24 @@ class FlightAggregationServiceTest {
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
-            assertEquals(1, result.size)
-            val flight = result.first()
-            assertEquals(2, flight.stops.size)
-            assertEquals("OSL", flight.origin)
-            assertEquals("BGO", flight.destination)
+            assertFalse(result.any { it.flightId == "DY200" })
         }
 
         @Test
-        fun `should infer missing departure stop from arrival origin`() {
-            runBlocking {
-                val now = ZonedDateTime.now(ZoneOffset.UTC)
+        fun `should exclude flight when only arrival is observed`() = runBlocking {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
-                // Only arrival at BGO from OSL, no departure data from OSL
-                val bgoArr = createFlight(
-                    uniqueID = "1", flightId = "DY300", airline = "DY",
-                    arrDep = "A", airport = "OSL",
-                    scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
-                )
+            val bgoArr = createFlight(
+                uniqueID = "1", flightId = "DY300", airline = "DY",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
 
-                mockAirportData("BGO", listOf(bgoArr))
+            mockAirportData("BGO", listOf(bgoArr))
 
-                val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.fetchUnifiedFlights()
 
-                assertEquals(1, result.size)
-                val flight = result.first()
-                assertEquals(2, flight.stops.size)
-                assertEquals("OSL", flight.origin)
-                assertEquals("BGO", flight.destination)
-                assertNotNull(flight.stops.last().arrivalTime)
-            }
+            assertFalse(result.any { it.flightId == "DY300" })
         }
 
         @Test
@@ -306,6 +294,12 @@ class FlightAggregationServiceTest {
                 scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
                 domInt = "D"
             )
+            val domesticArrival = createFlight(
+                uniqueID = "3", flightId = "DY123",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "D"
+            )
             val internationalFlight = createFlight(
                 uniqueID = "2", flightId = "DY456",
                 arrDep = "D", airport = "CPH",
@@ -314,6 +308,7 @@ class FlightAggregationServiceTest {
             )
 
             mockAirportData("OSL", listOf(domesticFlight, internationalFlight))
+            mockAirportData("BGO", listOf(domesticArrival))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -331,8 +326,15 @@ class FlightAggregationServiceTest {
                 scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
                 domInt = "I"  // Avinor classifies LYR as international
             )
+            val lyrArr = createFlight(
+                uniqueID = "2", flightId = "DY660", airline = "DY",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "I"
+            )
 
             mockAirportData("OSL", listOf(oslDep))
+            mockAirportData("LYR", listOf(lyrArr))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -366,6 +368,24 @@ class FlightAggregationServiceTest {
         fun `should handle API errors gracefully`() = runBlocking {
             every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
             every { apiService.apiCall(any()) } returns Result.failure(IOException("API unavailable"))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should return empty list when airport list is empty`() = runBlocking {
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertEquals(0, result.size)
+        }
+
+        @Test
+        fun `should return empty list when airport codes file cannot be read`() = runBlocking {
+            mockkConstructor(ClassPathResource::class)
+            every { anyConstructed<ClassPathResource>().inputStream } throws RuntimeException("File not found")
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -425,8 +445,15 @@ class FlightAggregationServiceTest {
                 scheduleTime = now.plusHours(2).format(DateTimeFormatter.ISO_DATE_TIME),
                 domInt = "I"
             )
+            val oslArr = createFlight(
+                uniqueID = "2", flightId = "DY661", airline = "DY",
+                arrDep = "A", airport = "LYR",
+                scheduleTime = now.plusHours(3).format(DateTimeFormatter.ISO_DATE_TIME),
+                domInt = "I"
+            )
 
             mockAirportData("LYR", listOf(lyrDep))
+            mockAirportData("OSL", listOf(oslArr))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 

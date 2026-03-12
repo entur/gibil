@@ -46,7 +46,7 @@ class FlightAggregationService(
     companion object {
         // Filter to only include flights within this time window
         const val MAX_PAST_MINUTES = 20L      // At most 20 minutes in the past
-        const val MAX_FUTURE_HOURS = 7L       // Up to 7 hours in the future
+        const val MAX_FUTURE_HOURS = 24L       // Up to 24 hours in the future
     }
 
     /**

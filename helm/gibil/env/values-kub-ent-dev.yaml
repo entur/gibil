@@ -5,6 +5,7 @@ common:
   env: dev
   ingress:
     enabled: true
+    trafficType: public
     host: gibil.dev.entur.io
   replicas: 1
 

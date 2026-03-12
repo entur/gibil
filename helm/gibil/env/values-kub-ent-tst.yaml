@@ -5,6 +5,7 @@ common:
   env: tst
   ingress:
     enabled: false
+    trafficType: public
     host: gibil.staging.entur.io
   replicas: 1
 

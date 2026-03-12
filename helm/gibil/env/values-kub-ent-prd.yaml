@@ -5,6 +5,7 @@ common:
   env: prd
   ingress:
     enabled: false
+    trafficType: public
     host: gibil.entur.io
   replicas: 1
   container:

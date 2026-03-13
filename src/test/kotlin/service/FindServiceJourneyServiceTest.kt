@@ -18,9 +18,11 @@ class FindServiceJourneyServiceTest {
     val exampleNanFlightcode = listOf("2026-03-05T08:00:00Z", "NotReal")
     val exampleLineNanFlight = listOf("OSL", "SVG")
 
-    // Wrong date, valid flight code — tests that date matching actually gates the result
+    // Wrong date, valid flight code and lineref — tests that date matching actually gates the result
     val exampleWrongDate = listOf("2026-01-01T06:00:00Z", "SK4011")
-    val exampleLineRefWrongDate = listOf("OSL", "SVG")
+
+    // Wrong lineRef, valid flight code and date — tests that lineref matching works correctly
+    val exampleWrongLineRef = listOf("OSL", "LAX")
 
     // midnight edgecase, a fake flight i've manually made, since none existed around midnight
     val exampleMidnight = listOf("2026-05-24T22:30:00Z", "DY9999")
@@ -46,7 +48,14 @@ class FindServiceJourneyServiceTest {
     @Test
     fun `FindServiceJourney should throw when date does not match even if flight code and lineref exists`() {
         Assertions.assertThrows(ServiceJourneyNotFoundException::class.java) {
-            service.matchServiceJourney(exampleWrongDate[0], exampleWrongDate[1], exampleLineRefWrongDate)
+            service.matchServiceJourney(exampleWrongDate[0], exampleWrongDate[1], exampleLineRefSas)
+        }
+    }
+
+    @Test
+    fun `FindServiceJourney should throw when airports from avinor dosent match lineref info`() {
+        Assertions.assertThrows(ServiceJourneyNotFoundException::class.java) {
+            service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleWrongLineRef)
         }
     }
 

@@ -25,6 +25,7 @@ app: {{ template "app.name" . }}
 chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 release: {{ .Release.Name }}
 team: ror
+slack: talk-ror
 namespace: {{ .Release.Namespace }}
 {{- end }}
 

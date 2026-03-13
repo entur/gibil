@@ -54,11 +54,11 @@ object FindServiceJourneyConstants {
 object AvinorApiConfig {
     const val TIME_FROM_MIN_NUM = 1
     const val TIME_FROM_MAX_NUM = 36
-    const val TIME_FROM_DEFAULT = 2
+    const val TIME_FROM_DEFAULT = 5
 
     const val TIME_TO_MIN_NUM = 7
     const val TIME_TO_MAX_NUM = 336
-    const val TIME_TO_DEFAULT = 10
+    const val TIME_TO_DEFAULT = 24
 
 }
 

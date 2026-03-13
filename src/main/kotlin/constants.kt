@@ -63,7 +63,7 @@ object AvinorApiConfig {
 
     const val TIME_TO_MIN_NUM = 7
     const val TIME_TO_MAX_NUM = 336
-    const val TIME_TO_DEFAULT = 27
+    const val TIME_TO_DEFAULT = 24
 
 }
 

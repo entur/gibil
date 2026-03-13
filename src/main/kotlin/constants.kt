@@ -40,11 +40,6 @@ object FlightCodes {
     const val SVALBARD_AIRPORTS = "LYR"
 }
 
-object AirportSizeConfig {
-    val LARGE_AIRPORTS = setOf("OSL")
-    val MEDIUM_AIRPORTS = setOf("BGO", "BOO", "SVG", "TRD")
-}
-
 object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }

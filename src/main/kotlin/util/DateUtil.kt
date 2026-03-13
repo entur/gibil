@@ -1,6 +1,6 @@
 package util
 
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -45,57 +45,46 @@ object DateUtil {
         }
     }
 
-    /**
-     * Specifically made for ServiceJourneys.
-     * Formats a date-time string with timezone information into a list containing the time and a partial DayType.
-     * @param dateTimeString string representing a date and time with timezone information (e.g., "2026-02-07T13:40:00Z").
-     * @return A list of strings where the first element is the time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd" (e.g., "Feb_Sat_07").
-     */
-    /**
-     * Parses a schedule time string into a [LocalDateTime], returning null for blank,
-     * null, or unparseable input. Wraps [parseTimestamp] and converts the result to local date-time.
-     *
-     * @param timeStr The timestamp string to parse, or null/blank.
-     * @return A [LocalDateTime], or null if the input cannot be parsed.
-     */
-    fun parseTime(timeStr: String?): LocalDateTime? {
-        if (timeStr.isNullOrBlank()) return null
-        return try {
-            parseTimestamp(timeStr)?.toLocalDateTime()
-        } catch (e: IllegalArgumentException) {
-            null
-        }
+    fun parseTime(timeStr: String?): Instant? {
+        if(timeStr.isNullOrBlank()) return null
+        return parseTimestamp(timeStr)?.toInstant()
     }
 
-    fun formatDateTimeZoneToTime(dateTimeString: String): List<String> {
+    /**
+     * Formatting for making a time object into a list containing a departure time and a daytyperef based on the departuretime given.
+     * This method is specifically made to be used for matching flight information to a netex flight.
+     * @param departureTimeString A String representing the departuretime
+     * @return a list containing two objects; departuretime in norwegian timezone, a DayTypeRef string (MMM_E_dd)
+     */
+    fun formatForServiceJourney(departureTimeString: String): List<String> {
         try {
             //parse parameter into a ZonedDateTime object
-            val dateTimeWithZone = ZonedDateTime.parse(dateTimeString)
+            val dateTimeDepartureWithZone  = ZonedDateTime.parse(departureTimeString)
 
             // Norwegian timezone
             val norwayZone = ZoneId.of("Europe/Oslo")
 
             // Convert to Norwegian timezone
-            val norwayDateTime = dateTimeWithZone.withZoneSameInstant(norwayZone)
+            val norwayDateTimeDeparture = dateTimeDepartureWithZone .withZoneSameInstant(norwayZone)
 
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", Dates.LOCALE)
             val formatMonth = DateTimeFormatter.ofPattern("MMM", Dates.LOCALE)
-            val formatDate = DateTimeFormatter.ofPattern("dd", Dates.LOCALE)
             val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)
+            val formatDayNum = DateTimeFormatter.ofPattern("dd", Dates.LOCALE)
 
             // Implement formats onto object and create partial daytyperef-value
-            val month = norwayDateTime.format(formatMonth)
-            val dayName = norwayDateTime.format(formatDayShortName)
-            val day = norwayDateTime.format(formatDate)
+            val month = norwayDateTimeDeparture.format(formatMonth)
+            val dayName = norwayDateTimeDeparture.format(formatDayShortName)
+            val dayNum = norwayDateTimeDeparture.format(formatDayNum)
 
-            val dayType = "${month}_${dayName}_${day}"
+            val dayType = "${month}_${dayName}_${dayNum}"
 
-            val norwegianDepartureTime = norwayDateTime.format(formatFull)
+            val norwegianDepartureTime = norwayDateTimeDeparture.format(formatFull)
 
             return listOf(norwegianDepartureTime, dayType)
         } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid date-time format: $dateTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
+            throw IllegalArgumentException("Invalid date-time format: $departureTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
 }
 

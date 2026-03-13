@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
+import service.ServiceJourneyResolver
 import siri.SiriETMapper
 import siri.SiriETPublisher
 
@@ -15,6 +16,7 @@ import siri.SiriETPublisher
 class Endpoint(
     private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
     private val flightAggregationService: FlightAggregationService,
+    private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,
     private val siriETPublisher: SiriETPublisher,
     private val apiService: ApiService
@@ -27,9 +29,10 @@ class Endpoint(
      */
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
-    val unifiedFlights = flightAggregationService.fetchUnifiedFlights()
-    val siri = siriETMapper.mapUnifiedFlightsToSiri(unifiedFlights)
-    return siriETPublisher.toXml(siri)
+        val unifiedFlights = flightAggregationService.fetchUnifiedFlights()
+        val resolved = serviceJourneyResolver.resolve(unifiedFlights)
+        val siri = siriETMapper.mapUnifiedFlightsToSiri(resolved)
+        return siriETPublisher.toXml(siri)
     }
 
 

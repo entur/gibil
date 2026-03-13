@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import service.FlightAggregationService
+import service.ServiceJourneyResolver
 import siri.SiriETMapper
 import subscription.SubscriptionManager
 import uk.org.siri.siri21.Siri
@@ -21,6 +22,7 @@ class AvinorPollingServiceTest {
 
     @MockK lateinit var flightAggregationService: FlightAggregationService
     @MockK lateinit var flightStateCache: FlightStateCache
+    @MockK lateinit var serviceJourneyResolver: ServiceJourneyResolver
     @MockK lateinit var siriETMapper: SiriETMapper
     @MockK lateinit var subscriptionManager: SubscriptionManager
 
@@ -31,9 +33,11 @@ class AvinorPollingServiceTest {
         service = AvinorPollingService(
             flightAggregationService,
             flightStateCache,
+            serviceJourneyResolver,
             siriETMapper,
             subscriptionManager
         )
+        every { serviceJourneyResolver.resolve(any()) } answers { firstArg() }
         // Shared stubs used in most tests
         every { flightStateCache.getCacheSize() } returns 1
         every { flightStateCache.cacheKey(any()) } answers {

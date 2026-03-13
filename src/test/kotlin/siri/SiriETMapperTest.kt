@@ -4,13 +4,13 @@ import model.FlightStop
 import model.UnifiedFlight
 import org.gibil.service.AirportQuayService
 import io.mockk.*
-import service.FindServiceJourneyService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import uk.org.siri.siri21.CallStatusEnumeration
 
 class SiriETMapperTest {
@@ -18,11 +18,7 @@ class SiriETMapperTest {
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
-    private val findServiceJourneyService = mockk<FindServiceJourneyService> {
-        // Return a VJR string that contains the flightId so the VJR check passes
-        every { matchServiceJourney(any(), any()) } answers { "AVI:ServiceJourney:${secondArg<String>()}_hash" }
-    }
-    private val mapper = SiriETMapper(airportQuayService, findServiceJourneyService)
+    private val mapper = SiriETMapper(airportQuayService)
 
     @Test
     fun `should handle empty flight list`() {
@@ -33,13 +29,12 @@ class SiriETMapperTest {
 
     @ParameterizedTest
     @CsvSource(
-        "OSL,BGO,outbound,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
-        "BGO,OSL,inbound,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
+        "OSL,BGO,AVI:StopPointRef:OSL,AVI:StopPointRef:BGO",
+        "BGO,OSL,AVI:StopPointRef:BGO,AVI:StopPointRef:OSL"
     )
     fun `should create correct journey structure`(
         origin: String,
         destination: String,
-        expectedDirection: String,
         expectedFirstStop: String,
         expectedSecondStop: String
     ) {
@@ -47,7 +42,7 @@ class SiriETMapperTest {
         val journey = getJourneys(result)[0]
         val calls = journey.estimatedCalls.estimatedCalls
 
-        assertEquals(expectedDirection, journey.directionRef.value)
+        assertEquals("0", journey.directionRef.value)
         assertEquals(2, calls.size)
         assertEquals(expectedFirstStop, calls[0].stopPointRef.value)
         assertEquals(expectedSecondStop, calls[1].stopPointRef.value)
@@ -82,6 +77,20 @@ class SiriETMapperTest {
     }
 
     @Test
+    fun `should skip flight when no serviceJourneyRef is set`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(serviceJourneyRef = null)))
+
+        assertTrue(getJourneys(result).isEmpty())
+    }
+
+    @Test
+    fun `should skip flight when no lineRef is set`() {
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(lineRef = null)))
+
+        assertTrue(getJourneys(result).isEmpty())
+    }
+
+    @Test
     fun `should set departure status to MISSED when flight has departed`() {
         val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(departureStatusCode = "D")))
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
@@ -92,7 +101,7 @@ class SiriETMapperTest {
 
     @Test
     fun `should set departure status to ON_TIME when new time matches scheduled`() {
-        val scheduledTime = LocalDateTime.now()
+        val scheduledTime = Instant.now()
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
             createFlight(departureTime = scheduledTime, departureStatusCode = "E", departureStatusTime = scheduledTime)
         ))
@@ -105,7 +114,7 @@ class SiriETMapperTest {
     @Test
     fun `should set departure status to DELAYED when new time differs from scheduled`() {
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
-            createFlight(departureStatusCode = "E", departureStatusTime = LocalDateTime.now().plusMinutes(30))
+            createFlight(departureStatusCode = "E", departureStatusTime = Instant.now().plus(30, ChronoUnit.MINUTES))
         ))
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[0]
 
@@ -139,7 +148,7 @@ class SiriETMapperTest {
     @Test
     fun `should set arrival status to EARLY when new time is before scheduled`() {
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
-            createFlight(arrivalStatusCode = "E", arrivalStatusTime = LocalDateTime.now().plusMinutes(30))
+            createFlight(arrivalStatusCode = "E", arrivalStatusTime = Instant.now().plus(30, ChronoUnit.MINUTES))
         ))
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
 
@@ -149,7 +158,7 @@ class SiriETMapperTest {
 
     @Test
     fun `should set arrival status to ON_TIME when new time matches scheduled`() {
-        val scheduledTime = LocalDateTime.now().plusHours(1)
+        val scheduledTime = Instant.now().plus(1, ChronoUnit.HOURS)
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
             createFlight(arrivalTime = scheduledTime, arrivalStatusCode = "E", arrivalStatusTime = scheduledTime)
         ))
@@ -162,7 +171,7 @@ class SiriETMapperTest {
     @Test
     fun `should set arrival status to DELAYED when new time is after scheduled`() {
         val result = mapper.mapUnifiedFlightsToSiri(listOf(
-            createFlight(arrivalStatusCode = "E", arrivalStatusTime = LocalDateTime.now().plusHours(2))
+            createFlight(arrivalStatusCode = "E", arrivalStatusTime = Instant.now().plus(2, ChronoUnit.HOURS))
         ))
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
 
@@ -184,22 +193,6 @@ class SiriETMapperTest {
         assertEquals(call.aimedArrivalTime, call.expectedArrivalTime)
     }
 
-    @Test
-    fun `should skip flight when service journey lookup throws an exception`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any()) } throws RuntimeException("ExTime unavailable")
-        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
-
-        assertTrue(getJourneys(result).isEmpty())
-    }
-
-    @Test
-    fun `should skip flight when no service journey match is found`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any()) } returns ""
-        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
-
-        assertTrue(getJourneys(result).isEmpty())
-    }
-
     private fun getJourneys(result: uk.org.siri.siri21.Siri) =
         result.serviceDelivery.estimatedTimetableDeliveries[0]
             .estimatedJourneyVersionFrames[0].estimatedVehicleJourneies
@@ -209,16 +202,20 @@ class SiriETMapperTest {
         operator: String = "SK",
         origin: String = "OSL",
         destination: String = "BGO",
-        departureTime: LocalDateTime = LocalDateTime.now(),
+        departureTime: Instant = Instant.now(),
         departureStatusCode: String? = null,
-        departureStatusTime: LocalDateTime? = null,
-        arrivalTime: LocalDateTime = LocalDateTime.now().plusHours(1),
+        departureStatusTime: Instant? = null,
+        arrivalTime: Instant = Instant.now().plus(1, ChronoUnit.HOURS),
         arrivalStatusCode: String? = null,
-        arrivalStatusTime: LocalDateTime? = null
+        arrivalStatusTime: Instant? = null,
+        serviceJourneyRef: String? = "AVI:ServiceJourney:SK123_hash",
+        lineRef: String? = "AVI:LineRef:SK_OSL-BGO"
     ) = UnifiedFlight(
         flightId = flightId,
         operator = operator,
         date = LocalDate.now(),
+        serviceJourneyRef = serviceJourneyRef,
+        lineRef = lineRef,
         stops = listOf(
             FlightStop(
                 airportCode = origin,

@@ -8,50 +8,32 @@ import org.gibil.SiriConfig
 import org.gibil.service.AirportQuayService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import service.FindServiceJourneyService
 import uk.org.siri.siri21.*
-import util.AirportSizeClassification.orderAirportsBySize
 import java.math.BigInteger
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import kotlin.math.abs
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
 /**
  * Maps [UnifiedFlight] chains into SIRI Estimated Timetable (ET) documents.
- * Resolves airport quay IDs via [AirportQuayService], looks up ExTime service journey
- * references via [FindServiceJourneyService], and translates Avinor status codes
+ * Resolves airport quay IDs via [AirportQuayService] and translates Avinor status codes
  * into SIRI [CallStatusEnumeration] values.
  *
- * Flights that cannot be matched to a valid service journey reference are excluded
- * from the output rather than emitted with placeholder error values.
+ * Expects flights to already carry a [UnifiedFlight.serviceJourneyRef] set by
+ * [service.ServiceJourneyResolver]. Flights without a ref are skipped.
  */
 @Service
 class SiriETMapper(
-    private val airportQuayService: AirportQuayService,
-    private val findServiceJourneyService: FindServiceJourneyService
+    private val airportQuayService: AirportQuayService
 ) {
 
     companion object {
         private const val PRODUCER_REF = "AVINOR"
         private const val DATA_SOURCE = "AVINOR"
         private const val OPERATOR_PREFIX = "AVI:Operator:"
-        private const val LINE_PREFIX = "AVI:Line:"
         private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
         private val UTC_ZONE = ZoneOffset.UTC
-    }
-
-    /**
-     * Extension function that generates a deterministic numeric ID hash from a String.
-     * Uses a variant of the DJB2 algorithm, matching ExTime's route ID format.
-     *
-     * @param length The max number of digits in the returned hash string.
-     * @return A numeric string of up to [length] digits derived from hashing this String.
-     */
-    private fun String.idHash(length: Int): String {
-        val hashcode = fold(0) { acc, char -> (acc shl 5) - acc + char.code }
-        return abs(hashcode).toString().take(length)
     }
 
     /**
@@ -92,9 +74,8 @@ class SiriETMapper(
     /**
      * Maps a single [UnifiedFlight] to a SIRI [EstimatedVehicleJourney].
      *
-     * Returns null (and logs an error) if the first stop has no departure time or if no
-     * valid service journey reference can be found in ExTime, so the caller can silently
-     * exclude the flight from the output.
+     * Returns null if [UnifiedFlight.serviceJourneyRef] is not set, so the caller can
+     * silently exclude unmatched flights from the output.
      *
      * @param flight The unified flight chain to map.
      * @return The mapped journey, or null if the flight should be excluded from the output.
@@ -102,55 +83,34 @@ class SiriETMapper(
     private fun mapFlightToJourney(flight: UnifiedFlight): EstimatedVehicleJourney? {
         val journey = EstimatedVehicleJourney()
 
-        // LineRef uses size-ordered airports (largest first)
-        val ordered = orderAirportsBySize(listOf(flight.origin, flight.destination))
+        val ref = flight.serviceJourneyRef
+        if (ref == null) {
+            LOG.warn("No service journey ref for {}, skipping", flight.flightId)
+            return null
+        }
+
+        val lineRefValue = flight.lineRef ?: run {
+            LOG.warn("No line ref for {}, skipping", flight.flightId)
+            return null
+        }
         val lineRef = LineRef()
-        lineRef.value = "$LINE_PREFIX${flight.operator}_${ordered[0]}-${ordered[1]}"
+        lineRef.value = lineRefValue
         journey.lineRef = lineRef
 
         val operatorRef = OperatorRefStructure()
         operatorRef.value = "$OPERATOR_PREFIX${flight.operator}"
         journey.operatorRef = operatorRef
 
+        //DirectionRef is required, but is not used therefore it is set to 0
         val directionRef = DirectionRefStructure()
-        // Circular routes (origin == destination) default to "outbound".
-        // Otherwise outbound if departing the larger (hub) airport, inbound otherwise.
-        directionRef.value = if (flight.origin == flight.destination || flight.origin == ordered[0]) "outbound" else "inbound"
+        directionRef.value = "0"
         journey.directionRef = directionRef
 
         val framedVehicleJourneyRef = FramedVehicleJourneyRefStructure()
         val dataFrameRef = DataFrameRefStructure()
         dataFrameRef.value = flight.date.toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
-
-        // VJR hash uses the full stop sequence (not size-sorted) to match ExTime's route ID format
-        val fullRoute = "${flight.operator}_${flight.stops.joinToString("-") { it.airportCode }}"
-        val routeHash = fullRoute.idHash(10)
-
-        val departureTimeStr = flight.stops.first().departureTime?.atZone(UTC_ZONE)?.toString()
-        if (departureTimeStr == null) {
-            LOG.error("Missing departure time for VehicleJourneyRef: flightId={}", flight.flightId)
-            return null
-        }
-        try {
-            val findFlightSequence =
-                findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
-            if (flight.flightId in findFlightSequence) {
-                framedVehicleJourneyRef.datedVehicleJourneyRef = findFlightSequence
-                // Route hash check is advisory for multi-leg/circular flights:
-                // our stop sequence may differ from ExTime's route format
-                if (routeHash !in findFlightSequence) {
-                    LOG.debug("Route hash mismatch for {} (expected {} in {}), using service journey anyway",
-                        flight.flightId, routeHash, findFlightSequence)
-                }
-            } else {
-                LOG.error("No VJR match for {}, errors/{}", flight.flightId, Dates.currentDateMMMddyyyy())
-                return null
-            }
-        } catch (e: Exception) {
-            LOG.error("Error finding VJR-ID for flightId {}: {}", flight.flightId, e.message)
-            return null
-        }
+        framedVehicleJourneyRef.datedVehicleJourneyRef = ref
 
         journey.framedVehicleJourneyRef = framedVehicleJourneyRef
         journey.dataSource = DATA_SOURCE

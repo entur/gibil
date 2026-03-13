@@ -2,8 +2,6 @@ common:
   app: gibil
   shortname: gibil
   team: ror
-  ingress:
-    enabled: false
   service:
     externalPort: 80
     internalPort: 8080
@@ -20,15 +18,11 @@ common:
       - mountPath: /etc/application-config
         name: application-config
         readOnly: true
-      - name: logs
-        mountPath: /app/logs
     volumes:
       - configMap:
             defaultMode: 420
             name: gibil-application
         name: application-config
-      - name: logs
-        emptyDir: {}
     probes:
       startupProbe:
         enabled: true
@@ -36,33 +30,6 @@ common:
         path: /actuator/health/readiness
       livenessProbe:
         path: /actuator/health/liveness
-
-  initContainers:
-    - name: create-log-dirs
-      image: busybox:latest
-      volumeMounts:
-        - name: logs
-          mountPath: /app/logs
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        allowPrivilegeEscalation: false
-        runAsNonRoot: true
-        capabilities:
-          drop: ["ALL"]
-        seccompProfile:
-          type: RuntimeDefault
-      command:
-        - sh
-        - -c
-        - |
-          mkdir -p /app/logs/errors
-          mkdir -p /app/logs/general
-          mkdir -p /app/logs/secrets
-          mkdir -p /app/logs/serviceJourneys
-          chmod -R 755 /app/logs
-          echo "Log directories created:"
-          ls -la /app/logs/
   configmap:
     data:
       JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties

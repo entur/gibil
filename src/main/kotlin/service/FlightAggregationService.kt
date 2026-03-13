@@ -18,11 +18,12 @@ import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.service.ApiService
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.ClassPathResource
+import org.gibil.model.AirportIATA
 import org.springframework.stereotype.Service
 import util.DateUtil.parseTime
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -75,31 +76,13 @@ class FlightAggregationService(
     }
 
     /**
-     * Reads the list of Avinor airport IATA codes from the `airports.txt` classpath resource.
-     *
-     * @return The list of airport codes, or an empty list if the file cannot be read.
-     */
-    private fun loadAirportCodes(): List<String> {
-        return try {
-            ClassPathResource("airports.txt")
-                .inputStream
-                .bufferedReader()
-                .readLines()
-                .filter { it.isNotBlank() }
-        } catch (e: Exception) {
-            LOG.error("Error loading airport codes: {}", e.message)
-            emptyList()
-        }
-    }
-
-    /**
      * Wraps a raw Avinor [Flight] with the airport it was fetched from and its parsed schedule time.
      * Used as an intermediate representation before stop stitching.
      */
     private data class TaggedFlight(
         val sourceAirport: String,
         val raw: Flight,
-        val time: LocalDateTime
+        val time: Instant
     )
 
     /**
@@ -108,7 +91,7 @@ class FlightAggregationService(
      * Used by the /siri endpoint.
      */
     fun fetchUnifiedFlights(): List<UnifiedFlight> = runBlocking {
-        val airportCodes = loadAirportCodes()
+        val airportCodes = AirportIATA.entries.map { it.name }
 
         if (airportCodes.isEmpty()) {
             LOG.error("Airport list is empty")
@@ -132,8 +115,12 @@ class FlightAggregationService(
                 flights
                     .filter { isDomesticOrSvalbard(code, it) }
                     .forEach { flight ->
-                        parseTime(flight.scheduleTime)?.let { parsedTime ->
-                            allTaggedFlights.add(TaggedFlight(code, flight, parsedTime))
+                        try {
+                            parseTime(flight.scheduleTime)?.let { parsedTime ->
+                                allTaggedFlights.add(TaggedFlight(code, flight, parsedTime))
+                            }
+                        } catch (e: Exception) {
+                            LOG.warn("Malformed schedule time for flight {} at {}: {}", flight.flightId, code, e.message)
                         }
                     }
             }
@@ -141,12 +128,12 @@ class FlightAggregationService(
 
         // GROUP: by flightId + date to avoid mixing flights from different days
         val grouped = allTaggedFlights.groupBy {
-            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time.toLocalDate())
+            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate())
         }
 
         // STITCH: convert each group into an ordered chain of stops
         val unifiedFlights = grouped.mapNotNull { (key, events) ->
-            if (key.flightId == "UNKNOWN") null
+            if(key.flightId == "UNKNOWN") null
             else stitchFlightLegs(key.flightId, key.date, events)
         }
 
@@ -179,7 +166,6 @@ class FlightAggregationService(
         if (events.isEmpty() || flightId.length < 2) return null
 
         val stops = buildStopsFromEvents(events)
-        inferMissingEndpoint(stops, events)
 
         if (stops.size < 2 || hasGap(stops)) return null
 
@@ -227,25 +213,6 @@ class FlightAggregationService(
     }
 
     /**
-     * Recovers a usable two-stop chain when only one side of a direct flight was observed
-     * (e.g. one airport's API call failed or returned no data).
-     * If only a departure was seen, appends a placeholder destination.
-     * If only an arrival was seen, prepends a placeholder origin.
-     */
-    private fun inferMissingEndpoint(stops: MutableList<FlightStop>, events: List<TaggedFlight>) {
-        if (stops.size != 1) return
-        val onlyStop = stops.first()
-        if (onlyStop.departureTime != null && onlyStop.targetAirport != null) {
-            stops.add(FlightStop(airportCode = onlyStop.targetAirport, arrivalTime = null, departureTime = null))
-        } else if (onlyStop.arrivalTime != null) {
-            val originAirport = events.firstOrNull { it.raw.arrDep == FlightCodes.ARRIVAL_CODE }?.raw?.airport
-            if (originAirport != null) {
-                stops.add(0, FlightStop(airportCode = originAirport, arrivalTime = null, departureTime = null))
-            }
-        }
-    }
-
-    /**
      * Returns true if any stop departs toward an airport that is not the next stop in the chain.
      * This catches incomplete chains where a leg is missing from the data.
      */
@@ -284,9 +251,11 @@ class FlightAggregationService(
             arrivalTime = arrivalEvent?.time,
             departureTime = departureEvent?.time,
             departureStatusCode = departureEvent?.raw?.status?.code,
-            departureStatusTime = departureEvent?.raw?.status?.time?.let { parseTime(it) },
+            departureStatusTime = try { departureEvent?.raw?.status?.time?.let { parseTime(it) } }
+            catch (e: Exception) { LOG.warn("Malformed departure status time for {}: {}", airportCode, e.message); null },
             arrivalStatusCode = arrivalEvent?.raw?.status?.code,
-            arrivalStatusTime = arrivalEvent?.raw?.status?.time?.let { parseTime(it) },
+            arrivalStatusTime   = try { arrivalEvent?.raw?.status?.time?.let { parseTime(it) } }
+            catch (e: Exception) { LOG.warn("Malformed arrival status time for {}: {}", airportCode, e.message); null },
             targetAirport = target
         )
     }

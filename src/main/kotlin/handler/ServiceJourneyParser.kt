@@ -51,7 +51,7 @@ class ServiceJourneyParser {
     fun parseFolder(folderPath: String): List<ServiceJourney> {
         val folder = File(folderPath)
 
-        require(folder.exists() || folder.isDirectory) {
+        require(folder.exists() && folder.isDirectory) {
             "$folderPath is not a valid directory"
         }
 

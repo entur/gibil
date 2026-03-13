@@ -172,11 +172,16 @@ class SiriETMapperTest {
 
     @Test
     fun `should set arrival status to CANCELLED when flight is cancelled`() {
-        val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(arrivalStatusCode = "C")))
+        val scheduledTime = LocalDateTime.now().plusHours(1)
+        val result = mapper.mapUnifiedFlightsToSiri(
+            listOf(createFlight(arrivalTime = scheduledTime, arrivalStatusCode = "C"))
+        )
         val call = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
 
         assertEquals(CallStatusEnumeration.CANCELLED, call.arrivalStatus)
         assertTrue(call.isCancellation)
+        assertNotNull(call.expectedArrivalTime)
+        assertEquals(call.aimedArrivalTime, call.expectedArrivalTime)
     }
 
     @Test

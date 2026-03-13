@@ -32,7 +32,6 @@ class SiriETMapper(
         private const val PRODUCER_REF = "AVINOR"
         private const val DATA_SOURCE = "AVINOR"
         private const val OPERATOR_PREFIX = "AVI:Operator:"
-        private const val STOP_POINT_REF_PREFIX = "AVI:StopPointRef:"
         private val UTC_ZONE = ZoneOffset.UTC
     }
 
@@ -83,8 +82,8 @@ class SiriETMapper(
     private fun mapFlightToJourney(flight: UnifiedFlight): EstimatedVehicleJourney? {
         val journey = EstimatedVehicleJourney()
 
-        val ref = flight.serviceJourneyRef
-        if (ref == null) {
+        val datedVehicleJourneyRef = flight.serviceJourneyRef
+        if (datedVehicleJourneyRef == null) {
             LOG.warn("No service journey ref for {}, skipping", flight.flightId)
             return null
         }
@@ -110,7 +109,7 @@ class SiriETMapper(
         val dataFrameRef = DataFrameRefStructure()
         dataFrameRef.value = flight.date.toString()
         framedVehicleJourneyRef.dataFrameRef = dataFrameRef
-        framedVehicleJourneyRef.datedVehicleJourneyRef = ref
+        framedVehicleJourneyRef.datedVehicleJourneyRef = datedVehicleJourneyRef
 
         journey.framedVehicleJourneyRef = framedVehicleJourneyRef
         journey.dataSource = DATA_SOURCE
@@ -118,13 +117,20 @@ class SiriETMapper(
 
         val estimatedCallsWrapper = EstimatedVehicleJourney.EstimatedCalls()
         journey.setEstimatedCalls(estimatedCallsWrapper)
+        val resolvedStops = flight.stops.map { stop ->
 
-        flight.stops.forEachIndexed { index, stop ->
+            val quayId = airportQuayService.getQuayId(stop.airportCode)
+            if (quayId == null) {
+                LOG.error("No quay ID for airport {}, skipping flight {}", stop.airportCode, flight.flightId)
+                return null
+            }
+            stop to quayId
+        }
+        resolvedStops.forEachIndexed { index, (stop, quayId) ->
             val call = EstimatedCall()
-
             val stopPointRef = StopPointRefStructure()
-            stopPointRef.value = airportQuayService.getQuayId(stop.airportCode)
-                ?: "$STOP_POINT_REF_PREFIX${stop.airportCode}"
+
+            stopPointRef.value = quayId
             call.stopPointRef = stopPointRef
             call.order = BigInteger.valueOf((index + 1).toLong())
 

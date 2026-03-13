@@ -302,14 +302,14 @@ class FlightAggregationService(
                 "${stop.airportCode}(dep=$dep arr=$arr)"
             }
             LOG.trace(
-                "FILTERED: flightId={} | route={} | reason=too old — latest status {} is before minTime {} | now={}",
+                "FILTERED: flightId={} | route={} | reason=too old — latest time {} is before minTime {} | now={}",
                 flight.flightId, route, timesForMaxCheck.max(), minTime, now
             )
             return false
         }
 
-        // Drop chains that don't start within MAX_FUTURE_HOURS
-        if (allTimes.min().isAfter(maxTime)) {
+        // Drop chains whose last real event is already more than MAX_PAST_MINUTES in the past
+        if (timesForMaxCheck.isNotEmpty() && timesForMaxCheck.max().isBefore(minTime)) {
             val route = flight.stops.joinToString(" → ") { stop ->
                 val dep = stop.departureTime?.atZone(ZoneOffset.UTC)?.toString() ?: "-"
                 val arr = stop.arrivalTime?.atZone(ZoneOffset.UTC)?.toString() ?: "-"

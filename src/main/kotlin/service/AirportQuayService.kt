@@ -1,6 +1,7 @@
 package org.gibil.service
 
 import jakarta.annotation.PostConstruct
+import org.gibil.QuayCodes
 import org.gibil.StopPlaceMapper
 import org.gibil.routes.entur.StopPlaceApiHandler
 import org.slf4j.LoggerFactory
@@ -11,7 +12,7 @@ private val LOG = LoggerFactory.getLogger(AirportQuayService::class.java)
 @Service
 class AirportQuayService(private val handler: StopPlaceApiHandler, private val mapper: StopPlaceMapper) {
 
-    private var iataToQuayMap: Map<String, List<String>> = emptyMap()
+    private var iataToQuayMap: Map<String, Map<String, String>> = emptyMap()
 
 
     @PostConstruct
@@ -26,10 +27,25 @@ class AirportQuayService(private val handler: StopPlaceApiHandler, private val m
     fun refreshQuayMapping() {
         val xml = handler.fetchAirportStopPlaces().getOrElse { e ->
             LOG.error("Failed to refresh quay mapping: {}", e.message)
+            if (iataToQuayMap.isEmpty()) {
+                LOG.error("Quay map is empty, all quay resolutions will fail until successful refresh")
+            }
             return
         }
         val stopPlaces = mapper.unmarshallStopPlaceXml(xml)
-        iataToQuayMap = mapper.makeIataToQuayMap(stopPlaces)
+        val newMap = mapper.makeIataToQuayMap(stopPlaces)
+
+        iataToQuayMap = buildMap{
+
+            for ((iata, quayMap) in iataToQuayMap) {
+                val oldDefault = quayMap[QuayCodes.DEFAULT_KEY] ?: continue
+                put(iata, mapOf(QuayCodes.DEFAULT_KEY to oldDefault))
+            }
+            for ((iata, quayMap) in newMap) {
+                put(iata, (get(iata) ?: emptyMap()) + quayMap)
+            }
+        }
+        LOG.info("Quay map refreshed: {} airports", iataToQuayMap.size)
     }
 
     /**
@@ -37,16 +53,8 @@ class AirportQuayService(private val handler: StopPlaceApiHandler, private val m
      * @param iataCode String, used as key for map to fetch quayID belonging to airport.
      * @return String?, quayID
      */
-     fun getQuayId(iataCode: String): String? {
-        return iataToQuayMap[iataCode]?.firstOrNull()
+     fun getQuayId(iataCode: String, gate: String? = null): String? {
+         val quayMap = iataToQuayMap[iataCode] ?: return null
+         return quayMap[gate] ?: quayMap[QuayCodes.DEFAULT_KEY]
      }
-
-    /**
-     * Gets all quayIDs belonging to airport
-     * @param iataCode String, used as key for map to fetch quaysIDs belonging to airport.
-     * @return List<String>, list of quayIDs
-     */
-    fun getAllQuayIds(iataCode: String): List<String> {
-        return iataToQuayMap[iataCode] ?: emptyList()
-    }
 }

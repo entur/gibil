@@ -44,6 +44,10 @@ object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
 
+object QuayCodes {
+    const val DEFAULT_KEY = "DEFAULT"
+}
+
 object FindServiceJourneyConstants {
     //base path when running on a local computer, and not in cloud
     val LOCAL_BASEPATH = "src/main/resources/extimeData"

@@ -353,7 +353,7 @@ class FlightAggregationServiceTest {
             val tooFar = createFlight(
                 uniqueID = "2", flightId = "DY222",
                 arrDep = "D", airport = "BGO",
-                scheduleTime = now.plusHours(8).format(DateTimeFormatter.ISO_DATE_TIME)
+                scheduleTime = now.plusHours(25).format(DateTimeFormatter.ISO_DATE_TIME)
             )
 
             mockAirportData("OSL", listOf(tooOld, tooFar))

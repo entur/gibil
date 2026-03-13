@@ -33,9 +33,10 @@ class ServiceJourneyResolver(
             }
 
             try {
-                val match = findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId)
+                val lineRefInfo = listOf(flight.origin, flight.destination)
+                val match = findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId, lineRefInfo)
                 matched++
-                flight.copy(serviceJourneyRef = match.serviceJourneyId, lineRef = match.lineRef?.ref)
+                flight.copy(serviceJourneyRef = match.serviceJourneyId, lineRef = match.lineRef)
             } catch (e: ServiceJourneyNotFoundException) {
                 LOG.debug("No NeTEx match for {}: {}", flight.flightId, e.message)
                 flight

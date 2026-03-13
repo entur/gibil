@@ -68,20 +68,27 @@ class FindServiceJourneyService(
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(departureInfoRaw: String, flightCode: String): ServiceJourney {
+    fun matchServiceJourney(departureInfoRaw: String, flightCode: String, lineRefInfo: List<String>): ServiceJourney {
         //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
-        val dateInfo = formatForServiceJourney(departureInfoRaw)
+        val avinorFlightDateInfo = formatForServiceJourney(departureInfoRaw)
 
         //finding all service journeys and searching through them for a match
         serviceJourneyList.forEach { journey ->
             val dayTypeMatch = journey.dayTypes.any { dayType ->
-                dateInfo[1] in dayType
+                avinorFlightDateInfo[1] in dayType
             }
 
-            val dateInfoMatch = dateInfo[0] in journey.departureTime && dayTypeMatch
+            val dateInfoMatch = avinorFlightDateInfo[0] in journey.departureTime && dayTypeMatch
             val flightCodeMatch = journey.publicCode == flightCode
 
-            if (dateInfoMatch && flightCodeMatch) {
+            val lineRef = journey.lineRef
+            val lineRefMatch = lineRef != null && lineRefInfo[0] in lineRef && lineRefInfo[1] in lineRef
+
+            if (flightCodeMatch && dateInfoMatch && !lineRefMatch) {
+                LOG.warn("lineref not match, but flightcode and dateinfo matched; ${flightCode}, ${avinorFlightDateInfo[0]}, ${avinorFlightDateInfo[1]}, airports from avinor: ${lineRefInfo[0]},${lineRefInfo[1]}, lineref in extime lineref: ${lineRef}")
+            }
+
+            if (dateInfoMatch && flightCodeMatch && lineRefMatch) {
                 return journey
             }
         }
@@ -89,10 +96,10 @@ class FindServiceJourneyService(
         val codeMatches = serviceJourneyList.filter { it.publicCode == flightCode }
         LOG.debug(
             "No match for {} at {} ({}): {} journeys with same code, departure times: {}",
-            flightCode, dateInfo[0], dateInfo[1],
+            flightCode, avinorFlightDateInfo[0], avinorFlightDateInfo[1],
             codeMatches.size,
             codeMatches.map { it.departureTime }
         )
-        throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${dateInfo[0]} on ${dateInfo[1]}")
+        throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${avinorFlightDateInfo[0]} on ${avinorFlightDateInfo[1]}")
     }
 }

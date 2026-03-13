@@ -18,7 +18,7 @@ data class ServiceJourney(
     var publicCode: String = "",
 
     @field:XmlElement(name = "LineRef", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
-    var lineRef: LineRefWrapper? = null,
+    var lineRefElement: LineRefWrapper? = null,
 
     @field:XmlElement(name = "passingTimes", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
     private var passingTimesWrapper: PassingTimesWrapper? = null
@@ -41,6 +41,10 @@ data class ServiceJourney(
             val times = passingTimesWrapper?.timetabledPassingTimes ?: emptyList()
             return times.mapNotNull { it.arrivalTime }
         }
+
+    // Computed property to get lineref faster
+    val lineRef: String?
+        get() = lineRefElement?.ref
 }
 
 @XmlAccessorType(XmlAccessType.FIELD)

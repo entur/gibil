@@ -16,4 +16,4 @@ configMap:
   LOG_LEVEL: INFO
 
 cronJob:
-    gcpProject: entur-dev-gcp2
+    gcpProject: entur-prod-gcp2

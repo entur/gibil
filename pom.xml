@@ -9,7 +9,7 @@
         <version>4.0.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>org.example</groupId>
+    <groupId>org.entur</groupId>
     <artifactId>Gibil</artifactId>
     <version>1.0-SNAPSHOT</version>
 

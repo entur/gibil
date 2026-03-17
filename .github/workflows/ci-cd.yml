@@ -76,7 +76,4 @@ jobs:
     with:
       environment: tst
       image: "gibil:${{ needs.docker-push.outputs.image_tag }}"
-      chart: helm/gibil
-      namespace: gibil
-      release_name: gibil
     secrets: inherit

@@ -26,11 +26,12 @@ class StopPlaceMapper {
 
     /**
      * Maps quays belonging to specific airport.
-     * Airports IATA code is key and quayIDs are values in the list.
+     * Airports IATA code is key, value is a map of gate key to quayID.
+     * Currently all entries use [QuayCodes.DEFAULT_KEY] as the gate key since gate-level mapping is not yet populated.
      * @param stopPlaces StopPlaces
-     * @return Map<String, List<String>>
+     * @return Map<String, Map<String, String>>
      */
-    fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, List<String>> {
+    fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, Map<String, String>> {
         return stopPlaces.stopPlace
             .flatMap { sp -> sp.quays?.quay ?: emptyList() }
             .mapNotNull { quay ->
@@ -38,7 +39,8 @@ class StopPlaceMapper {
                     iataCode to quay.id
                 }
             }
-            .groupBy({it.first}, {it.second})
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, quayIds) -> mapOf(QuayCodes.DEFAULT_KEY to quayIds.first()) }
     }
 
     /**

@@ -100,6 +100,8 @@ class SiriETMapper(
         operatorRef.value = "$OPERATOR_PREFIX${flight.operator}"
         journey.operatorRef = operatorRef
 
+        journey.isMonitored = true
+
         //DirectionRef is required, but is not used therefore it is set to 0
         val directionRef = DirectionRefStructure()
         directionRef.value = "0"

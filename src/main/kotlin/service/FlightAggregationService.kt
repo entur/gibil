@@ -256,7 +256,8 @@ class FlightAggregationService(
             arrivalStatusCode = arrivalEvent?.raw?.status?.code,
             arrivalStatusTime   = try { arrivalEvent?.raw?.status?.time?.let { parseTime(it) } }
             catch (e: Exception) { LOG.warn("Malformed arrival status time for {}: {}", airportCode, e.message); null },
-            targetAirport = target
+            targetAirport = target,
+            gate = departureEvent?.raw?.gate
         )
     }
 

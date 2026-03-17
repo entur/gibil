@@ -119,7 +119,7 @@ class SiriETMapper(
         journey.setEstimatedCalls(estimatedCallsWrapper)
         val resolvedStops = flight.stops.map { stop ->
 
-            val quayId = airportQuayService.getQuayId(stop.airportCode)
+            val quayId = airportQuayService.getQuayId(stop.airportCode, stop.gate)
             if (quayId == null) {
                 LOG.error("No quay ID for airport {}, skipping flight {}", stop.airportCode, flight.flightId)
                 return null

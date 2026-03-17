@@ -1,6 +1,7 @@
 package org.gibil.subscription.service
 
 import org.gibil.subscription.repository.FlightStateCache
+import org.gibil.health.PollingHealthRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -20,7 +21,8 @@ class AvinorPollingService(
     private val flightStateCache: FlightStateCache,
     private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,
-    private val subscriptionManager: SubscriptionManager
+    private val subscriptionManager: SubscriptionManager,
+    private val healthRegistry: PollingHealthRegistry
 ) {
 
 
@@ -49,11 +51,13 @@ class AvinorPollingService(
                 val siri = siriETMapper.mapUnifiedFlightsToSiri(resolved)
 
                 subscriptionManager.pushSiriToSubscribers(siri)
+                healthRegistry.recordSuccess("avinorPoll")
             } else {
                 LOG.debug("No flight changes detected")
             }
         } catch (e: Exception) {
             LOG.error("Error during poll cycle: ${e.message}", e)
+            healthRegistry.recordFailure("avinorPoll", e.message ?: "Unknown error")
         }
     }
 }

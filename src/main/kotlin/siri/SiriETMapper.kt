@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.org.siri.siri21.*
 import java.math.BigInteger
+import java.time.Duration
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -119,6 +120,8 @@ class SiriETMapper(
 
         val estimatedCallsWrapper = EstimatedVehicleJourney.EstimatedCalls()
         journey.setEstimatedCalls(estimatedCallsWrapper)
+        var previousExpectedDeparture: ZonedDateTime? = null
+        var previousAimedDeparture: ZonedDateTime? = null
         val resolvedStops = flight.stops.map { stop ->
 
             val quayId = airportQuayService.getQuayId(stop.airportCode)
@@ -148,6 +151,50 @@ class SiriETMapper(
                 call.aimedArrivalTime = arrivalZdt
                 applyArrivalStatus(call, stop, arrivalZdt)
             }
+
+            // Apply "artificial" delay to correct chronology in cases of asynchronous delay updates
+            previousExpectedDeparture?.let { previousDeparture ->
+                if (call.expectedArrivalTime != null && call.expectedArrivalTime.isBefore(previousDeparture)) {
+                    val previousDelay = if (previousAimedDeparture != null && previousDeparture.isAfter(previousAimedDeparture)) {
+                        Duration.between(previousAimedDeparture, previousDeparture)
+                    } else {
+                        Duration.ZERO
+                    }
+                    val correctedArrival = call.aimedArrivalTime.plus(previousDelay)
+                    LOG.warn(
+                        "Adjusting expected arrival to keep chronology for {} at stop {}: {} -> {}",
+                        flight.flightId,
+                        stop.airportCode,
+                        call.expectedArrivalTime,
+                        correctedArrival
+                    )
+                    call.expectedArrivalTime = correctedArrival
+                }
+            }
+
+            //Apply chronology correction for cases where expected departure time is before expected arrival time on the same airport
+            if (call.expectedArrivalTime != null && call.expectedDepartureTime != null &&
+                call.expectedDepartureTime.isBefore(call.expectedArrivalTime)
+            ) {
+                val arrivalDelay = if (call.aimedArrivalTime != null && call.expectedArrivalTime.isAfter(call.aimedArrivalTime)) {
+                    Duration.between(call.aimedArrivalTime, call.expectedArrivalTime)
+                } else {
+                    Duration.ZERO
+                }
+                val correctedDeparture = call.aimedDepartureTime.plus(arrivalDelay)
+
+                LOG.warn(
+                    "Adjusting expected departure to keep chronology for {} at stop {}: {} -> {}",
+                    flight.flightId,
+                    stop.airportCode,
+                    call.expectedDepartureTime,
+                    correctedDeparture
+                )
+                call.expectedDepartureTime = correctedDeparture
+            }
+
+            previousExpectedDeparture = call.expectedDepartureTime ?: previousExpectedDeparture
+            previousAimedDeparture = call.aimedDepartureTime ?: previousAimedDeparture
 
             estimatedCallsWrapper.estimatedCalls.add(call)
         }

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import uk.org.siri.siri21.CallStatusEnumeration
 
@@ -192,6 +193,45 @@ class SiriETMapperTest {
         assertTrue(call.isCancellation)
     }
 
+    @Test
+    fun `should adjust downstream arrival when previous departure is later`() {
+        val firstScheduledDeparture = Instant.parse("2026-03-17T12:00:00Z")
+        val firstExpectedDeparture = Instant.parse("2026-03-17T13:00:00Z")
+        val secondScheduledArrival = Instant.parse("2026-03-17T12:50:00Z")
+
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createFlight(
+                departureTime = firstScheduledDeparture,
+                departureStatusCode = "E",
+                departureStatusTime = firstExpectedDeparture,
+                arrivalTime = secondScheduledArrival
+            )
+        ))
+
+        val calls = getJourneys(result)[0].estimatedCalls.estimatedCalls
+        assertEquals(secondScheduledArrival.plus(1, ChronoUnit.HOURS).atZone(ZoneOffset.UTC), calls[1].expectedArrivalTime)
+        assertFalse(calls[1].expectedArrivalTime.isBefore(calls[0].expectedDepartureTime))
+    }
+
+    @Test
+    fun `should adjust intermediate departure when updated arrival is later`() {
+        val secondArrivalScheduled = Instant.parse("2026-03-17T13:00:00Z")
+        val secondArrivalUpdated = Instant.parse("2026-03-17T13:30:00Z")
+        val secondDepartureScheduled = Instant.parse("2026-03-17T13:10:00Z")
+
+        val result = mapper.mapUnifiedFlightsToSiri(listOf(
+            createMultiLegFlight(
+                secondArrivalTime = secondArrivalScheduled,
+                secondArrivalStatusTime = secondArrivalUpdated,
+                secondDepartureTime = secondDepartureScheduled
+            )
+        ))
+
+        val secondCall = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
+        assertEquals(secondDepartureScheduled.plus(30, ChronoUnit.MINUTES).atZone(ZoneOffset.UTC), secondCall.expectedDepartureTime)
+        assertFalse(secondCall.expectedDepartureTime.isBefore(secondCall.expectedArrivalTime))
+    }
+
     private fun getJourneys(result: uk.org.siri.siri21.Siri) =
         result.serviceDelivery.estimatedTimetableDeliveries[0]
             .estimatedJourneyVersionFrames[0].estimatedVehicleJourneies
@@ -229,6 +269,37 @@ class SiriETMapperTest {
                 departureTime = null,
                 arrivalStatusCode = arrivalStatusCode,
                 arrivalStatusTime = arrivalStatusTime
+            )
+        )
+    )
+
+    private fun createMultiLegFlight(
+        secondArrivalTime: Instant,
+        secondArrivalStatusTime: Instant,
+        secondDepartureTime: Instant
+    ) = UnifiedFlight(
+        flightId = "DX571",
+        operator = "DX",
+        date = LocalDate.now(),
+        serviceJourneyRef = "AVI:ServiceJourney:DX571-01-1860721267",
+        lineRef = "AVI:Line:DX_OSL-FRO",
+        stops = listOf(
+            FlightStop(
+                airportCode = "OSL",
+                arrivalTime = null,
+                departureTime = Instant.parse("2026-03-17T12:00:00Z")
+            ),
+            FlightStop(
+                airportCode = "1173",
+                arrivalTime = secondArrivalTime,
+                departureTime = secondDepartureTime,
+                arrivalStatusCode = "E",
+                arrivalStatusTime = secondArrivalStatusTime
+            ),
+            FlightStop(
+                airportCode = "FRO",
+                arrivalTime = Instant.parse("2026-03-17T14:20:00Z"),
+                departureTime = null
             )
         )
     )

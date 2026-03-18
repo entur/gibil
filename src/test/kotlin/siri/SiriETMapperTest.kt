@@ -211,6 +211,7 @@ class SiriETMapperTest {
         val calls = getJourneys(result)[0].estimatedCalls.estimatedCalls
         assertEquals(secondScheduledArrival.plus(1, ChronoUnit.HOURS).atZone(ZoneOffset.UTC), calls[1].expectedArrivalTime)
         assertFalse(calls[1].expectedArrivalTime.isBefore(calls[0].expectedDepartureTime))
+        assertEquals(CallStatusEnumeration.DELAYED, calls[1].arrivalStatus)
     }
 
     @Test
@@ -230,6 +231,7 @@ class SiriETMapperTest {
         val secondCall = getJourneys(result)[0].estimatedCalls.estimatedCalls[1]
         assertEquals(secondDepartureScheduled.plus(30, ChronoUnit.MINUTES).atZone(ZoneOffset.UTC), secondCall.expectedDepartureTime)
         assertFalse(secondCall.expectedDepartureTime.isBefore(secondCall.expectedArrivalTime))
+        assertEquals(CallStatusEnumeration.DELAYED, secondCall.departureStatus)
     }
 
     private fun getJourneys(result: uk.org.siri.siri21.Siri) =

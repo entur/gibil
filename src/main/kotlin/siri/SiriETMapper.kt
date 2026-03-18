@@ -169,6 +169,7 @@ class SiriETMapper(
                         correctedArrival
                     )
                     call.expectedArrivalTime = correctedArrival
+                    call.arrivalStatus = CallStatusEnumeration.DELAYED
                 }
             }
 
@@ -191,6 +192,7 @@ class SiriETMapper(
                     correctedDeparture
                 )
                 call.expectedDepartureTime = correctedDeparture
+                call.departureStatus = CallStatusEnumeration.DELAYED
             }
 
             previousExpectedDeparture = call.expectedDepartureTime ?: previousExpectedDeparture

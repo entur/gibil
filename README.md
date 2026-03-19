@@ -5,44 +5,74 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=entur_gibil&metric=alert_status)](https://sonarcloud.io/dashboard?id=entur_gibil)
 ![Github Workflow](https://github.com/entur/gibil/actions/workflows/ci-cd.yml/badge.svg)
 
-Real-time flight data adapter that polls the Avinor XML feed, converts it to SIRI-ET format, and pushes it to subscribers via [Anshar](https://github.com/entur/anshar).
+Real-time flight data adapter that polls the Avinor XML feed for all Norwegian domestic airports, converts flights to SIRI-ET format, resolves NeTEx service journeys, and pushes updates to subscribers via [Anshar](https://github.com/entur/anshar).
 
 ## Data flow
 
-**Input:** Avinor XML feed → merged `Flight` objects (departure + arrival)
+```
+Avinor XML Feed (airport batches of 5)
+        │
+        ▼
+FlightAggregationService
+  ── stitch arrival + departure events into UnifiedFlight chains
+  ── filter: 20 min past / 24 h future
+        │
+        ▼
+ServiceJourneyResolver
+  ── match against NeTEx timetable data
+  ── populate serviceJourneyRef & lineRef
+        │
+        ▼
+SiriETMapper
+  ── convert to SIRI EstimatedVehicleJourneys
+  ── resolve airport/gate quay IDs via Entur StopPlace API
+        │
+        ▼
+FlightStateCache
+  ── hash-based change detection
+        │
+        ▼
+SubscriptionManager
+  ── push SIRI-ET XML to registered subscribers
+  ── auto-terminate after 5 consecutive failures
+```
 
-**Output:** SIRI-ET XML pushed to Anshar subscribers on change
+Only domestic flights are processed. Svalbard (LYR) is classified as international by Avinor but treated as domestic by Gibil. Airports are polled in batches every 2 minutes (7-minute initial delay after startup).
 
-Only domestic flights (`domInt=D`) within a ±20 min / +7 h time window are processed. Airports are polled in batches every 2 minutes.
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/siri` | Full SIRI-ET XML for all airports (30-60s) |
+| GET | `/avinor?airport=OSL` | Raw Avinor XML for a single airport (debug) |
+| POST | `/subscribe` | Register a SIRI-ET subscription (XML body) |
+| POST | `/unsubscribe` | Terminate a SIRI-ET subscription (XML body) |
 
 ## Configuration
 
-Key properties in `application.properties` (overridable via environment variables in Kubernetes):
+Key properties in `application.properties` (overridable via environment/ConfigMap in Kubernetes):
 
 ```properties
 avinor.api.base-url-xmlfeed=https://asrv.avinor.no/XmlFeed/v1.0
 avinor.api.base-url-airport-names=https://asrv.avinor.no/airportNames/v1.0
 entur.api.base-url-stop-places=https://api.entur.io/stop-places/v1/read/stop-places
 
-# Allowlist of hostnames permitted as subscriber addresses (SSRF protection)
-siri.allowed-subscriber-hosts=localhost,127.0.0.1
-
-# Optional: override the NeTEx data directory (defaults to GCP path in cluster)
-# gibil.extime.path=/custom/path/extimeData
+# Override the NeTEx data directory (defaults to GCP path in cluster)
+# org.gibil.extime.data-file=/custom/path/extimeData
 ```
 
-## Endpoints
+## Tech stack
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/siri` | Full SIRI-ET XML for all airports (~55 API calls) |
-| GET | `/avinor?airport=OSL` | Raw Avinor XML for a single airport (debug) |
-| POST | `/subscribe` | Register a SIRI-ET subscription |
-| POST | `/unsubscribe` | Terminate a SIRI-ET subscription |
+- **Kotlin** on **Java 21** with **Spring Boot 4**
+- **OkHttp** for API calls, **Kotlinx Coroutines** for concurrent batching
+- **JAXB** for XML marshalling (Avinor, SIRI, NeTEx)
+- **MockK** + **JUnit 5** for testing, **JaCoCo** + **SonarQube** for coverage
+- **Docker** (Alpine + Java 21), **Helm** + **Kubernetes** for deployment
+- **GitHub Actions** CI/CD: build, SonarQube scan, Docker build/push, deploy to dev/tst/prd
 
 ## Development
 
-Requires Java 21 and Maven.
+Requires **Java 21** and **Maven**.
 
 ```bash
 mvn spring-boot:run   # Run locally
@@ -51,3 +81,38 @@ mvn test              # Run tests only
 ```
 
 When running locally, Gibil downloads and unpacks the NeTEx timetable data from GCP automatically on startup.
+
+## Architecture
+
+```
+src/main/kotlin/
+├── org/gibil/
+│   ├── Main.kt                        # Spring Boot entry point
+│   ├── Endpoint.kt                    # REST endpoints
+│   ├── constants.kt                   # Polling config, flight codes
+│   ├── config/AppConfig.kt            # HTTP clients, coroutine dispatchers
+│   ├── model/
+│   │   ├── UnifiedFlight.kt           # Core domain: flight chain with stops
+│   │   ├── AirportIATA.kt            # Enum of 54 airports
+│   │   ├── xmlFeedApi/                # JAXB models for Avinor XML
+│   │   ├── stopPlacesApi/             # JAXB models for Entur StopPlace API
+│   │   └── serviceJourney/            # JAXB models for NeTEx
+│   ├── service/
+│   │   ├── FlightAggregationService   # Fetch, stitch, merge, filter flights
+│   │   ├── AirportQuayService         # IATA → quay ID mapping
+│   │   ├── ServiceJourneyResolver     # Match flights to NeTEx timetables
+│   │   └── FindServiceJourneyService  # Parse NeTEx XML files
+│   ├── siri/
+│   │   ├── SiriETMapper               # Flight → SIRI-ET conversion
+│   │   └── SiriETPublisher            # SIRI XML marshalling
+│   ├── routes/
+│   │   ├── avinor/                    # Avinor XML feed + airport names handlers
+│   │   └── entur/                     # Entur StopPlace API handler
+│   ├── subscription/
+│   │   ├── AvinorPollingService       # Scheduled polling + push
+│   │   ├── SubscriptionManager        # Subscription lifecycle
+│   │   ├── FlightStateCache           # Hash-based change detection
+│   │   └── SiriEndpoint               # /subscribe, /unsubscribe handlers
+│   ├── handler/                       # XML marshalling utilities
+│   └── util/                          # Date, JAXB context, ZIP helpers
+```

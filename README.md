@@ -43,8 +43,6 @@ Only domestic flights are processed. Svalbard (LYR) is classified as internation
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/siri` | Full SIRI-ET XML for all airports (30-60s) |
-| GET | `/avinor?airport=OSL` | Raw Avinor XML for a single airport (debug) |
 | POST | `/subscribe` | Register a SIRI-ET subscription (XML body) |
 | POST | `/unsubscribe` | Terminate a SIRI-ET subscription (XML body) |
 

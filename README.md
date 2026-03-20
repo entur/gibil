@@ -5,7 +5,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=entur_gibil&metric=alert_status)](https://sonarcloud.io/dashboard?id=entur_gibil)
 ![Github Workflow](https://github.com/entur/gibil/actions/workflows/ci-cd.yml/badge.svg)
 
-Real-time flight data adapter that polls the Avinor XML feed for all Norwegian domestic airports, converts flights to SIRI-ET format, resolves NeTEx service journeys, and pushes updates to subscribers via [Anshar](https://github.com/entur/anshar).
+Real-time flight data adapter that polls the Avinor XML feed for all Norwegian domestic airports tracked by Avinor, converts flights to SIRI-ET format, resolves NeTEx service journeys, and pushes updates to subscribers via [Anshar](https://github.com/entur/anshar).
 
 ## Data flow
 
@@ -18,6 +18,10 @@ FlightAggregationService
   ── filter: 20 min past / 24 h future
         │
         ▼
+FlightStateCache
+  ── hash-based change detection
+        │
+        ▼
 ServiceJourneyResolver
   ── match against NeTEx timetable data
   ── populate serviceJourneyRef & lineRef
@@ -25,11 +29,7 @@ ServiceJourneyResolver
         ▼
 SiriETMapper
   ── convert to SIRI EstimatedVehicleJourneys
-  ── resolve airport/gate quay IDs via Entur StopPlace API
-        │
-        ▼
-FlightStateCache
-  ── hash-based change detection
+  ── resolve quay IDs via AirportQuayService
         │
         ▼
 SubscriptionManager
@@ -81,38 +81,3 @@ mvn test              # Run tests only
 ```
 
 When running locally, Gibil downloads and unpacks the NeTEx timetable data from GCP automatically on startup.
-
-## Architecture
-
-```
-src/main/kotlin/
-├── org/gibil/
-│   ├── Main.kt                        # Spring Boot entry point
-│   ├── Endpoint.kt                    # REST endpoints
-│   ├── constants.kt                   # Polling config, flight codes
-│   ├── config/AppConfig.kt            # HTTP clients, coroutine dispatchers
-│   ├── model/
-│   │   ├── UnifiedFlight.kt           # Core domain: flight chain with stops
-│   │   ├── AirportIATA.kt            # Enum of 54 airports
-│   │   ├── xmlFeedApi/                # JAXB models for Avinor XML
-│   │   ├── stopPlacesApi/             # JAXB models for Entur StopPlace API
-│   │   └── serviceJourney/            # JAXB models for NeTEx
-│   ├── service/
-│   │   ├── FlightAggregationService   # Fetch, stitch, merge, filter flights
-│   │   ├── AirportQuayService         # IATA → quay ID mapping
-│   │   ├── ServiceJourneyResolver     # Match flights to NeTEx timetables
-│   │   └── FindServiceJourneyService  # Parse NeTEx XML files
-│   ├── siri/
-│   │   ├── SiriETMapper               # Flight → SIRI-ET conversion
-│   │   └── SiriETPublisher            # SIRI XML marshalling
-│   ├── routes/
-│   │   ├── avinor/                    # Avinor XML feed + airport names handlers
-│   │   └── entur/                     # Entur StopPlace API handler
-│   ├── subscription/
-│   │   ├── AvinorPollingService       # Scheduled polling + push
-│   │   ├── SubscriptionManager        # Subscription lifecycle
-│   │   ├── FlightStateCache           # Hash-based change detection
-│   │   └── SiriEndpoint               # /subscribe, /unsubscribe handlers
-│   ├── handler/                       # XML marshalling utilities
-│   └── util/                          # Date, JAXB context, ZIP helpers
-```

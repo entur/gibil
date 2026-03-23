@@ -65,4 +65,29 @@ class FindServiceJourneyServiceTest {
 
         Assertions.assertTrue { "DY9999-01-123456789" in foundMatch.serviceJourneyId }
     }
+
+    @Test
+    fun `MutableServiceJourneyList should match ServiceJourneyList after resetMutableServiceJourneyList()`() {
+        service.resetMutableServiceJourneyList()
+
+        Assertions.assertTrue { service.mutableServiceJourneyList == service.serviceJourneyList }
+    }
+
+    @Test
+    fun `MutableServiceJourneyList should remove a servicejourney after resetMutableServiceJourneyList()`() {
+        service.resetMutableServiceJourneyList()
+
+        val originalSize = service.serviceJourneyList.size
+
+        //run a few matches
+        service.matchServiceJourney(exampleMidnight[0], exampleMidnight[1], exampleLineRefMidnight)
+        service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
+        service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
+
+        //since three matches are run, the expected result is three less servicejourneys
+        val expectedSize = originalSize-3
+        val actualSize = service.mutableServiceJourneyList.size
+
+        Assertions.assertTrue { actualSize == expectedSize }
+    }
 }

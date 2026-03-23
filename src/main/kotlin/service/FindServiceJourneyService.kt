@@ -28,7 +28,7 @@ class FindServiceJourneyService(
     val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
-    private var mutableServiceJourneyList: MutableList<ServiceJourney> = mutableListOf()
+    var mutableServiceJourneyList: MutableList<ServiceJourney> = mutableListOf()
 
     @PostConstruct
     fun init() {

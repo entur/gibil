@@ -2,19 +2,6 @@ package service
 
 import handler.AvinorScheduleXmlHandler
 import io.mockk.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
-import model.xmlFeedApi.Airport
-import model.xmlFeedApi.Flight
-import model.xmlFeedApi.FlightStatus
-import model.xmlFeedApi.FlightsContainer
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import java.io.IOException
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -23,6 +10,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import model.xmlFeedApi.*
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import org.junit.jupiter.api.*
 
 class FlightAggregationServiceTest {
 

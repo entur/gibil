@@ -2,17 +2,21 @@ package routes.avinor.xmlfeed
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
+import org.gibil.service.ApiService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.IOException
 import java.net.URI
 
 class AvinorXmlFeedApiHandlerTest {
 
     private lateinit var airportNamesHandler: AvinorAirportNamesApiHandler
+    private lateinit var apiService: ApiService
     private lateinit var apiHandler: AvinorXmlFeedApiHandler
 
     @BeforeEach
@@ -22,7 +26,8 @@ class AvinorXmlFeedApiHandlerTest {
             every { airportCodeValidator("BGO") } returns true
             every { airportCodeValidator(not(or(eq("OSL"), eq("BGO")))) } returns false
         }
-        apiHandler = AvinorXmlFeedApiHandler(airportNamesHandler, "http://fake-url")
+        apiService = mockk()
+        apiHandler = AvinorXmlFeedApiHandler(airportNamesHandler, apiService, "http://fake-url")
     }
 
     @Test
@@ -144,6 +149,37 @@ class AvinorXmlFeedApiHandlerTest {
                     direction = "D",
                 )
             )
+        }
+    }
+
+    @Test
+    fun `fetchFlights returns successful result when API call succeeds`() {
+        val params = AvinorXmlFeedParamsLogic(airportCode = "OSL")
+        every { apiService.apiCall(any(), any()) } returns Result.success("<xml>flights</xml>")
+
+        val result = apiHandler.fetchFlights(params)
+
+        Assertions.assertTrue(result.isSuccess)
+        Assertions.assertEquals("<xml>flights</xml>", result.getOrNull())
+        verify { apiService.apiCall(match { it.contains("airport=OSL") }, any()) }
+    }
+
+    @Test
+    fun `fetchFlights returns failure result when API call fails`() {
+        val params = AvinorXmlFeedParamsLogic(airportCode = "OSL")
+        every { apiService.apiCall(any(), any()) } returns Result.failure(IOException("HTTP code: 500"))
+
+        val result = apiHandler.fetchFlights(params)
+
+        Assertions.assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `fetchFlights throws when airport code is invalid`() {
+        val params = AvinorXmlFeedParamsLogic(airportCode = "XXX")
+
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            apiHandler.fetchFlights(params)
         }
     }
 }

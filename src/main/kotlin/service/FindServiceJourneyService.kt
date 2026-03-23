@@ -117,5 +117,6 @@ class FindServiceJourneyService(
      */
     fun resetMutableServiceJourneyList() {
         mutableServiceJourneyList = serviceJourneyList.toMutableList()
+        LOG.debug("List reset, MSJL size: ${mutableServiceJourneyList.size}")
     }
 }

@@ -16,7 +16,6 @@ import org.gibil.FlightCodes
 import org.gibil.PollingConfig
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
-import org.gibil.service.ApiService
 import org.slf4j.LoggerFactory
 import org.gibil.model.AirportIATA
 import org.springframework.stereotype.Service
@@ -39,7 +38,6 @@ private val LOG = LoggerFactory.getLogger(FlightAggregationService::class.java)
 class FlightAggregationService(
     private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
     private val xmlHandler: AvinorScheduleXmlHandler,
-    private val apiService: ApiService,
     private val ioDispatcher: CoroutineDispatcher
 ) {
 
@@ -58,11 +56,9 @@ class FlightAggregationService(
      */
     private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
         return try {
-            val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
+            val xmlResponse = avinorXmlFeedApiHandler.fetchFlights(
                 AvinorXmlFeedParamsLogic(airportCode = airportCode)
-            )
-
-            val xmlResponse = apiService.apiCall(url).getOrElse { e ->
+            ).getOrElse { e ->
                 LOG.error("API call failed for {}: {}", airportCode, e.message)
                 return emptyList()
             }

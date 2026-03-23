@@ -1,6 +1,7 @@
 package org.gibil.routes.avinor.xmlfeed
 
 import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
+import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder
@@ -11,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder
 @Component
 class AvinorXmlFeedApiHandler(
     private val airportNameHandler: AvinorAirportNamesApiHandler,
+    private val apiService: ApiService,
     @Value("\${avinor.api.base-url-xmlfeed}") private val baseUrlXmlFeed: String
 ) {
 
@@ -34,5 +36,14 @@ class AvinorXmlFeedApiHandler(
         }
 
         return builder.build().toUriString()
+    }
+
+    /**
+     * Fetches the raw XML flight feed from the Avinor API for the given parameters.
+     * @return [Result] wrapping the XML response string, or a failure if the call fails.
+     */
+    fun fetchFlights(params: AvinorXmlFeedParamsLogic): Result<String> {
+        val url = avinorXmlFeedUrlBuilder(params)
+        return apiService.apiCall(url)
     }
 }

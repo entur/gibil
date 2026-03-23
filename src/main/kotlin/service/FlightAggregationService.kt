@@ -305,8 +305,8 @@ class FlightAggregationService(
             return false
         }
 
-        // Drop chains whose last real event is already more than MAX_PAST_MINUTES in the past
-        if (timesForMaxCheck.isNotEmpty() && timesForMaxCheck.max().isBefore(minTime)) {
+        // Drop chains whose earliest stop time is beyond MAX_FUTURE_HOURS from now
+        if (allTimes.isNotEmpty() && allTimes.min().isAfter(maxTime)) {
             val route = flight.stops.joinToString(" → ") { stop ->
                 val dep = stop.departureTime?.atZone(ZoneOffset.UTC)?.toString() ?: "-"
                 val arr = stop.arrivalTime?.atZone(ZoneOffset.UTC)?.toString() ?: "-"

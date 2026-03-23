@@ -24,6 +24,9 @@ class ServiceJourneyResolver(
     fun resolve(flights: List<UnifiedFlight>): List<UnifiedFlight> {
         var matched = 0
 
+        //Make the mutable list refill with all extime servicejourney data
+        findServiceJourneyService.resetMutableServiceJourneyList()
+
         val result = flights.map { flight ->
             val departureTimeStr = flight.stops.first().departureTime?.toString()
 

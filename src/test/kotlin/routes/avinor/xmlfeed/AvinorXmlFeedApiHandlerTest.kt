@@ -5,6 +5,7 @@ import io.mockk.mockk
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
+import org.gibil.service.ApiService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -13,6 +14,7 @@ import java.net.URI
 class AvinorXmlFeedApiHandlerTest {
 
     private lateinit var airportNamesHandler: AvinorAirportNamesApiHandler
+    private lateinit var apiService: ApiService
     private lateinit var apiHandler: AvinorXmlFeedApiHandler
 
     @BeforeEach
@@ -22,7 +24,8 @@ class AvinorXmlFeedApiHandlerTest {
             every { airportCodeValidator("BGO") } returns true
             every { airportCodeValidator(not(or(eq("OSL"), eq("BGO")))) } returns false
         }
-        apiHandler = AvinorXmlFeedApiHandler(airportNamesHandler, "http://fake-url")
+        apiService = mockk()
+        apiHandler = AvinorXmlFeedApiHandler(airportNamesHandler, apiService, "http://fake-url")
     }
 
     @Test

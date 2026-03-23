@@ -1,12 +1,15 @@
 package service
 
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import model.FlightStop
 import model.UnifiedFlight
 import model.serviceJourney.LineRefWrapper
 import model.serviceJourney.ServiceJourney
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -16,6 +19,11 @@ class ServiceJourneyResolverTest {
 
     private val findServiceJourneyService = mockk<FindServiceJourneyService>()
     private val resolver = ServiceJourneyResolver(findServiceJourneyService)
+
+    @BeforeEach
+    fun setUp() {
+        every { findServiceJourneyService.resetMutableServiceJourneyList() } just Runs
+    }
 
     @Test
     fun `should attach serviceJourneyRef when match is found`() {

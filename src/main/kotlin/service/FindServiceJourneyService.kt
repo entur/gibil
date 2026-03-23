@@ -28,6 +28,7 @@ class FindServiceJourneyService(
     val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
+    private var mutableServiceJourneyList: MutableList<ServiceJourney> = mutableListOf()
 
     @PostConstruct
     fun init() {
@@ -39,6 +40,9 @@ class FindServiceJourneyService(
         serviceJourneyList = findServiceJourney().also { journeys ->
             journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
         }
+
+        //set the mutableservicejourneylist to contain the same information as found by findServiceJourney()
+        resetMutableServiceJourneyList()
     }
 
 
@@ -73,7 +77,10 @@ class FindServiceJourneyService(
         val avinorFlightDateInfo = formatForServiceJourney(departureInfoRaw)
 
         //finding all service journeys and searching through them for a match
-        serviceJourneyList.forEach { journey ->
+        val iterator = mutableServiceJourneyList.iterator()
+        while (iterator.hasNext()) {
+            val journey = iterator.next()
+
             val dayTypeMatch = journey.dayTypes.any { dayType ->
                 avinorFlightDateInfo[1] in dayType
             }
@@ -89,6 +96,7 @@ class FindServiceJourneyService(
             }
 
             if (dateInfoMatch && flightCodeMatch && lineRefMatch) {
+                iterator.remove() // safe removal during iteration
                 return journey
             }
         }
@@ -101,5 +109,13 @@ class FindServiceJourneyService(
             codeMatches.map { it.departureTime }
         )
         throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${avinorFlightDateInfo[0]} on ${avinorFlightDateInfo[1]}")
+    }
+
+    /**
+     * Resets the resetMutableServiceJourneyList to contain the servicejourneys from extime.
+     * Needs to be done before servicejourney matching is started
+     */
+    fun resetMutableServiceJourneyList() {
+        mutableServiceJourneyList = serviceJourneyList.toMutableList()
     }
 }

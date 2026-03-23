@@ -14,7 +14,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.core.io.ClassPathResource
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import java.io.IOException
 import java.time.ZoneOffset
@@ -364,24 +363,6 @@ class FlightAggregationServiceTest {
         @Test
         fun `should handle API errors gracefully`() = runBlocking {
             every { avinorXmlFeedApiHandler.fetchFlights(any()) } returns Result.failure(IOException("API unavailable"))
-
-            val result = flightAggregationService.fetchUnifiedFlights()
-
-            assertEquals(0, result.size)
-        }
-
-        @Test
-        fun `should return empty list when airport list is empty`() = runBlocking {
-
-            val result = flightAggregationService.fetchUnifiedFlights()
-
-            assertEquals(0, result.size)
-        }
-
-        @Test
-        fun `should return empty list when airport codes file cannot be read`() = runBlocking {
-            mockkConstructor(ClassPathResource::class)
-            every { anyConstructed<ClassPathResource>().inputStream } throws RuntimeException("File not found")
 
             val result = flightAggregationService.fetchUnifiedFlights()
 

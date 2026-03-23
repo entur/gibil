@@ -4,13 +4,10 @@ common:
       NETEX_DATA_URL: https://storage.googleapis.com/marduk-production/outbound/netex/rb_avi-aggregated-netex.zip
   env: prd
   ingress:
-    enabled: false
     trafficType: public
     host: gibil.entur.io
-  replicas: 1
   container:
-    replicas: 1
-    maxReplicas: 2
+    forceReplicas: 1
 
 configMap:
   LOG_LEVEL: INFO

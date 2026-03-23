@@ -16,6 +16,9 @@ common:
       runAsUser: 1000
       runAsGroup: 1000
       fsGroup: 1000
+    envFrom:
+      - secretRef:
+          name: gibil-slack
     volumeMounts:
       - mountPath: /etc/application-config
         name: application-config

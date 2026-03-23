@@ -13,3 +13,4 @@ configMap:
 
 cronJob:
   gcpProject: entur-dev-gcp2
+  slackUrl: ror-dev-slack-url

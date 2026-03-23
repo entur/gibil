@@ -13,3 +13,4 @@ configMap:
 
 cronJob:
   gcpProject: entur-test-gcp2
+  slackUrl: ror-staging-slack-url

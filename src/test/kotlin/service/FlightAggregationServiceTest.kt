@@ -10,7 +10,6 @@ import model.xmlFeedApi.Airport
 import model.xmlFeedApi.Flight
 import model.xmlFeedApi.FlightStatus
 import model.xmlFeedApi.FlightsContainer
-import org.gibil.service.ApiService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -30,18 +29,18 @@ class FlightAggregationServiceTest {
 
     private lateinit var avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler
     private lateinit var xmlHandler: AvinorScheduleXmlHandler
-    private lateinit var apiService: ApiService
     private lateinit var flightAggregationService: FlightAggregationService
     private lateinit var ioDispatcher: CoroutineDispatcher
 
     @BeforeEach
     fun init() {
-        avinorXmlFeedApiHandler = mockk()
+        avinorXmlFeedApiHandler = mockk {
+            every { fetchFlights(any()) } returns Result.failure(RuntimeException("unmocked airport"))
+        }
         xmlHandler = mockk()
-        apiService = mockk()
         ioDispatcher = Dispatchers.Unconfined
 
-        flightAggregationService = FlightAggregationService(avinorXmlFeedApiHandler, xmlHandler, apiService, ioDispatcher)
+        flightAggregationService = FlightAggregationService(avinorXmlFeedApiHandler, xmlHandler, ioDispatcher)
     }
 
     @AfterEach
@@ -89,12 +88,10 @@ class FlightAggregationServiceTest {
         }
 
         every {
-            avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
+            avinorXmlFeedApiHandler.fetchFlights(
                 match<AvinorXmlFeedParamsLogic> { it.airportCode == airportCode }
             )
-        } returns "http://test.url/$airportCode"
-
-        every { apiService.apiCall("http://test.url/$airportCode") } returns Result.success("<xml>$airportCode</xml>")
+        } returns Result.success("<xml>$airportCode</xml>")
         every { xmlHandler.unmarshallXmlToAirport("<xml>$airportCode</xml>") } returns airport
     }
 
@@ -366,8 +363,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should handle API errors gracefully`() = runBlocking {
-            every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } returns "http://test.url"
-            every { apiService.apiCall(any()) } returns Result.failure(IOException("API unavailable"))
+            every { avinorXmlFeedApiHandler.fetchFlights(any()) } returns Result.failure(IOException("API unavailable"))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
@@ -394,7 +390,7 @@ class FlightAggregationServiceTest {
 
         @Test
         fun `should handle exception thrown during airport data fetch`() = runBlocking {
-            every { avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(any()) } throws RuntimeException("Connection timeout")
+            every { avinorXmlFeedApiHandler.fetchFlights(any()) } throws RuntimeException("Connection timeout")
 
             val result = flightAggregationService.fetchUnifiedFlights()
 

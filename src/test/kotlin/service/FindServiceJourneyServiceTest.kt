@@ -2,7 +2,6 @@ package service
 
 import io.mockk.mockk
 import org.gibil.Dates.daytypeBuilder
-import org.gibil.Dates.instantNowUtc
 import org.gibil.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.AfterEach
@@ -11,11 +10,8 @@ import org.junit.jupiter.api.BeforeEach
 import java.io.File
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import kotlin.test.Test
 
 class FindServiceJourneyServiceTest {
@@ -43,7 +39,6 @@ class FindServiceJourneyServiceTest {
 
     val today = Instant.now().atZone(ZoneOffset.UTC)
     val todayNorway = today.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
-    val tomorrowNorway = todayNorway.plus(Duration.ofHours(24))
 
     // format matching what formatForServiceJourney produces, e.g. "Mar_Tue_24"
     val todayFormatted = daytypeBuilder(today)
@@ -54,7 +49,6 @@ class FindServiceJourneyServiceTest {
         // write dynamic XML first
         File("src/test/resources/extimeData/test-dynamic.xml").writeText(buildDynamicXml())
 
-        println(buildDynamicXml())
         // then init service so it picks up the new file
         service = FindServiceJourneyService(mockk<ApiService>(), "src/test/resources/extimeData")
             .also { it.init() }
@@ -69,9 +63,6 @@ class FindServiceJourneyServiceTest {
     fun `FindServiceJourney should find service journey match to example flights`() {
         val foundMatch1 = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
         val foundMatch2 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
-
-        println(foundMatch1)
-        println(foundMatch2)
 
         Assertions.assertTrue { "SK4055-01-358551288" in foundMatch1.serviceJourneyId }
         Assertions.assertTrue { "DY628-01-523288933" in foundMatch2.serviceJourneyId }
@@ -110,10 +101,9 @@ class FindServiceJourneyServiceTest {
     fun `MutableServiceJourneyMap should NOT remove journey if needed tomorrow`() {
         service.resetMutableServiceJourneyMap()
         val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
-        println(todayNorway.toString())
+
         // today's flight matches the dynamic journey which also has tomorrow's daytype
         val test = service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
-        println(test)
 
         val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
         Assertions.assertEquals(originalCount, actualCount) // not removed

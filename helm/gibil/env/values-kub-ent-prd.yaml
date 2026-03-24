@@ -4,7 +4,6 @@ common:
       NETEX_DATA_URL: https://storage.googleapis.com/marduk-production/outbound/netex/rb_avi-aggregated-netex.zip
   env: prd
   ingress:
-    enabled: false
     trafficType: public
     host: gibil.entur.io
   replicas: 1
@@ -16,4 +15,5 @@ configMap:
   LOG_LEVEL: INFO
 
 cronJob:
-    gcpProject: entur-prod-gcp2
+  gcpProject: entur-prod-gcp2
+  slackUrl: ror-prod-slack-url

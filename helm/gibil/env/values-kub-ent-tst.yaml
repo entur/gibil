@@ -4,7 +4,6 @@ common:
       NETEX_DATA_URL: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
   env: tst
   ingress:
-    enabled: false
     trafficType: public
     host: gibil.staging.entur.io
   replicas: 1
@@ -14,3 +13,4 @@ configMap:
 
 cronJob:
   gcpProject: entur-test-gcp2
+  slackUrl: ror-staging-slack-url

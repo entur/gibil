@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
 import handler.ServiceJourneyParser
+import org.gibil.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
@@ -28,7 +29,7 @@ class FindServiceJourneyService(
     val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
-    var mutableServiceJourneyList: MutableList<ServiceJourney> = mutableListOf()
+    var mutableServiceJourneyMap: MutableMap<String, MutableList<ServiceJourney>> = mutableMapOf()
 
     @PostConstruct
     fun init() {
@@ -73,31 +74,35 @@ class FindServiceJourneyService(
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
     fun matchServiceJourney(departureInfoRaw: String, flightCode: String, lineRefInfo: List<String>): ServiceJourney {
-        //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
         val avinorFlightDateInfo = formatForServiceJourney(departureInfoRaw)
+        val key = buildKey(flightCode, avinorFlightDateInfo[0])
+        val bucket = mutableServiceJourneyMap[key]
 
-        //finding all service journeys and searching through them for a match
-        val iterator = mutableServiceJourneyList.iterator()
-        while (iterator.hasNext()) {
-            val journey = iterator.next()
-
-            val dayTypeMatch = journey.dayTypes.any { dayType ->
-                avinorFlightDateInfo[1] in dayType
+        if (!bucket.isNullOrEmpty()) {
+            val matchIndex = bucket.indexOfFirst { journey ->
+                val dayTypeMatch = journey.dayTypes.any { avinorFlightDateInfo[1] in it }
+                val lineRef = journey.lineRef
+                val lineRefMatch = lineRef != null && lineRefInfo[0] in lineRef && lineRefInfo[1] in lineRef
+                if (!lineRefMatch && dayTypeMatch) {
+                    LOG.warn("\"lineref not match, but flightcode and dateinfo matched; \${flightCode}, \${avinorFlightDateInfo[0]}, \${avinorFlightDateInfo[1]}, airports from avinor: \${lineRefInfo[0]},\${lineRefInfo[1]}, lineref in extime lineref: \${lineRef}\"")
+                }
+                dayTypeMatch && lineRefMatch
             }
+            if (matchIndex != -1) {
+                val matched = bucket[matchIndex]
 
-            val dateInfoMatch = avinorFlightDateInfo[0] in journey.departureTime && dayTypeMatch
-            val flightCodeMatch = journey.publicCode == flightCode
+                val daytypeTomorrow = tomorrowDaytype()
+                val neededTomorrow = matched.dayTypes.any { daytypeTomorrow in it }
 
-            val lineRef = journey.lineRef
-            val lineRefMatch = lineRef != null && lineRefInfo[0] in lineRef && lineRefInfo[1] in lineRef
+                if (!neededTomorrow) {
+                    bucket.removeAt(matchIndex)
+                    matched.departureTime.forEach { depTime ->
+                        val otherKey = buildKey(matched.publicCode, depTime)
+                        mutableServiceJourneyMap[otherKey]?.remove(matched)
+                    }
+                }
 
-            if (flightCodeMatch && dateInfoMatch && !lineRefMatch) {
-                LOG.warn("lineref not match, but flightcode and dateinfo matched; ${flightCode}, ${avinorFlightDateInfo[0]}, ${avinorFlightDateInfo[1]}, airports from avinor: ${lineRefInfo[0]},${lineRefInfo[1]}, lineref in extime lineref: ${lineRef}")
-            }
-
-            if (dateInfoMatch && flightCodeMatch && lineRefMatch) {
-                iterator.remove() // safe removal during iteration
-                return journey
+                return matched
             }
         }
 
@@ -116,7 +121,14 @@ class FindServiceJourneyService(
      * Needs to be done before servicejourney matching is started
      */
     fun resetMutableServiceJourneyList() {
-        mutableServiceJourneyList = serviceJourneyList.toMutableList()
-        LOG.debug("List reset, MSJL size: ${mutableServiceJourneyList.size}")
+        mutableServiceJourneyMap = mutableMapOf()
+        serviceJourneyList.forEach { journey ->
+            journey.departureTime.forEach { depTime ->
+                val key = buildKey(journey.publicCode, depTime)
+                mutableServiceJourneyMap.getOrPut(key) { mutableListOf() }.add(journey)
+            }
+        }
     }
+
+    private fun buildKey(publicCode: String, departureTime: String) = "$publicCode|$departureTime"
 }

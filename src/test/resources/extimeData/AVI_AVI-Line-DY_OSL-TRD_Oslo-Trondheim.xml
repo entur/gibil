@@ -252,7 +252,7 @@
             <ServiceJourney version="1" id="AVI:ServiceJourney:DY9999-01-123456789">
               <Name></Name>
               <dayTypes>
-                <DayTypeRef ref="AVI:DayType:2023829901-May_Mon_25"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:2023829901-Feb_Thu_05"></DayTypeRef>
               </dayTypes>
               <JourneyPatternRef ref="AVI:JourneyPattern:123456789" version="1"></JourneyPatternRef>
               <PublicCode>DY9999</PublicCode>

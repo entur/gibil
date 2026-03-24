@@ -146,9 +146,6 @@
                 <DayTypeRef ref="AVI:DayType:2023847529-Mar_Sun_22"></DayTypeRef>
                 <DayTypeRef ref="AVI:DayType:2023847529-Mar_Mon_23"></DayTypeRef>
                 <DayTypeRef ref="AVI:DayType:2023847529-Mar_Tue_24"></DayTypeRef>
-                <DayTypeRef ref="AVI:DayType:2023847529-Mar_Wed_25"></DayTypeRef>
-                <DayTypeRef ref="AVI:DayType:2023847529-Mar_Thu_26"></DayTypeRef>
-                <DayTypeRef ref="AVI:DayType:2023847529-Mar_Fri_27"></DayTypeRef>
               </dayTypes>
               <JourneyPatternRef ref="AVI:JourneyPattern:523288933" version="1"></JourneyPatternRef>
               <PublicCode>DY628</PublicCode>

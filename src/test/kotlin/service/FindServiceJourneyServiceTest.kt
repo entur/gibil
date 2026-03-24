@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import java.io.File
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneId
 import java.time.ZoneOffset
 import kotlin.test.Test
 
@@ -38,7 +37,6 @@ class FindServiceJourneyServiceTest {
     val exampleLineRefMidnight = listOf("OSL", "TRD")
 
     val today = Instant.now().atZone(ZoneOffset.UTC)
-    val todayNorway = today.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
 
     // format matching what formatForServiceJourney produces, e.g. "Mar_Tue_24"
     val todayFormatted = daytypeBuilder(today)
@@ -103,7 +101,7 @@ class FindServiceJourneyServiceTest {
         val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
 
         // today's flight matches the dynamic journey which also has tomorrow's daytype
-        val test = service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+        service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
 
         val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
         Assertions.assertEquals(originalCount, actualCount) // not removed

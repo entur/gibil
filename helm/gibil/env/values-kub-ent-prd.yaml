@@ -6,8 +6,10 @@ common:
   ingress:
     trafficType: public
     host: gibil.entur.io
+  replicas: 1
   container:
-    forceReplicas: 1
+    replicas: 1
+    maxReplicas: 2
 
 configMap:
   LOG_LEVEL: INFO

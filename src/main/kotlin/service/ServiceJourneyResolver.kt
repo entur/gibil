@@ -78,7 +78,7 @@ class ServiceJourneyResolver(
             )
         } else {
             LOG.info(
-                "Service journey resolution complete: {}/{} flights matched | total={:.1f}ms",
+                "Service journey resolution complete: {}/{} flights matched | total={}ms",
                 matched, flights.size, totalMs
             )
         }

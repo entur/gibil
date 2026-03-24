@@ -29,7 +29,7 @@ class ServiceJourneyResolver(
 
         //Make the mutable list refill with all extime servicejourney data
         val resetStart = System.nanoTime()
-        findServiceJourneyService.resetMutableServiceJourneyList()
+        findServiceJourneyService.resetMutableServiceJourneyMap()
         val resetMs = (System.nanoTime() - resetStart) / 1_000_000.0
         LOG.info("resetMutableServiceJourneyList took $resetMs ms")
 

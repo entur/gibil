@@ -22,7 +22,7 @@ class ServiceJourneyResolverTest {
 
     @BeforeEach
     fun setUp() {
-        every { findServiceJourneyService.resetMutableServiceJourneyList() } just Runs
+        every { findServiceJourneyService.resetMutableServiceJourneyMap() } just Runs
     }
 
     @Test

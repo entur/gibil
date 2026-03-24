@@ -43,7 +43,7 @@ class FindServiceJourneyService(
         }
 
         //set the mutableservicejourneylist to contain the same information as found by findServiceJourney()
-        resetMutableServiceJourneyList()
+        resetMutableServiceJourneyMap()
     }
 
 
@@ -120,7 +120,7 @@ class FindServiceJourneyService(
      * Resets the resetMutableServiceJourneyList to contain the servicejourneys from extime.
      * Needs to be done before servicejourney matching is started
      */
-    fun resetMutableServiceJourneyList() {
+    fun resetMutableServiceJourneyMap() {
         mutableServiceJourneyMap = mutableMapOf()
         serviceJourneyList.forEach { journey ->
             journey.departureTime.forEach { depTime ->

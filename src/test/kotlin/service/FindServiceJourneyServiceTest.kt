@@ -68,14 +68,14 @@ class FindServiceJourneyServiceTest {
 
     @Test
     fun `MutableServiceJourneyList should match ServiceJourneyList after resetMutableServiceJourneyList()`() {
-        service.resetMutableServiceJourneyList()
+        service.resetMutableServiceJourneyMap()
 
-        Assertions.assertTrue { service.mutableServiceJourneyList == service.serviceJourneyList }
+        Assertions.assertTrue { service.mutableServiceJourneyMap == service.serviceJourneyList }
     }
 
     @Test
     fun `MutableServiceJourneyList should remove a servicejourney after resetMutableServiceJourneyList()`() {
-        service.resetMutableServiceJourneyList()
+        service.resetMutableServiceJourneyMap()
 
         val originalSize = service.serviceJourneyList.size
 
@@ -86,7 +86,7 @@ class FindServiceJourneyServiceTest {
 
         //since three matches are run, the expected result is three less servicejourneys
         val expectedSize = originalSize-3
-        val actualSize = service.mutableServiceJourneyList.size
+        val actualSize = service.mutableServiceJourneyMap.size
 
         Assertions.assertTrue { actualSize == expectedSize }
     }

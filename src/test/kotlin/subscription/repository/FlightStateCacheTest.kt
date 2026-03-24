@@ -109,7 +109,14 @@ class FlightStateCacheTest {
     }
 
     @Test
-    fun `computeFlightHash should include all stops`() {
+    fun `computeFlightHash should include all stops and any change in later stops should return changed=true`() {
+        val flight1 = ServiceTestHelper.mockFlight("WF921", "2026-03-24", stops = listOf(ServiceTestHelper.defaultStop(departureStatusCode = "E"), ServiceTestHelper.defaultStop(departureStatusCode = "E")))
+        cache.hasChanged(flight1)
+
+        val flight2 = ServiceTestHelper.mockFlight("WF921", "2026-03-24", stops = listOf(ServiceTestHelper.defaultStop(departureStatusCode = "E"), ServiceTestHelper.defaultStop(departureStatusCode = "C")))
+        val result = cache.hasChanged(flight2)
+
+        Assertions.assertTrue(result)
 
     }
 }

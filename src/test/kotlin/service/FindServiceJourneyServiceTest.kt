@@ -9,7 +9,7 @@ class FindServiceJourneyServiceTest {
     val service = FindServiceJourneyService(mockk<ApiService>(), "src/test/resources/extimeData").also { it.init() }
 
     //correct information
-    val exampleFlightSasSVG = listOf("2026-05-05T06:00:00Z", "SK4011")
+    val exampleFlightSasSVG = listOf("2026-03-23T19:30:00Z", "SK4055")
     val exampleFlightNorwegian = listOf("2026-03-02T17:25:00Z", "DY628")
     val exampleLineRefSas = listOf("OSL", "SVG")
     val exampleLineRefNorwegian = listOf("OSL", "BGO")
@@ -25,7 +25,7 @@ class FindServiceJourneyServiceTest {
     val exampleWrongLineRef = listOf("OSL", "LAX")
 
     // midnight edgecase, a fake flight i've manually made, since none existed around midnight
-    val exampleMidnight = listOf("2026-05-24T22:30:00Z", "DY9999")
+    val exampleMidnight = listOf("2026-02-04T23:30:00Z", "DY9999")
     val exampleLineRefMidnight = listOf("OSL", "TRD")
 
     @Test
@@ -33,7 +33,10 @@ class FindServiceJourneyServiceTest {
         val foundMatch1 = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
         val foundMatch2 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
 
-        Assertions.assertTrue { "SK4011-01-358551288" in foundMatch1.serviceJourneyId }
+        println(foundMatch1)
+        println(foundMatch2)
+
+        Assertions.assertTrue { "SK4055-01-358551288" in foundMatch1.serviceJourneyId }
         Assertions.assertTrue { "DY628-01-523288933" in foundMatch2.serviceJourneyId }
     }
 
@@ -67,27 +70,27 @@ class FindServiceJourneyServiceTest {
     }
 
     @Test
-    fun `MutableServiceJourneyList should match ServiceJourneyList after resetMutableServiceJourneyList()`() {
+    fun `MutableServiceJourneyMap should contain same journeys as serviceJourneyList after reset`() {
         service.resetMutableServiceJourneyMap()
 
-        Assertions.assertTrue { service.mutableServiceJourneyMap == service.serviceJourneyList }
+        val mapJourneys = service.mutableServiceJourneyMap.values.flatten().toSet()
+        val listJourneys = service.serviceJourneyList.toSet()
+
+        Assertions.assertEquals(listJourneys, mapJourneys)
     }
 
     @Test
-    fun `MutableServiceJourneyList should remove a servicejourney after resetMutableServiceJourneyList()`() {
+    fun `MutableServiceJourneyMap should remove a servicejourney after matching`() {
         service.resetMutableServiceJourneyMap()
 
-        val originalSize = service.serviceJourneyList.size
+        val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
 
-        //run a few matches
         service.matchServiceJourney(exampleMidnight[0], exampleMidnight[1], exampleLineRefMidnight)
         service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
         service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
 
-        //since three matches are run, the expected result is three less servicejourneys
-        val expectedSize = originalSize-3
-        val actualSize = service.mutableServiceJourneyMap.size
+        val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
 
-        Assertions.assertTrue { actualSize == expectedSize }
+        Assertions.assertEquals(originalCount - 3, actualCount)
     }
 }

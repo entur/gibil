@@ -80,10 +80,10 @@ object Dates {
     fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.of("Europe/Oslo"))
 
 
-    fun daytypeBuilder(ZoneDateTime: ZonedDateTime): String{
+    fun daytypeBuilder(zoneDateTime: ZonedDateTime): String{
         val norwayZone = ZoneId.of("Europe/Oslo")
 
-        val norwayDateTimeDeparture = ZoneDateTime .withZoneSameInstant(norwayZone)
+        val norwayDateTimeDeparture = zoneDateTime .withZoneSameInstant(norwayZone)
 
         val formatMonth = DateTimeFormatter.ofPattern("MMM", Dates.LOCALE)
         val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)

@@ -1,12 +1,25 @@
 package service
 
 import io.mockk.mockk
+import org.gibil.Dates.daytypeBuilder
+import org.gibil.Dates.instantNowUtc
+import org.gibil.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import java.io.File
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.test.Test
 
 class FindServiceJourneyServiceTest {
-    val service = FindServiceJourneyService(mockk<ApiService>(), "src/test/resources/extimeData").also { it.init() }
+    lateinit var service: FindServiceJourneyService
 
     //correct information
     val exampleFlightSasSVG = listOf("2026-03-23T19:30:00Z", "SK4055")
@@ -27,6 +40,30 @@ class FindServiceJourneyServiceTest {
     // midnight edgecase, a fake flight i've manually made, since none existed around midnight
     val exampleMidnight = listOf("2026-02-04T23:30:00Z", "DY9999")
     val exampleLineRefMidnight = listOf("OSL", "TRD")
+
+    val today = Instant.now().atZone(ZoneOffset.UTC)
+    val todayNorway = today.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
+    val tomorrowNorway = todayNorway.plus(Duration.ofHours(24))
+
+    // format matching what formatForServiceJourney produces, e.g. "Mar_Tue_24"
+    val todayFormatted = daytypeBuilder(today)
+    val tomorrowFormatted = tomorrowDaytype()
+
+    @BeforeEach
+    fun setup() {
+        // write dynamic XML first
+        File("src/test/resources/extimeData/test-dynamic.xml").writeText(buildDynamicXml())
+
+        println(buildDynamicXml())
+        // then init service so it picks up the new file
+        service = FindServiceJourneyService(mockk<ApiService>(), "src/test/resources/extimeData")
+            .also { it.init() }
+    }
+
+    @AfterEach
+    fun cleanup() {
+        File("src/test/resources/extimeData/test-dynamic.xml").delete()
+    }
 
     @Test
     fun `FindServiceJourney should find service journey match to example flights`() {
@@ -70,27 +107,70 @@ class FindServiceJourneyServiceTest {
     }
 
     @Test
-    fun `MutableServiceJourneyMap should contain same journeys as serviceJourneyList after reset`() {
+    fun `MutableServiceJourneyMap should NOT remove journey if needed tomorrow`() {
         service.resetMutableServiceJourneyMap()
+        val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+        println(todayNorway.toString())
+        // today's flight matches the dynamic journey which also has tomorrow's daytype
+        val test = service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+        println(test)
 
-        val mapJourneys = service.mutableServiceJourneyMap.values.flatten().toSet()
-        val listJourneys = service.serviceJourneyList.toSet()
-
-        Assertions.assertEquals(listJourneys, mapJourneys)
+        val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+        Assertions.assertEquals(originalCount, actualCount) // not removed
     }
 
     @Test
-    fun `MutableServiceJourneyMap should remove a servicejourney after matching`() {
+    fun `MutableServiceJourneyMap should remove journey if not needed tomorrow`() {
         service.resetMutableServiceJourneyMap()
-
         val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
 
-        service.matchServiceJourney(exampleMidnight[0], exampleMidnight[1], exampleLineRefMidnight)
-        service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
-        service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
+        service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY629", listOf("OSL", "BGO"))
 
         val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+        Assertions.assertEquals(originalCount - 1, actualCount)
+    }
 
-        Assertions.assertEquals(originalCount - 3, actualCount)
+    private fun buildDynamicXml(): String {
+        val departureTime = today.toString().substring(11, 19) // "HH:mm:ss" from ISO instant
+        return """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <PublicationDelivery xmlns="http://www.netex.org.uk/netex">
+          <dataObjects>
+            <CompositeFrame>
+              <frames>
+                <TimetableFrame>
+                  <vehicleJourneys>
+                    <ServiceJourney version="1" id="AVI:ServiceJourney:DY628-DYNAMIC-523288933">
+                      <dayTypes>
+                        <DayTypeRef ref="AVI:DayType:999-$todayFormatted"/>
+                        <DayTypeRef ref="AVI:DayType:999-$tomorrowFormatted"/>
+                      </dayTypes>
+                      <PublicCode>DY628</PublicCode>
+                      <LineRef ref="AVI:Line:DY_OSL-BGO"/>
+                      <passingTimes>
+                        <TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:dynamic-1">
+                          <DepartureTime>$departureTime</DepartureTime>
+                        </TimetabledPassingTime>
+                      </passingTimes>
+                    </ServiceJourney>
+                    <ServiceJourney version="1" id="AVI:ServiceJourney:DY629-DYNAMIC-523288933">
+                      <dayTypes>
+                        <DayTypeRef ref="AVI:DayType:999-$todayFormatted"/>
+                      </dayTypes>
+                      <PublicCode>DY629</PublicCode>
+                      <LineRef ref="AVI:Line:DY_OSL-BGO"/>
+                      <passingTimes>
+                        <TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:dynamic-1">
+                          <DepartureTime>$departureTime</DepartureTime>
+                        </TimetabledPassingTime>
+                      </passingTimes>
+                    </ServiceJourney>
+                  </vehicleJourneys>
+                </TimetableFrame>
+              </frames>
+            </CompositeFrame>
+          </dataObjects>
+        </PublicationDelivery>
+    """.trimIndent()
     }
 }

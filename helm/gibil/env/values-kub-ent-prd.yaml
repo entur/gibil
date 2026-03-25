@@ -8,8 +8,7 @@ common:
     host: gibil.entur.io
   replicas: 1
   container:
-    replicas: 1
-    maxReplicas: 2
+    forceReplicas: 1
 
 configMap:
   LOG_LEVEL: INFO

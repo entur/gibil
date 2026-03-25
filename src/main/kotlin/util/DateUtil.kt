@@ -79,5 +79,7 @@ object DateUtil {
         } catch (e: Exception) {
             throw IllegalArgumentException("Invalid date-time format: $departureTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
+
+    fun nanosToMs(nanos: Long): Double = nanos / 1_000_000.0
 }
 

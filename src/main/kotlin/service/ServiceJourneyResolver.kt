@@ -3,6 +3,7 @@ package service
 import model.UnifiedFlight
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import util.DateUtil.nanosToMs
 
 private val LOG = LoggerFactory.getLogger(ServiceJourneyResolver::class.java)
 
@@ -30,7 +31,7 @@ class ServiceJourneyResolver(
         //Make the mutable list refill with all extime servicejourney data
         val resetStart = System.nanoTime()
         findServiceJourneyService.resetMutableServiceJourneyMap()
-        val resetMs = (System.nanoTime() - resetStart) / 1_000_000.0
+        val resetMs = nanosToMs((System.nanoTime() - resetStart))
         LOG.info("resetMutableServiceJourneyList took $resetMs ms")
 
         val result = flights.map { flight ->
@@ -59,10 +60,10 @@ class ServiceJourneyResolver(
             resolved
         }
 
-        val totalMs = (System.nanoTime() - totalStart) / 1_000_000.0
+        val totalMs = nanosToMs((System.nanoTime() - totalStart))
 
         if (flightTimingsNs.isNotEmpty()) {
-            val sortedMs = flightTimingsNs.sorted().map { it / 1_000_000.0 }
+            val sortedMs = flightTimingsNs.sorted().map { nanosToMs(it) }
             val meanMs = sortedMs.average()
             val p50Ms = sortedMs[sortedMs.size / 2]
             val p95Ms = sortedMs[(sortedMs.size * 0.95).toInt().coerceAtMost(sortedMs.size - 1)]

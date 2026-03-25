@@ -24,13 +24,16 @@ class ServiceJourneyResolver(
 
     fun resolve(flights: List<UnifiedFlight>): List<UnifiedFlight> {
         var matched = 0
-        val workingMap = findServiceJourneyService.buildWorkingMap()
 
+        //start time measurment
         val flightTimingsNs = mutableListOf<Long>()
         val totalStart = System.nanoTime()
 
-        //Make the mutable list refill with all extime servicejourney data
+        //Build a working map and capture a timemeasurement
         val resetStart = System.nanoTime()
+
+        val workingMap = findServiceJourneyService.buildWorkingMap()
+
         val resetMs = nanosToMs((System.nanoTime() - resetStart))
         LOG.info("resetMutableServiceJourneyList took $resetMs ms")
 
@@ -42,7 +45,9 @@ class ServiceJourneyResolver(
                 return@map flight
             }
 
+            //time capture start
             val flightStart = System.nanoTime()
+
             val resolved = try {
                 val lineRefInfo = listOf(flight.origin, flight.destination)
                 val match = findServiceJourneyService.matchServiceJourney(workingMap, departureTimeStr, flight.flightId, lineRefInfo)
@@ -55,13 +60,16 @@ class ServiceJourneyResolver(
                 LOG.error("Resolution error for {}: {}", flight.flightId, e.message)
                 flight
             }
+
+            //add time taken on this individual flight process
             flightTimingsNs += System.nanoTime() - flightStart
 
             resolved
         }
 
-        val totalMs = nanosToMs((System.nanoTime() - totalStart))
+        val totalResolveTimeMs = nanosToMs((System.nanoTime() - totalStart))
 
+        //if individual flight time capture worked correctly, else just give total time taken
         if (flightTimingsNs.isNotEmpty()) {
             val sortedMs = flightTimingsNs.sorted().map { nanosToMs(it) }
             val meanMs = sortedMs.average()
@@ -69,12 +77,12 @@ class ServiceJourneyResolver(
 
             LOG.info(
                 "Service journey resolution complete: $matched/${flights.size} flights matched | " +
-                        "total=${totalMs}ms reset=${resetMs}ms | per-flight mean=${meanMs}ms max=${maxMs}ms",
+                        "total=${totalResolveTimeMs}ms reset=${resetMs}ms | per-flight mean=${meanMs}ms max=${maxMs}ms",
             )
         } else {
             LOG.info(
                 "Service journey resolution complete: {}/{} flights matched | total={}ms",
-                matched, flights.size, totalMs
+                matched, flights.size, totalResolveTimeMs
             )
         }
 

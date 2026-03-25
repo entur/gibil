@@ -135,6 +135,9 @@
                 <DayTypeRef ref="AVI:DayType:1191629132-Mar_Fri_20"></DayTypeRef>
                 <DayTypeRef ref="AVI:DayType:1191629132-Mar_Mon_23"></DayTypeRef>
                 <DayTypeRef ref="AVI:DayType:1191629132-Mar_Tue_24"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:1191629132-Mar_Wed_25"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:1191629132-Mar_Thu_26"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:1191629132-Mar_Fri_27"></DayTypeRef>
               </dayTypes>
               <JourneyPatternRef ref="AVI:JourneyPattern:358551288" version="1"></JourneyPatternRef>
               <PublicCode>SK4011</PublicCode>
@@ -411,6 +414,9 @@
                 <DayTypeRef ref="AVI:DayType:1191629132-Mar_Wed_18"></DayTypeRef>
                 <DayTypeRef ref="AVI:DayType:1191629132-Mar_Thu_19"></DayTypeRef>
                 <DayTypeRef ref="AVI:DayType:1191629132-Mar_Mon_23"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:1191629132-Mar_Wed_25"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:1191629132-Mar_Thu_26"></DayTypeRef>
+                <DayTypeRef ref="AVI:DayType:1191629132-Mar_Fri_27"></DayTypeRef>
               </dayTypes>
               <JourneyPatternRef ref="AVI:JourneyPattern:358551288" version="1"></JourneyPatternRef>
               <PublicCode>SK4055</PublicCode>

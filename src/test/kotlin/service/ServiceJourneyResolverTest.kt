@@ -7,6 +7,7 @@ import model.UnifiedFlight
 import model.serviceJourney.LineRefWrapper
 import model.serviceJourney.ServiceJourney
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -16,6 +17,11 @@ class ServiceJourneyResolverTest {
 
     private val findServiceJourneyService = mockk<FindServiceJourneyService>()
     private val resolver = ServiceJourneyResolver(findServiceJourneyService)
+
+    @BeforeEach
+    fun setup() {
+        every { findServiceJourneyService.buildWorkingMap() } returns mutableMapOf()
+    }
 
     @Test
     fun `should attach serviceJourneyRef when match is found`() {

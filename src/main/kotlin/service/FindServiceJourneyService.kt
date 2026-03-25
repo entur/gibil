@@ -119,7 +119,7 @@ class FindServiceJourneyService(
     }
 
     /**
-     * Builds a map of all servicejourneys fetched earlier from extime NeTEx info (serviceJourneyList).
+     * Builds a mutable map of all servicejourneys fetched earlier from extime NeTEx info (serviceJourneyList).
      * Needs to be done before servicejourney matching is started, and requires a good serviceJourneyList (created in init()).
      * Builds buckets based on flightcode and departuretime.
      * @return Hashmap of all servicejourneys

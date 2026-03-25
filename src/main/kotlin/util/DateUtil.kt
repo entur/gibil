@@ -80,6 +80,14 @@ object DateUtil {
             throw IllegalArgumentException("Invalid date-time format: $departureTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
 
+    /**
+     * Converts nanoseconds to milliseconds
+     * @param nanos Nanoseconds to be converted to milliseconds
+     * 1_000_000.0 is used to convert nanoseconds to milliseconds.
+     * Since System.nanoTime() returns nanoseconds, dividing by 1,000,000 gives you milliseconds.
+     * The .0 makes it a Double so you get a decimal result (e.g. 2.35 ms) rather than a truncated integer.
+     * @return Milliseconds in Double format
+    */
     fun nanosToMs(nanos: Long): Double = nanos / 1_000_000.0
 }
 

@@ -25,11 +25,11 @@ class ServiceJourneyResolver(
     fun resolve(flights: List<UnifiedFlight>): List<UnifiedFlight> {
         var matched = 0
 
-        //start time measurment
+        //start time measurement
         val flightTimingsNs = mutableListOf<Long>()
         val totalStart = System.nanoTime()
 
-        //Build a working map and capture a timemeasurement
+        //Build a working map and capture a time-measurement
         val resetStart = System.nanoTime()
 
         val workingMap = findServiceJourneyService.buildWorkingMap()

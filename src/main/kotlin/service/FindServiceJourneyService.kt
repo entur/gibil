@@ -85,7 +85,8 @@ class FindServiceJourneyService(
                 val lineRef = journey.lineRef
                 val lineRefMatch = lineRef != null && lineRefInfo[0] in lineRef && lineRefInfo[1] in lineRef
                 if (!lineRefMatch && dayTypeMatch) {
-                    LOG.warn("\"lineref not match, but flightcode and dateinfo matched; \${flightCode}, \${avinorFlightDateInfo[0]}, \${avinorFlightDateInfo[1]}, airports from avinor: \${lineRefInfo[0]},\${lineRefInfo[1]}, lineref in extime lineref: \${lineRef}\"")
+                    LOG.warn("lineref not match, but flightcode and dateinfo matched; {}, {}, {}, airports from avinor: {}, {}, lineref in extime lineref: {}",
+                        flightCode, avinorFlightDateInfo[0], avinorFlightDateInfo[1], lineRefInfo[0], lineRefInfo[1], lineRef)
                 }
                 dayTypeMatch && lineRefMatch
             }

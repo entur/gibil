@@ -35,7 +35,7 @@ class ServiceJourneyResolver(
         val workingMap = findServiceJourneyService.buildWorkingMap()
 
         val resetMs = nanosToMs((System.nanoTime() - resetStart))
-        LOG.info("resetMutableServiceJourneyList took $resetMs ms")
+        LOG.info("resetMutableServiceJourneyList took {} ms", resetMs)
 
         val result = flights.map { flight ->
             val departureTimeStr = flight.stops.first().departureTime?.toString()
@@ -76,8 +76,10 @@ class ServiceJourneyResolver(
             val maxMs = sortedMs.last()
 
             LOG.info(
-                "Service journey resolution complete: $matched/${flights.size} flights matched | " +
-                        "total=${totalResolveTimeMs}ms reset=${resetMs}ms | per-flight mean=${meanMs}ms max=${maxMs}ms",
+                "Service journey resolution complete: {}/{} flights matched | " +
+                        "total={}ms reset={}ms | per-flight mean={}ms max={}ms",
+                matched, flights.size,
+                totalResolveTimeMs, resetMs, meanMs, maxMs
             )
         } else {
             LOG.info(

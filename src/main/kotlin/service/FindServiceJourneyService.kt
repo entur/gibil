@@ -119,8 +119,10 @@ class FindServiceJourneyService(
     }
 
     /**
-     * Resets the resetMutableServiceJourneyList to contain the servicejourneys from extime.
-     * Needs to be done before servicejourney matching is started
+     * Builds a map of all servicejourneys fetched earlier from extime NeTEx info (serviceJourneyList).
+     * Needs to be done before servicejourney matching is started, and requires a good serviceJourneyList (created in init()).
+     * Builds buckets based on flightcode and departuretime.
+     * @return Hashmap of all servicejourneys
      */
     fun buildWorkingMap(): MutableMap<String, MutableList<ServiceJourney>> {
         val map = mutableMapOf<String, MutableList<ServiceJourney>>()

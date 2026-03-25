@@ -29,7 +29,6 @@ class FindServiceJourneyService(
     val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
-    var mutableServiceJourneyMap: MutableMap<String, MutableList<ServiceJourney>> = mutableMapOf()
 
     @PostConstruct
     fun init() {
@@ -41,9 +40,6 @@ class FindServiceJourneyService(
         serviceJourneyList = findServiceJourney().also { journeys ->
             journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
         }
-
-        //set the mutableservicejourneylist to contain the same information as found by findServiceJourney()
-        resetMutableServiceJourneyMap()
     }
 
 
@@ -73,10 +69,15 @@ class FindServiceJourneyService(
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(departureInfoRaw: String, flightCode: String, lineRefInfo: List<String>): ServiceJourney {
+    fun matchServiceJourney(
+        workingMap: MutableMap<String, MutableList<ServiceJourney>>,
+        departureInfoRaw: String,
+        flightCode: String,
+        lineRefInfo: List<String>): ServiceJourney {
+
         val avinorFlightDateInfo = formatForServiceJourney(departureInfoRaw)
         val key = buildKey(flightCode, avinorFlightDateInfo[0])
-        val bucket = mutableServiceJourneyMap[key]
+        val bucket = workingMap[key]
 
         if (!bucket.isNullOrEmpty()) {
             val matchIndex = bucket.indexOfFirst { journey ->
@@ -98,7 +99,7 @@ class FindServiceJourneyService(
                     bucket.removeAt(matchIndex)
                     matched.departureTime.forEach { depTime ->
                         val otherKey = buildKey(matched.publicCode, depTime)
-                        mutableServiceJourneyMap[otherKey]?.remove(matched)
+                        workingMap[otherKey]?.remove(matched)
                     }
                 }
 
@@ -120,14 +121,15 @@ class FindServiceJourneyService(
      * Resets the resetMutableServiceJourneyList to contain the servicejourneys from extime.
      * Needs to be done before servicejourney matching is started
      */
-    fun resetMutableServiceJourneyMap() {
-        mutableServiceJourneyMap = mutableMapOf()
+    fun buildWorkingMap(): MutableMap<String, MutableList<ServiceJourney>> {
+        val map = mutableMapOf<String, MutableList<ServiceJourney>>()
         serviceJourneyList.forEach { journey ->
             journey.departureTime.forEach { depTime ->
                 val key = buildKey(journey.publicCode, depTime)
-                mutableServiceJourneyMap.getOrPut(key) { mutableListOf() }.add(journey)
+                map.getOrPut(key) { mutableListOf() }.add(journey)
             }
         }
+        return map
     }
 
     private fun buildKey(publicCode: String, departureTime: String) = "$publicCode|$departureTime"

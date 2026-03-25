@@ -24,13 +24,13 @@ class ServiceJourneyResolver(
 
     fun resolve(flights: List<UnifiedFlight>): List<UnifiedFlight> {
         var matched = 0
-        val flightTimingsNs = mutableListOf<Long>()
+        val workingMap = findServiceJourneyService.buildWorkingMap()
 
+        val flightTimingsNs = mutableListOf<Long>()
         val totalStart = System.nanoTime()
 
         //Make the mutable list refill with all extime servicejourney data
         val resetStart = System.nanoTime()
-        findServiceJourneyService.resetMutableServiceJourneyMap()
         val resetMs = nanosToMs((System.nanoTime() - resetStart))
         LOG.info("resetMutableServiceJourneyList took $resetMs ms")
 
@@ -45,7 +45,7 @@ class ServiceJourneyResolver(
             val flightStart = System.nanoTime()
             val resolved = try {
                 val lineRefInfo = listOf(flight.origin, flight.destination)
-                val match = findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId, lineRefInfo)
+                val match = findServiceJourneyService.matchServiceJourney(workingMap, departureTimeStr, flight.flightId, lineRefInfo)
                 matched++
                 flight.copy(serviceJourneyRef = match.serviceJourneyId, lineRef = match.lineRef)
             } catch (e: ServiceJourneyNotFoundException) {
@@ -65,17 +65,11 @@ class ServiceJourneyResolver(
         if (flightTimingsNs.isNotEmpty()) {
             val sortedMs = flightTimingsNs.sorted().map { nanosToMs(it) }
             val meanMs = sortedMs.average()
-            val p50Ms = sortedMs[sortedMs.size / 2]
-            val p95Ms = sortedMs[(sortedMs.size * 0.95).toInt().coerceAtMost(sortedMs.size - 1)]
-            val p99Ms = sortedMs[(sortedMs.size * 0.99).toInt().coerceAtMost(sortedMs.size - 1)]
             val maxMs = sortedMs.last()
 
             LOG.info(
                 "Service journey resolution complete: $matched/${flights.size} flights matched | " +
-                        "total=${totalMs}ms reset=${resetMs}ms | per-flight mean=${meanMs}ms p50=${p50Ms}ms p95=${p95Ms}ms p99=${p99Ms}ms max=${maxMs}ms",
-                matched, flights.size,
-                totalMs, resetMs,
-                meanMs, p50Ms, p95Ms, p99Ms, maxMs
+                        "total=${totalMs}ms reset=${resetMs}ms | per-flight mean=${meanMs}ms max=${maxMs}ms",
             )
         } else {
             LOG.info(

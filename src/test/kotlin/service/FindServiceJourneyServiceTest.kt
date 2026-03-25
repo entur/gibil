@@ -33,7 +33,7 @@ class FindServiceJourneyServiceTest {
     val exampleWrongLineRef = listOf("OSL", "LAX")
 
     // midnight edgecase, a fake flight i've manually made, since none existed around midnight
-    val exampleMidnight = listOf("2026-02-04T23:30:00Z", "DY9999")
+    val exampleMidnight = listOf("2026-05-24T22:30:00Z", "DY9999")
     val exampleLineRefMidnight = listOf("OSL", "TRD")
 
     val today = Instant.now().atZone(ZoneOffset.UTC)
@@ -59,8 +59,10 @@ class FindServiceJourneyServiceTest {
 
     @Test
     fun `FindServiceJourney should find service journey match to example flights`() {
-        val foundMatch1 = service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
-        val foundMatch2 = service.matchServiceJourney(exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
+        val workingMap = service.buildWorkingMap()
+
+        val foundMatch1 = service.matchServiceJourney(workingMap, exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
+        val foundMatch2 = service.matchServiceJourney(workingMap, exampleFlightNorwegian[0], exampleFlightNorwegian[1], exampleLineRefNorwegian)
 
         Assertions.assertTrue { "SK4055-01-358551288" in foundMatch1.serviceJourneyId }
         Assertions.assertTrue { "DY628-01-523288933" in foundMatch2.serviceJourneyId }
@@ -68,54 +70,88 @@ class FindServiceJourneyServiceTest {
 
     @Test
     fun `FindServiceJourney should throw exception when not finding a matching servicejourney`() {
+        val workingMap = service.buildWorkingMap()
+
         //we should not find a match for the flightcode that does not exist in the servicejourneys
         Assertions.assertThrows(ServiceJourneyNotFoundException::class.java) {
-            service.matchServiceJourney(exampleNanFlightcode[0], exampleNanFlightcode[1], exampleLineNanFlight)
+            service.matchServiceJourney(workingMap, exampleNanFlightcode[0], exampleNanFlightcode[1], exampleLineNanFlight)
         }
     }
 
     @Test
     fun `FindServiceJourney should throw when date does not match even if flight code and lineref exists`() {
+        val workingMap = service.buildWorkingMap()
+
         Assertions.assertThrows(ServiceJourneyNotFoundException::class.java) {
-            service.matchServiceJourney(exampleWrongDate[0], exampleWrongDate[1], exampleLineRefSas)
+            service.matchServiceJourney(workingMap, exampleWrongDate[0], exampleWrongDate[1], exampleLineRefSas)
         }
     }
 
     @Test
     fun `FindServiceJourney should throw when airports from avinor dosent match lineref info`() {
+        val workingMap = service.buildWorkingMap()
+
         Assertions.assertThrows(ServiceJourneyNotFoundException::class.java) {
-            service.matchServiceJourney(exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleWrongLineRef)
+            service.matchServiceJourney(workingMap, exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleWrongLineRef)
         }
     }
 
     @Test
     fun `FindServiceJourney should find ID when flight is around midnight`() {
-        val foundMatch = service.matchServiceJourney(exampleMidnight[0], exampleMidnight[1], exampleLineRefMidnight)
+        val workingMap = service.buildWorkingMap()
+
+        val foundMatch = service.matchServiceJourney(workingMap, exampleMidnight[0], exampleMidnight[1], exampleLineRefMidnight)
 
         Assertions.assertTrue { "DY9999-01-123456789" in foundMatch.serviceJourneyId }
     }
 
     @Test
-    fun `MutableServiceJourneyMap should NOT remove journey if needed tomorrow`() {
-        service.resetMutableServiceJourneyMap()
-        val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+    fun `WorkingMap should NOT remove journey if needed tomorrow`() {
+        val workingMap = service.buildWorkingMap()
+
+        val originalCount = workingMap.values.flatten().toSet().size
 
         // today's flight matches the dynamic journey which also has tomorrow's daytype
-        service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
 
-        val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+        val actualCount = workingMap.values.flatten().toSet().size
         Assertions.assertEquals(originalCount, actualCount) // not removed
     }
 
     @Test
-    fun `MutableServiceJourneyMap should remove journey if not needed tomorrow`() {
-        service.resetMutableServiceJourneyMap()
-        val originalCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+    fun `WorkingMap should remove journey if not needed tomorrow`() {
+        val workingMap = service.buildWorkingMap()
+        val originalCount = workingMap.values.flatten().toSet().size
 
-        service.matchServiceJourney(today.minus(Duration.ofHours(1)).toString(), "DY629", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY629", listOf("OSL", "BGO"))
 
-        val actualCount = service.mutableServiceJourneyMap.values.flatten().toSet().size
+        val actualCount = workingMap.values.flatten().toSet().size
         Assertions.assertEquals(originalCount - 1, actualCount)
+    }
+
+    @Test
+    fun `buildWorkingMap should return fresh full map each time`() {
+        val map1 = service.buildWorkingMap()
+
+        service.matchServiceJourney(map1, exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
+
+        val map2 = service.buildWorkingMap()
+        Assertions.assertEquals(
+            map2.values.flatten().toSet().size,
+            map1.values.flatten().toSet().size
+        )
+    }
+
+    @Test
+    fun `Matching a tomorrow-needed journey twice should not corrupt the map`() {
+        val workingMap = service.buildWorkingMap()
+        val countBefore = workingMap.values.flatten().toSet().size
+
+        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+
+        val countAfter = workingMap.values.flatten().toSet().size
+        Assertions.assertEquals(countBefore, countAfter)
     }
 
     private fun buildDynamicXml(): String {

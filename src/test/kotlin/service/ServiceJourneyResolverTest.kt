@@ -1,15 +1,12 @@
 package service
 
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import model.FlightStop
 import model.UnifiedFlight
 import model.serviceJourney.LineRefWrapper
 import model.serviceJourney.ServiceJourney
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -20,14 +17,9 @@ class ServiceJourneyResolverTest {
     private val findServiceJourneyService = mockk<FindServiceJourneyService>()
     private val resolver = ServiceJourneyResolver(findServiceJourneyService)
 
-    @BeforeEach
-    fun setUp() {
-        every { findServiceJourneyService.resetMutableServiceJourneyMap() } just Runs
-    }
-
     @Test
     fun `should attach serviceJourneyRef when match is found`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any(), any()) } returns ServiceJourney(
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), any(), any()) } returns ServiceJourney(
             serviceJourneyId = "AVI:ServiceJourney:SK123_hash"
         )
 
@@ -39,7 +31,7 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should attach lineRef when match contains one`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any(), any()) } returns ServiceJourney(
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), any(), any()) } returns ServiceJourney(
             serviceJourneyId = "AVI:ServiceJourney:SK123_hash",
             lineRefElement = LineRefWrapper(ref = "AVI:LineRef:SK_OSL-BGO")
         )
@@ -51,7 +43,7 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should return flight with null ref when no match is found`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any(), any()) } throws ServiceJourneyNotFoundException("no match")
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), any(), any()) } throws ServiceJourneyNotFoundException("no match")
 
         val result = resolver.resolve(listOf(createFlight()))
 
@@ -61,7 +53,7 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should return flight with null ref when lookup throws unexpected exception`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any(), any()) } throws RuntimeException("ExTime unavailable")
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), any(), any()) } throws RuntimeException("ExTime unavailable")
 
         val result = resolver.resolve(listOf(createFlight()))
 
@@ -79,8 +71,8 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should process all flights independently when one fails`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), "SK123", any()) } throws ServiceJourneyNotFoundException("no match")
-        every { findServiceJourneyService.matchServiceJourney(any(), "DY456", any()) } returns ServiceJourney(serviceJourneyId = "AVI:ServiceJourney:DY456_hash", lineRefElement = LineRefWrapper(ref = "AVI:LineRef:SK_OSL-BGO"))
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), "SK123", any()) } throws ServiceJourneyNotFoundException("no match")
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), "DY456", any()) } returns ServiceJourney(serviceJourneyId = "AVI:ServiceJourney:DY456_hash", lineRefElement = LineRefWrapper(ref = "AVI:LineRef:SK_OSL-BGO"))
 
         val result = resolver.resolve(listOf(createFlight("SK123"), createFlight("DY456")))
 
@@ -90,7 +82,7 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should return full list regardless of match failures`() {
-        every { findServiceJourneyService.matchServiceJourney(any(), any(), any()) } throws ServiceJourneyNotFoundException("no match")
+        every { findServiceJourneyService.matchServiceJourney(any(), any(), any(), any()) } throws ServiceJourneyNotFoundException("no match")
 
         val result = resolver.resolve(listOf(createFlight("SK123"), createFlight("DY456"), createFlight("WF789")))
 

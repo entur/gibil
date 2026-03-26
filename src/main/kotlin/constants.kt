@@ -1,5 +1,6 @@
 package org.gibil
 
+import java.time.Duration
 import java.time.Instant
 import java.util.Locale
 import java.time.LocalDate
@@ -77,4 +78,32 @@ object Dates {
     fun currentDateMMMddyyyy() = LocalDate.now().format(formats["MMMM_dd_yyyy"])
     fun instantNowUtc(): ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
     fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.of("Europe/Oslo"))
+
+
+    fun daytypeBuilder(zoneDateTime: ZonedDateTime): String{
+        val norwayZone = ZoneId.of("Europe/Oslo")
+
+        val norwayDateTimeDeparture = zoneDateTime .withZoneSameInstant(norwayZone)
+
+        val formatMonth = DateTimeFormatter.ofPattern("MMM", Dates.LOCALE)
+        val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)
+        val formatDayNum = DateTimeFormatter.ofPattern("dd", Dates.LOCALE)
+
+        // Implement formats onto object and create partial daytyperef-value
+        val month = norwayDateTimeDeparture.format(formatMonth)
+        val dayName = norwayDateTimeDeparture.format(formatDayShortName)
+        val dayNum = norwayDateTimeDeparture.format(formatDayNum)
+
+        val daytype = "${month}_${dayName}_${dayNum}"
+
+        return daytype
+    }
+
+    fun tomorrowDaytype(): String{
+        val time = instantNowUtc().plus(Duration.ofHours(24))
+        val daytype = daytypeBuilder(time)
+
+        return daytype
+    }
+
 }

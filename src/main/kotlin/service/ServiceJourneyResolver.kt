@@ -3,6 +3,7 @@ package service
 import model.UnifiedFlight
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import util.DateUtil.nanosToMs
 
 private val LOG = LoggerFactory.getLogger(ServiceJourneyResolver::class.java)
 
@@ -24,17 +25,32 @@ class ServiceJourneyResolver(
     fun resolve(flights: List<UnifiedFlight>): List<UnifiedFlight> {
         var matched = 0
 
+        //start time measurement
+        val flightTimingsNs = mutableListOf<Long>()
+        val totalStart = System.nanoTime()
+
+        //Build a working map and capture a time-measurement
+        val resetStart = System.nanoTime()
+
+        val workingMap = findServiceJourneyService.buildWorkingMap()
+
+        val resetMs = nanosToMs((System.nanoTime() - resetStart))
+        LOG.info("resetMutableServiceJourneyList took {} ms", resetMs)
+
         val result = flights.map { flight ->
             val departureTimeStr = flight.stops.first().departureTime?.toString()
 
-            if(departureTimeStr == null) {
+            if (departureTimeStr == null) {
                 LOG.warn("No departure time for resolution: flightId={}", flight.flightId)
                 return@map flight
             }
 
-            try {
+            //time capture start
+            val flightStart = System.nanoTime()
+
+            val resolved = try {
                 val lineRefInfo = listOf(flight.origin, flight.destination)
-                val match = findServiceJourneyService.matchServiceJourney(departureTimeStr, flight.flightId, lineRefInfo)
+                val match = findServiceJourneyService.matchServiceJourney(workingMap, departureTimeStr, flight.flightId, lineRefInfo)
                 matched++
                 flight.copy(serviceJourneyRef = match.serviceJourneyId, lineRef = match.lineRef)
             } catch (e: ServiceJourneyNotFoundException) {
@@ -44,9 +60,34 @@ class ServiceJourneyResolver(
                 LOG.error("Resolution error for {}: {}", flight.flightId, e.message)
                 flight
             }
+
+            //add time taken on this individual flight process
+            flightTimingsNs += System.nanoTime() - flightStart
+
+            resolved
         }
 
-        LOG.info("Service journey resolution complete: {}/{} flights matched", matched, flights.size)
+        val totalResolveTimeMs = nanosToMs((System.nanoTime() - totalStart))
+
+        //if individual flight time capture worked correctly, else just give total time taken
+        if (flightTimingsNs.isNotEmpty()) {
+            val sortedMs = flightTimingsNs.sorted().map { nanosToMs(it) }
+            val meanMs = sortedMs.average()
+            val maxMs = sortedMs.last()
+
+            LOG.info(
+                "Service journey resolution complete: {}/{} flights matched | " +
+                        "total={}ms reset={}ms | per-flight mean={}ms max={}ms",
+                matched, flights.size,
+                totalResolveTimeMs, resetMs, meanMs, maxMs
+            )
+        } else {
+            LOG.info(
+                "Service journey resolution complete: {}/{} flights matched | total={}ms",
+                matched, flights.size, totalResolveTimeMs
+            )
+        }
+
         return result
     }
 }

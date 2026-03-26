@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
 import handler.ServiceJourneyParser
+import org.gibil.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
@@ -68,28 +69,42 @@ class FindServiceJourneyService(
      * @param flightCode A string representing the flight code (e.g., "SK267").
      * @return A string containing the details of the matched service journey if found, or "none found" if no match is found.
      */
-    fun matchServiceJourney(departureInfoRaw: String, flightCode: String, lineRefInfo: List<String>): ServiceJourney {
-        //convert into a list of strings where the first element is the departure time in "HH:mm:ss" format and the second element is a day type reference in the format "MMM_E_dd"
+    fun matchServiceJourney(
+        workingMap: MutableMap<String, MutableList<ServiceJourney>>,
+        departureInfoRaw: String,
+        flightCode: String,
+        lineRefInfo: List<String>): ServiceJourney {
+
         val avinorFlightDateInfo = formatForServiceJourney(departureInfoRaw)
+        val key = buildKey(flightCode, avinorFlightDateInfo[0])
+        val bucket = workingMap[key]
 
-        //finding all service journeys and searching through them for a match
-        serviceJourneyList.forEach { journey ->
-            val dayTypeMatch = journey.dayTypes.any { dayType ->
-                avinorFlightDateInfo[1] in dayType
+        if (!bucket.isNullOrEmpty()) {
+            val matchIndex = bucket.indexOfFirst { journey ->
+                val dayTypeMatch = journey.dayTypes.any { avinorFlightDateInfo[1] in it }
+                val lineRef = journey.lineRef
+                val lineRefMatch = lineRef != null && lineRefInfo[0] in lineRef && lineRefInfo[1] in lineRef
+                if (!lineRefMatch && dayTypeMatch) {
+                    LOG.warn("lineref not match, but flightcode and dateinfo matched; {}, {}, {}, airports from avinor: {}, {}, lineref in extime lineref: {}",
+                        flightCode, avinorFlightDateInfo[0], avinorFlightDateInfo[1], lineRefInfo[0], lineRefInfo[1], lineRef)
+                }
+                dayTypeMatch && lineRefMatch
             }
+            if (matchIndex != -1) {
+                val matched = bucket[matchIndex]
 
-            val dateInfoMatch = avinorFlightDateInfo[0] in journey.departureTime && dayTypeMatch
-            val flightCodeMatch = journey.publicCode == flightCode
+                val daytypeTomorrow = tomorrowDaytype()
+                val neededTomorrow = matched.dayTypes.any { daytypeTomorrow in it }
 
-            val lineRef = journey.lineRef
-            val lineRefMatch = lineRef != null && lineRefInfo[0] in lineRef && lineRefInfo[1] in lineRef
+                if (!neededTomorrow) {
+                    bucket.removeAt(matchIndex)
+                    matched.departureTime.forEach { depTime ->
+                        val otherKey = buildKey(matched.publicCode, depTime)
+                        workingMap[otherKey]?.remove(matched)
+                    }
+                }
 
-            if (flightCodeMatch && dateInfoMatch && !lineRefMatch) {
-                LOG.warn("lineref not match, but flightcode and dateinfo matched; ${flightCode}, ${avinorFlightDateInfo[0]}, ${avinorFlightDateInfo[1]}, airports from avinor: ${lineRefInfo[0]},${lineRefInfo[1]}, lineref in extime lineref: ${lineRef}")
-            }
-
-            if (dateInfoMatch && flightCodeMatch && lineRefMatch) {
-                return journey
+                return matched
             }
         }
 
@@ -102,4 +117,23 @@ class FindServiceJourneyService(
         )
         throw ServiceJourneyNotFoundException("No service journey found for flight $flightCode at ${avinorFlightDateInfo[0]} on ${avinorFlightDateInfo[1]}")
     }
+
+    /**
+     * Builds a mutable map of all servicejourneys fetched earlier from extime NeTEx info (serviceJourneyList).
+     * Needs to be done before servicejourney matching is started, and requires a good serviceJourneyList (created in init()).
+     * Builds buckets based on flightcode and departuretime.
+     * @return Hashmap of all servicejourneys
+     */
+    fun buildWorkingMap(): MutableMap<String, MutableList<ServiceJourney>> {
+        val map = mutableMapOf<String, MutableList<ServiceJourney>>()
+        serviceJourneyList.forEach { journey ->
+            journey.departureTime.forEach { depTime ->
+                val key = buildKey(journey.publicCode, depTime)
+                map.getOrPut(key) { mutableListOf() }.add(journey)
+            }
+        }
+        return map
+    }
+
+    private fun buildKey(publicCode: String, departureTime: String) = "$publicCode|$departureTime"
 }

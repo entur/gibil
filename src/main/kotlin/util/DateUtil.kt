@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import org.gibil.Dates
+import org.gibil.Dates.daytypeBuilder
 
 /**
  * Utility object for date handling throughout the project.
@@ -67,18 +68,10 @@ object DateUtil {
             // Convert to Norwegian timezone
             val norwayDateTimeDeparture = dateTimeDepartureWithZone .withZoneSameInstant(norwayZone)
 
+            val dayType = daytypeBuilder(norwayDateTimeDeparture)
+
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", Dates.LOCALE)
-            val formatMonth = DateTimeFormatter.ofPattern("MMM", Dates.LOCALE)
-            val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)
-            val formatDayNum = DateTimeFormatter.ofPattern("dd", Dates.LOCALE)
-
-            // Implement formats onto object and create partial daytyperef-value
-            val month = norwayDateTimeDeparture.format(formatMonth)
-            val dayName = norwayDateTimeDeparture.format(formatDayShortName)
-            val dayNum = norwayDateTimeDeparture.format(formatDayNum)
-
-            val dayType = "${month}_${dayName}_${dayNum}"
 
             val norwegianDepartureTime = norwayDateTimeDeparture.format(formatFull)
 
@@ -86,5 +79,15 @@ object DateUtil {
         } catch (e: Exception) {
             throw IllegalArgumentException("Invalid date-time format: $departureTimeString. Expected format: ISO 8601 (e.g., 2026-02-07T13:40:00Z)", e ) }
     }
+
+    /**
+     * Converts nanoseconds to milliseconds
+     * @param nanos Nanoseconds to be converted to milliseconds
+     * 1_000_000.0 is used to convert nanoseconds to milliseconds.
+     * Since System.nanoTime() returns nanoseconds, dividing by 1,000,000 gives you milliseconds.
+     * The .0 makes it a Double so you get a decimal result (e.g. 2.35 ms) rather than a truncated integer.
+     * @return Milliseconds in Double format
+    */
+    fun nanosToMs(nanos: Long): Double = nanos / 1_000_000.0
 }
 

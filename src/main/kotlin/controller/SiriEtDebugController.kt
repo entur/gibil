@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
 import service.ServiceJourneyResolver
 import siri.SiriETMapper
-import siri.SiriETPublisher
+import siri.SiriEtPublisher
 
 @RestController
 class SiriEtDebugController(
     private val flightAggregationService: FlightAggregationService,
     private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,
-    private val siriETPublisher: SiriETPublisher
+    private val siriETPublisher: SiriEtPublisher
 ) {
 
     /**

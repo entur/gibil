@@ -7,7 +7,7 @@ import java.io.StringWriter
 import java.io.File
 
 @Service
-class SiriETPublisher {
+class SiriEtPublisher {
 
     fun toXml(siri: Siri, formatOutput: Boolean = true): String {
         val marshaller = SharedJaxbContext.createMarshaller(formatOutput)

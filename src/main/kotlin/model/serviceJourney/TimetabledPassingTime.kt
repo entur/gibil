@@ -1,7 +1,7 @@
 package model.serviceJourney
 
 import jakarta.xml.bind.annotation.*
-import org.gibil.ServiceJourneyModel
+import org.gibil.util.ServiceJourneyModel
 
 @XmlAccessorType(XmlAccessType.FIELD)
 data class TimetabledPassingTime(

@@ -5,8 +5,8 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import org.gibil.Dates
-import org.gibil.Dates.daytypeBuilder
+import org.gibil.util.Dates
+import org.gibil.util.Dates.daytypeBuilder
 
 /**
  * Utility object for date handling throughout the project.

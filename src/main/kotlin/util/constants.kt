@@ -1,4 +1,4 @@
-package org.gibil
+package org.gibil.util
 
 import java.time.Duration
 import java.time.Instant
@@ -85,9 +85,9 @@ object Dates {
 
         val norwayDateTimeDeparture = zoneDateTime .withZoneSameInstant(norwayZone)
 
-        val formatMonth = DateTimeFormatter.ofPattern("MMM", Dates.LOCALE)
-        val formatDayShortName = DateTimeFormatter.ofPattern("E", Dates.LOCALE)
-        val formatDayNum = DateTimeFormatter.ofPattern("dd", Dates.LOCALE)
+        val formatMonth = DateTimeFormatter.ofPattern("MMM", LOCALE)
+        val formatDayShortName = DateTimeFormatter.ofPattern("E", LOCALE)
+        val formatDayNum = DateTimeFormatter.ofPattern("dd", LOCALE)
 
         // Implement formats onto object and create partial daytyperef-value
         val month = norwayDateTimeDeparture.format(formatMonth)

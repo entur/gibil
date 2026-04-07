@@ -3,7 +3,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import jakarta.xml.bind.Unmarshaller
-import org.gibil.StopPlaceMapper
+import org.gibil.handler.StopPlaceMapper
 import org.gibil.model.stopPlacesApi.StopPlaces
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals

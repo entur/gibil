@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.io.IOException
-import org.gibil.StopPlaceMapper
+import org.gibil.handler.StopPlaceMapper
 import org.gibil.model.stopPlacesApi.StopPlaces
 import org.gibil.routes.entur.StopPlaceApiHandler
 import org.gibil.service.AirportQuayService

@@ -1,8 +1,8 @@
 package service
 
 import io.mockk.mockk
-import org.gibil.Dates.daytypeBuilder
-import org.gibil.Dates.tomorrowDaytype
+import org.gibil.util.Dates.daytypeBuilder
+import org.gibil.util.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions

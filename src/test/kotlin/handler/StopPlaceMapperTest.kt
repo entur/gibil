@@ -1,13 +1,14 @@
+package handler
+
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import jakarta.xml.bind.Unmarshaller
-import org.gibil.StopPlaceMapper
+import org.gibil.handler.StopPlaceMapper
 import org.gibil.model.stopPlacesApi.StopPlaces
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -47,7 +48,7 @@ class StopPlaceMapperTest {
             every { unmarshaller.unmarshal(any<StringReader>()) } returns expectedStopPlaces
 
             val result = stopPlaceMapper.unmarshallStopPlaceXml(validXml)
-            assertEquals(expectedStopPlaces, result)
+            Assertions.assertEquals(expectedStopPlaces, result)
         }
 
         @Test
@@ -62,10 +63,8 @@ class StopPlaceMapperTest {
                 stopPlaceMapper.unmarshallStopPlaceXml(invalidXml)
             }
 
-            assertEquals("Error parsing StopPlaces", exception.message)
-            assertTrue(exception.cause is Exception)
+            Assertions.assertEquals("Error parsing StopPlaces", exception.message)
+            Assertions.assertTrue(exception.cause is Exception)
         }
     }
-
-    //TODO MORE TESTS ON THE QUAYMAP
 }

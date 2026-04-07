@@ -11,9 +11,9 @@ import model.FlightKey
 import model.FlightStop
 import model.UnifiedFlight
 import model.xmlFeedApi.Flight
-import org.gibil.Dates
-import org.gibil.FlightCodes
-import org.gibil.PollingConfig
+import org.gibil.util.Dates
+import org.gibil.util.FlightCodes
+import org.gibil.util.PollingConfig
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.slf4j.LoggerFactory

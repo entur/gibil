@@ -2,9 +2,9 @@ package siri
 
 import model.FlightStop
 import model.UnifiedFlight
-import org.gibil.Dates
-import org.gibil.FlightCodes
-import org.gibil.SiriConfig
+import org.gibil.util.Dates
+import org.gibil.util.FlightCodes
+import org.gibil.util.SiriConfig
 import org.gibil.service.AirportQuayService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

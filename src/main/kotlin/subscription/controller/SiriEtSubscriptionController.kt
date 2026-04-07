@@ -1,11 +1,11 @@
-package org.gibil.subscription.service
+package org.gibil.subscription.controller
 
 import org.gibil.subscription.helper.SiriHelper
+import org.gibil.subscription.model.Subscription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.gibil.subscription.model.Subscription
 import subscription.SubscriptionManager
 import uk.org.siri.siri21.Siri
 import java.time.Duration
@@ -16,7 +16,7 @@ import java.time.Duration
  * The controller has three endpoints, subscription, unsubscription and service, each handling different types of SIRI requests.
  */
 @RestController
-class SiriEndpoint(
+class SiriEtSubscriptionController(
     @Autowired private val subscriptionManager: SubscriptionManager,
 ) {
 

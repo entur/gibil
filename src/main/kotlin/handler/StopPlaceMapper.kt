@@ -1,4 +1,4 @@
-package org.gibil
+package org.gibil.handler
 
 import org.gibil.model.stopPlacesApi.Quay
 import org.gibil.model.stopPlacesApi.StopPlaces
@@ -12,7 +12,7 @@ class StopPlaceMapper {
     /**
      * Unmarshalls StopPlace XML data into JAXB classes
      * @param xmlData String, XML StopPlace data fetched from EnTurs stopPlaces API
-     * @return [StopPlaces] class containing needed API data
+     * @return [org.gibil.model.stopPlacesApi.StopPlaces] class containing needed API data
      */
     fun unmarshallStopPlaceXml(xmlData: String): StopPlaces {
         try {

@@ -4,13 +4,13 @@ import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
 import handler.ServiceJourneyParser
-import org.gibil.Dates.tomorrowDaytype
+import org.gibil.util.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
 import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
 import util.DateUtil.formatForServiceJourney
 import org.slf4j.LoggerFactory
-import org.gibil.FindServiceJourneyConstants
+import org.gibil.util.FindServiceJourneyConstants
 import org.springframework.stereotype.Service
 
 private val LOG = LoggerFactory.getLogger(FindServiceJourneyService::class.java)

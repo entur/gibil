@@ -8,9 +8,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import java.io.File
-import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import kotlin.test.Test
 
 class FindServiceJourneyServiceTest {
@@ -41,6 +42,10 @@ class FindServiceJourneyServiceTest {
     // format matching what formatForServiceJourney produces, e.g. "Mar_Tue_24"
     val todayFormatted = daytypeBuilder(today)
     val tomorrowFormatted = tomorrowDaytype()
+
+    val norwayTime = today
+        .withZoneSameInstant(ZoneId.of("Europe/Oslo"))
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
     @BeforeEach
     fun setup() {
@@ -112,7 +117,7 @@ class FindServiceJourneyServiceTest {
         val originalCount = workingMap.values.flatten().toSet().size
 
         // today's flight matches the dynamic journey which also has tomorrow's daytype
-        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, norwayTime,"DY628", listOf("OSL", "BGO"))
 
         val actualCount = workingMap.values.flatten().toSet().size
         Assertions.assertEquals(originalCount, actualCount) // not removed
@@ -123,7 +128,7 @@ class FindServiceJourneyServiceTest {
         val workingMap = service.buildWorkingMap()
         val originalCount = workingMap.values.flatten().toSet().size
 
-        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY629", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, norwayTime, "DY629", listOf("OSL", "BGO"))
 
         val actualCount = workingMap.values.flatten().toSet().size
         Assertions.assertEquals(originalCount - 1, actualCount)
@@ -136,8 +141,10 @@ class FindServiceJourneyServiceTest {
         service.matchServiceJourney(map1, exampleFlightSasSVG[0], exampleFlightSasSVG[1], exampleLineRefSas)
 
         val map2 = service.buildWorkingMap()
-        Assertions.assertEquals(
-            map2.values.flatten().toSet().size,
+
+        //maps size shouldnt match, since the matchservicejourney on map1 should remove the exampleflight
+        Assertions.assertFalse(
+            map2.values.flatten().toSet().size ==
             map1.values.flatten().toSet().size
         )
     }
@@ -147,15 +154,18 @@ class FindServiceJourneyServiceTest {
         val workingMap = service.buildWorkingMap()
         val countBefore = workingMap.values.flatten().toSet().size
 
-        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
-        service.matchServiceJourney(workingMap, today.minus(Duration.ofHours(1)).toString(), "DY628", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, norwayTime, "DY628", listOf("OSL", "BGO"))
+        service.matchServiceJourney(workingMap, norwayTime, "DY628", listOf("OSL", "BGO"))
 
         val countAfter = workingMap.values.flatten().toSet().size
         Assertions.assertEquals(countBefore, countAfter)
     }
 
     private fun buildDynamicXml(): String {
-        val departureTime = today.toString().substring(11, 19) // "HH:mm:ss" from ISO instant
+        val norwayZone = ZoneId.of("Europe/Oslo")
+        val departureTime = today
+            .withZoneSameInstant(norwayZone)
+            .format(DateTimeFormatter.ofPattern("HH:mm:ss"))
         return """
         <?xml version="1.0" encoding="UTF-8"?>
         <PublicationDelivery xmlns="http://www.netex.org.uk/netex">

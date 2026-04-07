@@ -1,11 +1,7 @@
 package org.gibil
 
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
-import org.gibil.service.ApiService
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
 import service.ServiceJourneyResolver
@@ -14,12 +10,10 @@ import siri.SiriETPublisher
 
 @RestController
 class Endpoint(
-    private val avinorXmlFeedApiHandler: AvinorXmlFeedApiHandler,
     private val flightAggregationService: FlightAggregationService,
     private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,
-    private val siriETPublisher: SiriETPublisher,
-    private val apiService: ApiService
+    private val siriETPublisher: SiriETPublisher
 ) {
 
     /**
@@ -34,19 +28,4 @@ class Endpoint(
         val siri = siriETMapper.mapUnifiedFlightsToSiri(resolved)
         return siriETPublisher.toXml(siri)
     }
-
-
-    /**
-     * Debug endpoint that returns the raw XML response from the Avinor API.
-     */
-    @GetMapping("/avinor", produces = [MediaType.APPLICATION_XML_VALUE])
-    fun rawAvinorEndpoint(
-        @RequestParam(defaultValue = "OSL") airport: String
-    ): String {
-        val url = avinorXmlFeedApiHandler.avinorXmlFeedUrlBuilder(
-            AvinorXmlFeedParamsLogic(airportCode = airport)
-        )
-        return apiService.apiCall(url).getOrElse { "Error: No response from Avinor API" }
-    }
-
 }

@@ -1,4 +1,4 @@
-package org.gibil
+package org.gibil.controller
 
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
@@ -9,7 +9,7 @@ import siri.SiriETMapper
 import siri.SiriETPublisher
 
 @RestController
-class Endpoint(
+class SiriEtDebugController(
     private val flightAggregationService: FlightAggregationService,
     private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,

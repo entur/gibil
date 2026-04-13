@@ -2,15 +2,17 @@ package org.gibil.handler
 
 import org.gibil.model.stopPlacesApi.Quay
 import org.gibil.model.stopPlacesApi.StopPlaces
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import util.SharedJaxbContext
 import java.io.File
 import javax.xml.stream.XMLInputFactory
 
+private val LOG = LoggerFactory.getLogger(StopPlaceMapper::class.java)
+
 @Component
 class StopPlaceMapper {
 
-    //TODO - put in try catch?
     fun parseStopPlaceFromFile(file: File): StopPlaces {
 
         file.inputStream().use { inputStream ->
@@ -25,7 +27,8 @@ class StopPlaceMapper {
             }
             reader.close()
         }
-        return StopPlaces()
+        LOG.error("No <stopPlaces> found in file: {}", file.name)
+        throw RuntimeException("No <stopPlaces> found in ${file.name}")
     }
 
     /**

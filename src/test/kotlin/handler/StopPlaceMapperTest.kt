@@ -53,7 +53,7 @@ class StopPlaceMapperTest {
             val exception = assertThrows<RuntimeException> {
                 stopPlaceMapper.parseStopPlaceFromFile(file)
             }
-            Assertions.assertEquals("No <stopPlaces> element found in ${file.name}", exception.message)
+            Assertions.assertEquals("No <stopPlaces> found in ${file.name}", exception.message)
         }
 
         @Test

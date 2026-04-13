@@ -13,6 +13,14 @@ private val LOG = LoggerFactory.getLogger(StopPlaceMapper::class.java)
 @Component
 class StopPlaceMapper {
 
+    /**
+     * Parses a NeTEx XML file and extracts the [StopPlaces] element using StAX streaming.
+     * Seeks to the first `<stopPlaces>` element in the file and unmarshals it with JAXB,
+     * allowing large files to be handled without loading the full document into memory.
+     * @param file the NeTEx XML file to parse.
+     * @return [StopPlaces] object containing all airport stop places and their quay data.
+     * @throws RuntimeException if no `<stopPlaces>` element is found in the file.
+     */
     fun parseStopPlaceFromFile(file: File): StopPlaces {
 
         file.inputStream().use { inputStream ->

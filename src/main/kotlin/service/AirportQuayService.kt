@@ -32,6 +32,12 @@ class AirportQuayService(
         refreshQuayMapping()
     }
 
+    /**
+     * Refreshes the in-memory IATA-to-quay mapping by parsing the tiamat export file in [basePath].
+     * Parses the first (and only) XML file in the directory, parses it using [StopPlaceMapper], and replaces
+     * the current [iataToQuayMap]. If no file is found or parsing fails, the existing map is
+     * preserved and the error is logged.
+     */
     fun refreshQuayMapping() {
         try {
             val file = File(basePath).listFiles { f -> f.extension.lowercase() == "xml" }?.firstOrNull()

@@ -1,20 +1,13 @@
 package handler
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
-import jakarta.xml.bind.Unmarshaller
 import org.gibil.handler.StopPlaceMapper
-import org.gibil.model.stopPlacesApi.StopPlaces
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.assertThrows
-import util.SharedJaxbContext
-import java.io.StringReader
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 
 class StopPlaceMapperTest {
 
@@ -26,45 +19,50 @@ class StopPlaceMapperTest {
     }
 
     @Nested
-    inner class UnmarshallStopPlaceXml {
+    inner class ParseStopPlaceFromFile {
 
-        @BeforeEach
-        fun setUp() {
-            mockkObject(SharedJaxbContext)
-        }
+        @Test
+        fun `returns StopPlaces when file contains stopPlaces element`(@TempDir tempDir: Path) {
+            val xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <PublicationDelivery xmlns="http://www.netex.org.uk/netex">
+                    <stopPlaces>
+                        <StopPlace>
+                            <StopPlaceType>airport</StopPlaceType>
+                        </StopPlace>
+                    </stopPlaces>
+                </PublicationDelivery>
+            """.trimIndent()
+            val file = tempDir.resolve("test.xml").toFile()
+            file.writeText(xml)
 
-        @AfterEach
-        fun tearDown() {
-            unmockkObject(SharedJaxbContext)
+            val result = stopPlaceMapper.parseStopPlaceFromFile(file)
+            Assertions.assertEquals(1, result.stopPlace.size)
         }
 
         @Test
-        fun `unmarshallStopPlaceXml returns StopPlaces when airport `() {
-            val validXml = "<xml>stopPlaces</xml>"
-            val expectedStopPlaces = mockk<StopPlaces>()
-            val unmarshaller = mockk<Unmarshaller>()
-
-            every { SharedJaxbContext.createUnmarshaller() } returns unmarshaller
-            every { unmarshaller.unmarshal(any<StringReader>()) } returns expectedStopPlaces
-
-            val result = stopPlaceMapper.unmarshallStopPlaceXml(validXml)
-            Assertions.assertEquals(expectedStopPlaces, result)
-        }
-
-        @Test
-        fun `unmarshallStopPlaceXml throws exception when xml is invalid`() {
-            val invalidXml = "<xml>stopPlaces<"
-            val unmarshaller = mockk<Unmarshaller>()
-
-            every { SharedJaxbContext.createUnmarshaller() } returns unmarshaller
-            every { unmarshaller.unmarshal(any<StringReader>()) } throws Exception("Parse error")
+        fun `throws RuntimeException when stopPlaces element is missing`(@TempDir tempDir: Path) {
+            val xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <PublicationDelivery xmlns="http://www.netex.org.uk/netex">
+                </PublicationDelivery>
+            """.trimIndent()
+            val file = tempDir.resolve("test.xml").toFile()
+            file.writeText(xml)
 
             val exception = assertThrows<RuntimeException> {
-                stopPlaceMapper.unmarshallStopPlaceXml(invalidXml)
+                stopPlaceMapper.parseStopPlaceFromFile(file)
             }
+            Assertions.assertEquals("No <stopPlaces> element found in ${file.name}", exception.message)
+        }
 
-            Assertions.assertEquals("Error parsing StopPlaces", exception.message)
-            Assertions.assertTrue(exception.cause is Exception)
+        @Test
+        fun `throws exception when file does not exist`(@TempDir tempDir: Path) {
+            val file = tempDir.resolve("nonexistent.xml").toFile()
+
+            assertThrows<Exception> {
+                stopPlaceMapper.parseStopPlaceFromFile(file)
+            }
         }
     }
 }

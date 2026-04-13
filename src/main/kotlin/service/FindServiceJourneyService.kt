@@ -27,7 +27,9 @@ class FindServiceJourneyService(
     @Value("\${netex.data.url}") private val netexDataUrl: String,
     @Value("\${org.gibil.extime.data-file:#{null}}") private val configuredPath: String?
 ) {
-    val pathBase = configuredPath ?: if (File(FindServiceJourneyPaths.CLOUD_BASEPATH).exists()) FindServiceJourneyPaths.CLOUD_BASEPATH else FindServiceJourneyPaths.LOCAL_BASEPATH
+    val pathBase = configuredPath
+        ?: if (File(FindServiceJourneyPaths.CLOUD_BASEPATH).exists()) FindServiceJourneyPaths.CLOUD_BASEPATH
+        else FindServiceJourneyPaths.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
 

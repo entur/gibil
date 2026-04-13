@@ -53,7 +53,7 @@ class FindServiceJourneyServiceTest {
         File("src/test/resources/extimeData/test-dynamic.xml").writeText(buildDynamicXml())
 
         // then init service so it picks up the new file
-        service = FindServiceJourneyService(mockk<ApiService>(), "src/test/resources/extimeData")
+        service = FindServiceJourneyService(mockk<ApiService>(), "https://mock-url", "src/test/resources/extimeData")
             .also { it.init() }
     }
 

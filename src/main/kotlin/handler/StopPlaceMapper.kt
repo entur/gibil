@@ -4,24 +4,28 @@ import org.gibil.model.stopPlacesApi.Quay
 import org.gibil.model.stopPlacesApi.StopPlaces
 import org.springframework.stereotype.Component
 import util.SharedJaxbContext
-import java.io.StringReader
+import java.io.File
+import javax.xml.stream.XMLInputFactory
 
 @Component
 class StopPlaceMapper {
 
-    /**
-     * Unmarshalls StopPlace XML data into JAXB classes
-     * @param xmlData String, XML StopPlace data fetched from EnTurs stopPlaces API
-     * @return [org.gibil.model.stopPlacesApi.StopPlaces] class containing needed API data
-     */
-    fun unmarshallStopPlaceXml(xmlData: String): StopPlaces {
-        try {
-            val unmarshaller = SharedJaxbContext.createUnmarshaller()
-            return unmarshaller.unmarshal(StringReader(xmlData)) as StopPlaces
+    //TODO - put in try catch?
+    fun parseStopPlaceFromFile(file: File): StopPlaces {
 
-        } catch (e: Exception) {
-            throw RuntimeException("Error parsing StopPlaces", e)
+        file.inputStream().use { inputStream ->
+            val reader = XMLInputFactory.newInstance().createXMLStreamReader(inputStream)
+
+            while (reader.hasNext()) {
+                reader.next()
+
+                if (reader.isStartElement && reader.localName == "stopPlaces") {
+                    return SharedJaxbContext.createUnmarshaller().unmarshal(reader) as StopPlaces
+                }
+            }
+            reader.close()
         }
+        return StopPlaces()
     }
 
     /**

@@ -2,26 +2,41 @@ package org.gibil.handler
 
 import org.gibil.model.stopPlacesApi.Quay
 import org.gibil.model.stopPlacesApi.StopPlaces
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import util.SharedJaxbContext
-import java.io.StringReader
+import java.io.File
+import javax.xml.stream.XMLInputFactory
+
+private val LOG = LoggerFactory.getLogger(StopPlaceMapper::class.java)
 
 @Component
 class StopPlaceMapper {
 
     /**
-     * Unmarshalls StopPlace XML data into JAXB classes
-     * @param xmlData String, XML StopPlace data fetched from EnTurs stopPlaces API
-     * @return [org.gibil.model.stopPlacesApi.StopPlaces] class containing needed API data
+     * Parses a NeTEx XML file and extracts the [StopPlaces] element using StAX streaming.
+     * Seeks to the first `<stopPlaces>` element in the file and unmarshals it with JAXB,
+     * allowing large files to be handled without loading the full document into memory.
+     * @param file the NeTEx XML file to parse.
+     * @return [StopPlaces] object containing all airport stop places and their quay data.
+     * @throws RuntimeException if no `<stopPlaces>` element is found in the file.
      */
-    fun unmarshallStopPlaceXml(xmlData: String): StopPlaces {
-        try {
-            val unmarshaller = SharedJaxbContext.createUnmarshaller()
-            return unmarshaller.unmarshal(StringReader(xmlData)) as StopPlaces
+    fun parseStopPlaceFromFile(file: File): StopPlaces {
 
-        } catch (e: Exception) {
-            throw RuntimeException("Error parsing StopPlaces", e)
+        file.inputStream().use { inputStream ->
+            val reader = XMLInputFactory.newInstance().createXMLStreamReader(inputStream)
+
+            while (reader.hasNext()) {
+                reader.next()
+
+                if (reader.isStartElement && reader.localName == "stopPlaces") {
+                    return SharedJaxbContext.createUnmarshaller().unmarshal(reader) as StopPlaces
+                }
+            }
+            reader.close()
         }
+        LOG.error("No <stopPlaces> found in file: {}", file.name)
+        throw RuntimeException("No <stopPlaces> found in ${file.name}")
     }
 
     /**

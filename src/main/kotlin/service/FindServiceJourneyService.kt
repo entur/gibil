@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
 import util.DateUtil.formatForServiceJourney
 import org.slf4j.LoggerFactory
-import org.gibil.util.FindServiceJourneyConstants
+import org.gibil.util.FindServiceJourneyPaths
 import org.springframework.stereotype.Service
 
 private val LOG = LoggerFactory.getLogger(FindServiceJourneyService::class.java)
@@ -24,17 +24,18 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
 @Service
 class FindServiceJourneyService(
     private val apiService: ApiService,
+    @Value("\${netex.data.url}") private val netexDataUrl: String,
     @Value("\${org.gibil.extime.data-file:#{null}}") private val configuredPath: String?
 ) {
-    val pathBase = configuredPath ?: if (File(FindServiceJourneyConstants.CLOUD_BASEPATH).exists()) FindServiceJourneyConstants.CLOUD_BASEPATH else FindServiceJourneyConstants.LOCAL_BASEPATH
+    val pathBase = configuredPath ?: if (File(FindServiceJourneyPaths.CLOUD_BASEPATH).exists()) FindServiceJourneyPaths.CLOUD_BASEPATH else FindServiceJourneyPaths.LOCAL_BASEPATH
 
     lateinit var serviceJourneyList: List<ServiceJourney>
 
     @PostConstruct
     fun init() {
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
-        if (pathBase == FindServiceJourneyConstants.LOCAL_BASEPATH) {
-            ZipUtil.downloadAndUnzip("https://storage.googleapis.com/marduk-dev/outbound/netex/rb_avi-aggregated-netex.zip", FindServiceJourneyConstants.LOCAL_BASEPATH, apiService)
+        if (pathBase == FindServiceJourneyPaths.LOCAL_BASEPATH) {
+            ZipUtil.downloadAndUnzip(netexDataUrl, FindServiceJourneyPaths.LOCAL_BASEPATH, apiService)
         }
         //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
         serviceJourneyList = findServiceJourney().also { journeys ->

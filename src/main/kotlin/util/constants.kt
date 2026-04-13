@@ -45,11 +45,15 @@ object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
 
-object FindServiceJourneyConstants {
+object FindServiceJourneyPaths {
     //base path when running on a local computer, and not in cloud
     val LOCAL_BASEPATH = "src/main/resources/extimeData"
-
     val CLOUD_BASEPATH = "/tmp/netex_data"
+}
+
+object TiamatImportPaths {
+    val LOCAL_BASEPATH = "src/main/resources/stopPlaceData" //TODO THIS ONE IS PLACEHOLDER
+    val CLOUD_BASEPATH = "/tmp/stop_place_data"
 }
 
 object AvinorApiConfig {

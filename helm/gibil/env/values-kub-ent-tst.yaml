@@ -2,6 +2,7 @@ common:
   configmap:
     data:
       NETEX_DATA_URL: https://storage.googleapis.com/marduk-test/outbound/netex/rb_avi-aggregated-netex.zip
+      STOP_PLACE_DATA_URL: https://storage.googleapis.com/marduk-dev/tiamat/Airports_latest.zip
   env: tst
   ingress:
     trafficType: public

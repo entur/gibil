@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.*
+import org.gibil.util.Dates
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.junit.jupiter.api.*
@@ -332,26 +333,82 @@ class FlightAggregationServiceTest {
         }
 
         @Test
-        fun `should filter out flights outside time window`() = runBlocking {
-            val now = ZonedDateTime.now(ZoneOffset.UTC)
+        fun `should drop chains outside allowed window (too old or too far ahead)`() = runBlocking {
+            val now = ZonedDateTime.parse("2026-01-01T12:00:00Z")
+            mockkObject(Dates)
+            every { Dates.instantNowUtc() } returns now
 
-            val tooOld = createFlight(
+            val tooOldDep = createFlight(
                 uniqueID = "1", flightId = "DY111",
                 arrDep = "D", airport = "BGO",
                 scheduleTime = now.minusMinutes(30).format(DateTimeFormatter.ISO_DATE_TIME)
             )
-            val tooFar = createFlight(
-                uniqueID = "2", flightId = "DY222",
+            val tooOldArr = createFlight(
+                uniqueID = "2", flightId = "DY111",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.minusMinutes(21).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            // Remove status timestamps so the logic falls back to scheduled stop times.
+            tooOldDep.status = null
+            tooOldArr.status = null
+
+            val tooFarDep = createFlight(
+                uniqueID = "3", flightId = "DY222",
                 arrDep = "D", airport = "BGO",
                 scheduleTime = now.plusHours(25).format(DateTimeFormatter.ISO_DATE_TIME)
             )
+            val tooFarArr = createFlight(
+                uniqueID = "4", flightId = "DY222",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusHours(26).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            tooFarDep.status = null
+            tooFarArr.status = null
 
-            mockAirportData("OSL", listOf(tooOld, tooFar))
+            mockAirportData("OSL", listOf(tooOldDep, tooFarDep))
+            mockAirportData("BGO", listOf(tooOldArr, tooFarArr))
 
             val result = flightAggregationService.fetchUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY111" })
             assertFalse(result.any { it.flightId == "DY222" })
+        }
+
+        @Test
+        fun `should drop chain when latest status time is outside allowed past window`() = runBlocking {
+            val now = ZonedDateTime.parse("2026-01-01T12:00:00Z")
+            mockkObject(Dates)
+            every { Dates.instantNowUtc() } returns now
+
+            val dep = createFlight(
+                uniqueID = "1", flightId = "DY333",
+                arrDep = "D", airport = "BGO",
+                scheduleTime = now.plusMinutes(10).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+            val arr = createFlight(
+                uniqueID = "2", flightId = "DY333",
+                arrDep = "A", airport = "OSL",
+                scheduleTime = now.plusMinutes(40).format(DateTimeFormatter.ISO_DATE_TIME)
+            )
+
+            val staleStatus = now.minusMinutes(FlightAggregationService.MAX_PAST_MINUTES + 2)
+                .format(DateTimeFormatter.ISO_DATE_TIME)
+            // Status times represent the latest real-world event and are used for the "too old" check.
+            dep.status = FlightStatus().apply {
+                code = "D"
+                time = staleStatus
+            }
+            arr.status = FlightStatus().apply {
+                code = "A"
+                time = staleStatus
+            }
+
+            mockAirportData("OSL", listOf(dep))
+            mockAirportData("BGO", listOf(arr))
+
+            val result = flightAggregationService.fetchUnifiedFlights()
+
+            assertFalse(result.any { it.flightId == "DY333" })
         }
 
         @Test

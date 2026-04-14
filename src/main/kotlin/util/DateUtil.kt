@@ -22,9 +22,9 @@ private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 object DateUtil {
 
     /**
-     * Parses an ISO-8601 timestamp string into a [ZonedDateTime].
+     * Parses an ISO-8601 timestamp string into an [Instant].
      *
-     * First attempts to parse the timestamp with timezone info (e.g. "2024-01-15T10:30:00+02:00").
+     * First attempts to parse the timestamp as is (e.g. "2024-01-15T10:30:00+02:00").
      * If that fails, attempts to parse it as a local date-time without timezone (e.g. "2024-01-15T10:30:00"),
      * assuming UTC in that case.
      *
@@ -37,7 +37,7 @@ object DateUtil {
         return try {
             Instant.parse(timestamp)
         } catch (e: DateTimeParseException) {
-            LOG.debug("Instant parsing error in parseTime for: {} with: ${e.message}", timestamp)
+            LOG.debug("Instant parsing error (or no timezone given) in parseTime for: {} with: ${e.message}", timestamp)
             try {
                 LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                     .toInstant(ZoneOffset.UTC)
@@ -49,15 +49,6 @@ object DateUtil {
             }
         }
     }
-
-    /*/**
-     * Convert a time string using parseTimestamp, then make it an Instant element, instead of a datetime element
-     * @param timestamp The ISO-8601 timestamp string to parse, or null/blank.
-     */
-    fun parseTime(timeStr: String?): Instant? {
-        if(timeStr.isNullOrBlank()) return null
-        return parseTimestamp(timeStr)?.toInstant()
-    }*/
 
     /**
      * Formatting for making a time object into a list containing a departure time and a daytyperef based on the departuretime given.

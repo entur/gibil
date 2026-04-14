@@ -32,6 +32,7 @@ object ZipUtil {
     private fun unzipFile(zipFilePath: String, outputDir: String) {
         val outputDirFile = File(outputDir).canonicalFile
         outputDirFile.mkdirs()
+        outputDirFile.listFiles()?.forEach { it.delete() }
 
         ZipInputStream(FileInputStream(zipFilePath)).use { zip ->
             generateSequence { zip.nextEntry }.forEach { entry ->

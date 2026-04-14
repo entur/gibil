@@ -2,6 +2,7 @@ package org.gibil.handler
 
 import org.gibil.model.stopPlacesApi.Quay
 import org.gibil.model.stopPlacesApi.StopPlaces
+import org.gibil.util.QuayCodes
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import util.SharedJaxbContext
@@ -39,22 +40,22 @@ class StopPlaceMapper {
         throw RuntimeException("No <stopPlaces> found in ${file.name}")
     }
 
-    /**
-     * Maps quays belonging to specific airport.
-     * Airports IATA code is key and quayIDs are values in the list.
-     * @param stopPlaces StopPlaces
-     * @return Map<String, List<String>>
-     */
+    //Todo consider adding a failsafe to avoid quay duplication in the event of default quay having a public code
     fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, Map<String, String>> {
-        return stopPlaces.stopPlace
-            .flatMap { sp -> sp.quays?.quay ?: emptyList() }
-            .mapNotNull { quay ->
-                isolateIataCode(quay)?.let { iataCode ->
-                    iataCode to quay.id
+        return stopPlaces.stopPlace.mapNotNull { sp ->
+            val quays = sp.quays?.quay ?: return@mapNotNull null
+            val defaultQuay = quays.firstOrNull { isolateIataCode(it) != null } ?: return@mapNotNull null
+            val iataCode = isolateIataCode(defaultQuay)!!
+
+            val quayMap = buildMap {
+                put(QuayCodes.DEFAULT_KEY, defaultQuay.id)
+                quays.forEach { quay ->
+                    val gateCode = quay.publicCode
+                    if (!gateCode.isNullOrBlank()) put(gateCode, quay.id)
                 }
             }
-            .groupBy({it.first}, {it.second})
-            .mapValues { (_, quayIds) -> mapOf(QuayCodes.DEFAULT_KEY to quayIds.first()) }
+            iataCode to quayMap
+        }.toMap()
     }
 
     /**

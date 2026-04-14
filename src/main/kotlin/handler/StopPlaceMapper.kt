@@ -45,7 +45,7 @@ class StopPlaceMapper {
      * @param stopPlaces StopPlaces
      * @return Map<String, List<String>>
      */
-    fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, List<String>> {
+    fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, Map<String, String>> {
         return stopPlaces.stopPlace
             .flatMap { sp -> sp.quays?.quay ?: emptyList() }
             .mapNotNull { quay ->
@@ -54,6 +54,7 @@ class StopPlaceMapper {
                 }
             }
             .groupBy({it.first}, {it.second})
+            .mapValues { (_, quayIds) -> mapOf(QuayCodes.DEFAULT_KEY to quayIds.first()) }
     }
 
     /**

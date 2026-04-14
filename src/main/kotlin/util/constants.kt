@@ -41,6 +41,10 @@ object FlightCodes {
     const val SVALBARD_AIRPORTS = "LYR"
 }
 
+object QuayCodes {
+    const val DEFAULT_KEY = "DEFAULT"
+}
+
 object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }

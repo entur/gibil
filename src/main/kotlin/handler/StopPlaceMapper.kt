@@ -40,6 +40,18 @@ class StopPlaceMapper {
         throw RuntimeException("No <stopPlaces> found in ${file.name}")
     }
 
+    /**
+     * Builds a two-level map from [StopPlaces] data for quay resolution.
+     * The outer key is the airport IATA code, derived from the quay whose
+     * `imported-id` matches `AVI:Quay:{IATA}`. Stop places without such a quay are skipped.
+     *
+     * The inner map contains:
+     * - [QuayCodes.DEFAULT_KEY] -> the airport-level quay ID (always present)
+     * - gate code (e.g. `"B16"`) -> gate-level quay ID (if present in the stop place register)
+     *
+     * @param stopPlaces the parsed stop place data.
+     * @return map of IATA code -> (gate code or [QuayCodes.DEFAULT_KEY]) -> quay ID.
+     */
     fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, Map<String, String>> {
         return stopPlaces.stopPlace.mapNotNull { sp ->
             val quays = sp.quays?.quay ?: return@mapNotNull null

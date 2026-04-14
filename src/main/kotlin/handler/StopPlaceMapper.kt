@@ -40,7 +40,6 @@ class StopPlaceMapper {
         throw RuntimeException("No <stopPlaces> found in ${file.name}")
     }
 
-    //Todo consider adding a failsafe to avoid quay duplication in the event of default quay having a public code
     fun makeIataToQuayMap(stopPlaces: StopPlaces): Map<String, Map<String, String>> {
         return stopPlaces.stopPlace.mapNotNull { sp ->
             val quays = sp.quays?.quay ?: return@mapNotNull null
@@ -49,7 +48,7 @@ class StopPlaceMapper {
 
             val quayMap = buildMap {
                 put(QuayCodes.DEFAULT_KEY, defaultQuay.id)
-                quays.forEach { quay ->
+                quays.filter { it !== defaultQuay }.forEach { quay ->
                     val gateCode = quay.publicCode
                     if (!gateCode.isNullOrBlank()) put(gateCode, quay.id)
                 }

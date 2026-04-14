@@ -9,6 +9,8 @@ import org.gibil.util.Dates
 import org.gibil.util.Dates.daytypeBuilder
 import org.slf4j.LoggerFactory
 import siri.SiriETMapper
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
@@ -32,24 +34,20 @@ object DateUtil {
     fun parseTime(timestamp: String?): Instant? {
         if (timestamp.isNullOrBlank()) return null
 
-        val time = try {
-            ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
+        return try {
+            Instant.parse(timestamp)
         } catch (e: DateTimeParseException) {
-            LOG.debug("ZonedDateTime parsing error in parseTime for: {} with: ${e.message}", timestamp)
+            LOG.debug("Instant parsing error in parseTime for: {} with: ${e.message}", timestamp)
             try {
-                // Try parsing without timezone (assume UTC)
-                java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(java.time.ZoneOffset.UTC)
+                LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    .toInstant(ZoneOffset.UTC)
             } catch (e: DateTimeParseException) {
                 throw IllegalArgumentException(
-                    "Could not parse timestamp: '$timestamp'. " +
-                            "Expected ISO-8601 format with timezone (e.g. '2024-01-15T10:30:00+02:00') " +
-                            "or without (e.g. '2024-01-15T10:30:00').",
-                    e  // preserve the original cause
+                    "Could not parse timestamp: '$timestamp'. Expected ISO-8601 format (e.g. '2024-01-15T10:30:00Z' or '2024-01-15T10:30:00').",
+                    e
                 )
             }
         }
-        return time.toInstant()
     }
 
     /*/**

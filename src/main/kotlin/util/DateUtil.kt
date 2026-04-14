@@ -7,6 +7,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import org.gibil.util.Dates
 import org.gibil.util.Dates.daytypeBuilder
+import org.slf4j.LoggerFactory
+import siri.SiriETMapper
+
+private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
 /**
  * Utility object for date handling throughout the project.
@@ -25,12 +29,13 @@ object DateUtil {
      * @param timestamp The ISO-8601 timestamp string to parse, or null/blank.
      * @return A [ZonedDateTime] representing the parsed timestamp, or null if the input is null, blank, or unparseable.
      */
-    fun parseTimestamp(timestamp: String?): ZonedDateTime? {
+    fun parseTime(timestamp: String?): Instant? {
         if (timestamp.isNullOrBlank()) return null
 
-        return try {
+        val time = try {
             ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
         } catch (e: DateTimeParseException) {
+            LOG.debug("ZonedDateTime parsing error in parseTime for: {} with: ${e.message}", timestamp)
             try {
                 // Try parsing without timezone (assume UTC)
                 java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -44,12 +49,17 @@ object DateUtil {
                 )
             }
         }
+        return time.toInstant()
     }
 
+    /*/**
+     * Convert a time string using parseTimestamp, then make it an Instant element, instead of a datetime element
+     * @param timestamp The ISO-8601 timestamp string to parse, or null/blank.
+     */
     fun parseTime(timeStr: String?): Instant? {
         if(timeStr.isNullOrBlank()) return null
         return parseTimestamp(timeStr)?.toInstant()
-    }
+    }*/
 
     /**
      * Formatting for making a time object into a list containing a departure time and a daytyperef based on the departuretime given.

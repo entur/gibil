@@ -20,7 +20,7 @@ object ZipUtil {
 
     /**
      * Extracts a ZIP archive to the specified output directory.
-     * Creates the output directory if it does not exist. Includes Zip Slip protection
+     * Creates the output directory if it does not exist. Deletes all files from folder before extraction Includes Zip Slip protection
      * that validates each entry's resolved path stays within [outputDir], throws
      * [IOException] if a path traversal attempt is detected.
      *
@@ -32,6 +32,11 @@ object ZipUtil {
     private fun unzipFile(zipFilePath: String, outputDir: String) {
         val outputDirFile = File(outputDir).canonicalFile
         outputDirFile.mkdirs()
+        outputDirFile.listFiles()?.forEach { file ->
+            if (!file.delete()) {
+                LOG.error("Failed to delete stale file: {}", file.name)
+            }
+        }
 
         ZipInputStream(FileInputStream(zipFilePath)).use { zip ->
             generateSequence { zip.nextEntry }.forEach { entry ->

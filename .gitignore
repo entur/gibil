@@ -45,3 +45,6 @@ build/
 
 ### ExtimeData ###
 /**/src/main/resources/extimeData
+
+#### StopPlaceData ####
+/**/src/main/resources/stopPlaceData

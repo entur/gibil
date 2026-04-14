@@ -1,4 +1,4 @@
-package org.gibil.model.stopPlacesApi
+package org.gibil.model.stopPlaces
 
 import jakarta.xml.bind.annotation.XmlAccessType
 import jakarta.xml.bind.annotation.XmlAccessorType
@@ -12,4 +12,7 @@ class Quay {
 
     @field:XmlElement(name = "keyList", namespace = "http://www.netex.org.uk/netex")
     val keyList: KeyList? = null
+
+    @field:XmlElement(name = "PublicCode", namespace = "http://www.netex.org.uk/netex")
+    val publicCode: String? = null
 }

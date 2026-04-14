@@ -67,7 +67,6 @@ class AirportQuayService(
      * @param iataCode String, used as key for map to fetch quayID belonging to airport.
      * @return String?, quayID
      */
-    //TODO NO LONGER ACCEPTABLE
     fun getQuayId(iataCode: String, gate: String? = null): String? {
         val quayMap = iataToQuayMap[iataCode] ?: return null
         return quayMap[gate] ?: quayMap[QuayCodes.DEFAULT_KEY]

@@ -7,6 +7,12 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import org.gibil.util.Dates
 import org.gibil.util.Dates.daytypeBuilder
+import org.slf4j.LoggerFactory
+import siri.SiriETMapper
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
+private val LOG = LoggerFactory.getLogger(SiriETMapper::class.java)
 
 /**
  * Utility object for date handling throughout the project.
@@ -16,39 +22,32 @@ import org.gibil.util.Dates.daytypeBuilder
 object DateUtil {
 
     /**
-     * Parses an ISO-8601 timestamp string into a [ZonedDateTime].
+     * Parses an ISO-8601 timestamp string into an [Instant].
      *
-     * First attempts to parse the timestamp with timezone info (e.g. "2024-01-15T10:30:00+02:00").
+     * First attempts to parse the timestamp as is (e.g. "2024-01-15T10:30:00+02:00").
      * If that fails, attempts to parse it as a local date-time without timezone (e.g. "2024-01-15T10:30:00"),
      * assuming UTC in that case.
      *
      * @param timestamp The ISO-8601 timestamp string to parse, or null/blank.
      * @return A [ZonedDateTime] representing the parsed timestamp, or null if the input is null, blank, or unparseable.
      */
-    fun parseTimestamp(timestamp: String?): ZonedDateTime? {
+    fun parseTime(timestamp: String?): Instant? {
         if (timestamp.isNullOrBlank()) return null
 
         return try {
-            ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_DATE_TIME)
+            Instant.parse(timestamp)
         } catch (e: DateTimeParseException) {
+            LOG.debug("Instant parsing error (or no timezone given) in parseTime for: {} with: ${e.message}", timestamp)
             try {
-                // Try parsing without timezone (assume UTC)
-                java.time.LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(java.time.ZoneOffset.UTC)
+                LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    .toInstant(ZoneOffset.UTC)
             } catch (e: DateTimeParseException) {
                 throw IllegalArgumentException(
-                    "Could not parse timestamp: '$timestamp'. " +
-                            "Expected ISO-8601 format with timezone (e.g. '2024-01-15T10:30:00+02:00') " +
-                            "or without (e.g. '2024-01-15T10:30:00').",
-                    e  // preserve the original cause
+                    "Could not parse timestamp: '$timestamp'. Expected ISO-8601 format (e.g. '2024-01-15T10:30:00Z' or '2024-01-15T10:30:00').",
+                    e
                 )
             }
         }
-    }
-
-    fun parseTime(timeStr: String?): Instant? {
-        if(timeStr.isNullOrBlank()) return null
-        return parseTimestamp(timeStr)?.toInstant()
     }
 
     /**

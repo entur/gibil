@@ -12,4 +12,7 @@ class Quay {
 
     @field:XmlElement(name = "keyList", namespace = "http://www.netex.org.uk/netex")
     val keyList: KeyList? = null
+
+    @field:XmlElement(name = "PublicCode", namespace = "http://www.netex.org.uk/netex")
+    val publicCode: String? = null
 }

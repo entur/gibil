@@ -1,7 +1,7 @@
 package org.gibil.handler
 
-import org.gibil.model.stopPlacesApi.Quay
-import org.gibil.model.stopPlacesApi.StopPlaces
+import org.gibil.model.stopPlaces.Quay
+import org.gibil.model.stopPlaces.StopPlaces
 import org.gibil.util.QuayCodes
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

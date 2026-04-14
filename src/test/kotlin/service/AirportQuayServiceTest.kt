@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.gibil.handler.StopPlaceMapper
-import org.gibil.model.stopPlacesApi.StopPlaces
+import org.gibil.model.stopPlaces.StopPlaces
 import org.gibil.service.ApiService
 import org.gibil.service.AirportQuayService
 import org.junit.jupiter.api.BeforeEach

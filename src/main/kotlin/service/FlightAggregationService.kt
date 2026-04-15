@@ -83,6 +83,45 @@ class FlightAggregationService(
     )
 
     /**
+     * FETCH: Collect all domestic (+ Svalbard) flights with their parsed schedule times
+     */
+    private suspend fun fetchTaggedFlights(airportCodes: List<String>): List<TaggedFlight> {
+        val result = mutableListOf<TaggedFlight>()
+
+        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
+            coroutineScope {
+                batch.map { code ->
+                    async(ioDispatcher) {
+                        delay(PollingConfig.REQUEST_DELAY_MS.toLong())
+                        code to fetchFlightsForAirport(code)
+                    }
+                }.awaitAll()
+            }.forEach { (code, flights) ->
+                flights
+                    .filter { isDomesticOrSvalbard(code, it) }
+                    .forEach { flight ->
+                        try {
+                            parseTime(flight.scheduleTime)?.let { parsedTime ->
+                                result.add(TaggedFlight(code, flight, parsedTime))
+                            }
+                        } catch (e: Exception) {
+                            LOG.warn(
+                                "Malformed schedule time for flight {} at {}: {}",
+                                flight.flightId,
+                                code,
+                                e.message
+                            )
+                        }
+                    }
+            }
+        }
+        return result
+    }
+
+
+
+
+    /**
      * Fetches flight data from all airports and stitches records into UnifiedFlight chains.
      * Handles both direct (2 stops) and multi-leg (3+ stops) flights, including Svalbard routes.
      * Used by the /siri endpoint.
@@ -99,29 +138,7 @@ class FlightAggregationService(
 
         LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
 
-        // FETCH: Collect all domestic (+ Svalbard) flights with their parsed schedule times
-        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
-            coroutineScope {
-                batch.map { code ->
-                    async(ioDispatcher) {
-                        delay(PollingConfig.REQUEST_DELAY_MS.toLong())
-                        code to fetchFlightsForAirport(code)
-                    }
-                }.awaitAll()
-            }.forEach { (code, flights) ->
-                flights
-                    .filter { isDomesticOrSvalbard(code, it) }
-                    .forEach { flight ->
-                        try {
-                            parseTime(flight.scheduleTime)?.let { parsedTime ->
-                                allTaggedFlights.add(TaggedFlight(code, flight, parsedTime))
-                            }
-                        } catch (e: Exception) {
-                            LOG.warn("Malformed schedule time for flight {} at {}: {}", flight.flightId, code, e.message)
-                        }
-                    }
-            }
-        }
+
 
 
         // GROUP: by flightId, then split on gaps > 6 hours to separate consecutive-day flights

@@ -13,6 +13,7 @@ import model.UnifiedFlight
 import model.xmlFeedApi.Flight
 import org.gibil.util.Dates
 import org.gibil.util.FlightCodes
+import org.gibil.util.FlightWindowConfig
 import org.gibil.util.PollingConfig
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
@@ -23,7 +24,6 @@ import util.DateUtil.parseTime
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -41,13 +41,6 @@ class FlightAggregationService(
     private val xmlHandler: AvinorScheduleXmlHandler,
     private val ioDispatcher: CoroutineDispatcher
 ) {
-
-
-    companion object {
-        // Filter to only include flights within this time window
-        const val MAX_PAST_MINUTES = 20L      // At most 20 minutes in the past
-        const val MAX_FUTURE_HOURS = 24L       // Up to 7 hours in the future
-    }
 
 
     /**
@@ -73,8 +66,7 @@ class FlightAggregationService(
 
         // STITCH: convert each group into an ordered chain of stops
         val unifiedFlights = groupedTaggedFlights.mapNotNull { (key, events) ->
-            if(key.flightId == "UNKNOWN") null
-            else stitchFlightLegs(key.flightId, key.date, events)
+            stitchFlightLegs(key.flightId, key.date, events)
         }
 
         val filteredChains = unifiedFlights.filter { isChainWithinTimeWindow(it, Dates.instantNowUtc()) }
@@ -178,7 +170,9 @@ class FlightAggregationService(
      * @return A map of [FlightKey] (flightID + anchorDate) to events belonging to the flight.
      */
     private fun groupFlightsByIdAndDate(allTaggedFlights: List<TaggedFlight>): Map<FlightKey, List<TaggedFlight>> {
-        val byFlightId = allTaggedFlights.groupBy { it.raw.flightId ?: "UNKNOWN" }
+        val byFlightId = allTaggedFlights
+            .filter { it.raw.flightId != null }
+            .groupBy { it.raw.flightId!! }
 
         return buildMap {
             for ((flightId, events) in byFlightId) {
@@ -186,14 +180,14 @@ class FlightAggregationService(
                 var subGroup = mutableListOf(sorted.first())
 
                 for (i in 1 until sorted.size) {
-                    if (Duration.between(sorted[i - 1].time, sorted[i].time) > Duration.ofHours(6)) {
-                        val anchorDate = subGroup.first().time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate()
+                    if (Duration.between(sorted[i - 1].time, sorted[i].time) > Duration.ofHours(FlightWindowConfig.SAME_FLIGHT_GAP_HOURS)) {
+                        val anchorDate = subGroup.first().time.atZone(Dates.OSLO_ZONE).toLocalDate()
                         put(FlightKey(flightId, anchorDate), subGroup)
                         subGroup = mutableListOf()
                     }
                     subGroup.add(sorted[i])
                 }
-                val anchorDate = subGroup.first().time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate()
+                val anchorDate = subGroup.first().time.atZone(Dates.OSLO_ZONE).toLocalDate()
                 put(FlightKey(flightId, anchorDate), subGroup)
             }
         }
@@ -311,12 +305,12 @@ class FlightAggregationService(
      * ongoing multi-leg flights (e.g. WF904 TOS→ALF→TOS) are retained even when their
      * first leg has already departed.
      *
-     * A chain is kept if its latest stop time is within [MAX_PAST_MINUTES] of now,
-     * and its earliest stop time is within [MAX_FUTURE_HOURS] of now.
+     * A chain is kept if its latest stop time is within [FlightWindowConfig.MAX_PAST_MINUTES] of now,
+     * and its earliest stop time is within [FlightWindowConfig.MAX_FUTURE_HOURS] of now.
      */
     private fun isChainWithinTimeWindow(flight: UnifiedFlight, now: ZonedDateTime): Boolean {
-        val minTime = now.minusMinutes(MAX_PAST_MINUTES)
-        val maxTime = now.plusHours(MAX_FUTURE_HOURS)
+        val minTime = now.minusMinutes(FlightWindowConfig.MAX_PAST_MINUTES)
+        val maxTime = now.plusHours(FlightWindowConfig.MAX_FUTURE_HOURS)
 
         val allTimes = flight.stops.flatMap { stop ->
             listOfNotNull(

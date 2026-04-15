@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.*
 import org.gibil.util.Dates
+import org.gibil.util.FlightWindowConfig
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.junit.jupiter.api.*
@@ -391,7 +392,7 @@ class FlightAggregationServiceTest {
                 scheduleTime = now.plusMinutes(40).format(DateTimeFormatter.ISO_DATE_TIME)
             )
 
-            val staleStatus = now.minusMinutes(FlightAggregationService.MAX_PAST_MINUTES + 2)
+            val staleStatus = now.minusMinutes(FlightWindowConfig.MAX_PAST_MINUTES + 2)
                 .format(DateTimeFormatter.ISO_DATE_TIME)
             // Status times represent the latest real-world event and are used for the "too old" check.
             dep.status = FlightStatus().apply {

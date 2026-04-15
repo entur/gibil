@@ -49,27 +49,35 @@ class FlightAggregationService(
         const val MAX_FUTURE_HOURS = 24L       // Up to 7 hours in the future
     }
 
-    /**
-     * Fetches raw flight records from the Avinor XML feed for a single airport.
-     *
-     * @param airportCode The IATA code of the airport to fetch flights for.
-     * @return The list of [Flight] records, or an empty list if the call throws exception.
-     */
-    private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
-        return try {
-            val xmlResponse = avinorXmlFeedApiHandler.fetchFlights(
-                AvinorXmlFeedParamsLogic(airportCode = airportCode)
-            ).getOrElse { e ->
-                LOG.error("API call failed for {}: {}", airportCode, e.message)
-                return emptyList()
-            }
 
-            val airport = xmlHandler.unmarshallXmlToAirport(xmlResponse)
-            airport.flightsContainer?.flight ?: emptyList()
-        } catch (e: Exception) {
-            LOG.error("Error fetching data for {}: {}", airportCode, e.message)
-            emptyList()
+    /**
+     * Fetches flight data from all airports and stitches records into UnifiedFlight chains.
+     * Handles both direct (2 stops) and multi-leg (3+ stops) flights, including Svalbard routes.
+     * Used by the /siri endpoint.
+     */
+    fun buildUnifiedFlights(): List<UnifiedFlight> = runBlocking {
+        val airportCodes = AirportIATA.entries.map { it.name }
+
+        if (airportCodes.isEmpty()) {
+            LOG.error("Airport list is empty")
+            return@runBlocking emptyList()
         }
+
+        LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
+
+        val taggedFlights = fetchTaggedFlights(airportCodes)
+        val groupedTaggedFlights = groupFlightsByIdAndDate(taggedFlights)
+
+
+        // STITCH: convert each group into an ordered chain of stops
+        val unifiedFlights = groupedTaggedFlights.mapNotNull { (key, events) ->
+            if(key.flightId == "UNKNOWN") null
+            else stitchFlightLegs(key.flightId, key.date, events)
+        }
+
+        val filteredChains = unifiedFlights.filter { isChainWithinTimeWindow(it, Dates.instantNowUtc()) }
+        LOG.info("Aggregated {} valid flight chains within time window from {} total.", filteredChains.size, unifiedFlights.size)
+        filteredChains
     }
 
     /**
@@ -118,6 +126,42 @@ class FlightAggregationService(
         return result
     }
 
+    /**
+     * Fetches raw flight records from the Avinor XML feed for a single airport.
+     *
+     * @param airportCode The IATA code of the airport to fetch flights for.
+     * @return The list of [Flight] records, or an empty list if the call throws exception.
+     */
+    private fun fetchFlightsForAirport(airportCode: String): List<Flight> {
+        return try {
+            val xmlResponse = avinorXmlFeedApiHandler.fetchFlights(
+                AvinorXmlFeedParamsLogic(airportCode = airportCode)
+            ).getOrElse { e ->
+                LOG.error("API call failed for {}: {}", airportCode, e.message)
+                return emptyList()
+            }
+
+            val airport = xmlHandler.unmarshallXmlToAirport(xmlResponse)
+            airport.flightsContainer?.flight ?: emptyList()
+        } catch (e: Exception) {
+            LOG.error("Error fetching data for {}: {}", airportCode, e.message)
+            emptyList()
+        }
+    }
+
+    /**
+     * Returns true if the flight should be treated as domestic.
+     * Svalbard ([FlightCodes.SVALBARD_AIRPORTS]) routes are classified as international by Avinor
+     * but are included because they are operated as domestic flights.
+     *
+     * @param sourceAirport The airport the flight record was fetched from.
+     * @param flight The raw Avinor flight record.
+     */
+    private fun isDomesticOrSvalbard(sourceAirport: String, flight: Flight): Boolean {
+        if (flight.domInt == FlightCodes.DOMESTIC_CODE) return true
+        return sourceAirport == FlightCodes.SVALBARD_AIRPORTS || flight.airport == FlightCodes.SVALBARD_AIRPORTS
+    }
+
     /** GROUP: by flightId, then split on gaps > 6 hours to separate consecutive-day flights
     with the same ID. Use the Oslo date of the first event in each sub-group as the anchor,
     so legs that cross midnight Oslo (e.g. 23:50 dep → 00:10 arr) stay in the same group. */
@@ -141,49 +185,6 @@ class FlightAggregationService(
                 put(FlightKey(flightId, anchorDate), subGroup)
             }
         }
-    }
-
-
-    /**
-     * Fetches flight data from all airports and stitches records into UnifiedFlight chains.
-     * Handles both direct (2 stops) and multi-leg (3+ stops) flights, including Svalbard routes.
-     * Used by the /siri endpoint.
-     */
-    fun fetchUnifiedFlights(): List<UnifiedFlight> = runBlocking {
-        val airportCodes = AirportIATA.entries.map { it.name }
-
-        if (airportCodes.isEmpty()) {
-            LOG.error("Airport list is empty")
-            return@runBlocking emptyList()
-        }
-
-        val allTaggedFlights = mutableListOf<TaggedFlight>()
-
-        LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
-
-
-        // STITCH: convert each group into an ordered chain of stops
-        val unifiedFlights = grouped.mapNotNull { (key, events) ->
-            if(key.flightId == "UNKNOWN") null
-            else stitchFlightLegs(key.flightId, key.date, events)
-        }
-
-        val filteredChains = unifiedFlights.filter { isChainWithinTimeWindow(it, Dates.instantNowUtc()) }
-        LOG.info("Aggregated {} valid flight chains within time window from {} total.", filteredChains.size, unifiedFlights.size)
-        filteredChains
-    }
-
-    /**
-     * Returns true if the flight should be treated as domestic.
-     * Svalbard ([FlightCodes.SVALBARD_AIRPORTS]) routes are classified as international by Avinor
-     * but are included because they are operated as domestic flights.
-     *
-     * @param sourceAirport The airport the flight record was fetched from.
-     * @param flight The raw Avinor flight record.
-     */
-    private fun isDomesticOrSvalbard(sourceAirport: String, flight: Flight): Boolean {
-        if (flight.domInt == FlightCodes.DOMESTIC_CODE) return true
-        return sourceAirport == FlightCodes.SVALBARD_AIRPORTS || flight.airport == FlightCodes.SVALBARD_AIRPORTS
     }
 
     /**

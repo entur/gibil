@@ -118,7 +118,30 @@ class FlightAggregationService(
         return result
     }
 
+    /** GROUP: by flightId, then split on gaps > 6 hours to separate consecutive-day flights
+    with the same ID. Use the Oslo date of the first event in each sub-group as the anchor,
+    so legs that cross midnight Oslo (e.g. 23:50 dep → 00:10 arr) stay in the same group. */
+    private fun groupFlightsByIdAndDate(allTaggedFlights: List<TaggedFlight>): Map<FlightKey, List<TaggedFlight>> {
+        val byFlightId = allTaggedFlights.groupBy { it.raw.flightId ?: "UNKNOWN" }
 
+        return buildMap {
+            for ((flightId, events) in byFlightId) {
+                val sorted = events.sortedBy { it.time }
+                var subGroup = mutableListOf(sorted.first())
+
+                for (i in 1 until sorted.size) {
+                    if (Duration.between(sorted[i - 1].time, sorted[i].time) > Duration.ofHours(6)) {
+                        val anchorDate = subGroup.first().time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate()
+                        put(FlightKey(flightId, anchorDate), subGroup)
+                        subGroup = mutableListOf()
+                    }
+                    subGroup.add(sorted[i])
+                }
+                val anchorDate = subGroup.first().time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate()
+                put(FlightKey(flightId, anchorDate), subGroup)
+            }
+        }
+    }
 
 
     /**
@@ -137,31 +160,6 @@ class FlightAggregationService(
         val allTaggedFlights = mutableListOf<TaggedFlight>()
 
         LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
-
-
-
-
-        // GROUP: by flightId, then split on gaps > 6 hours to separate consecutive-day flights
-        // with the same ID. Use the Oslo date of the first event in each sub-group as the anchor,
-        // so legs that cross midnight Oslo (e.g. 23:50 dep → 00:10 arr) stay in the same group.
-        val byFlightId = allTaggedFlights.groupBy { it.raw.flightId ?: "UNKNOWN" }
-        val grouped = buildMap<FlightKey, List<TaggedFlight>> {
-            for ((flightId, events) in byFlightId) {
-                val sorted = events.sortedBy { it.time }
-                var subGroup = mutableListOf(sorted.first())
-
-                for (i in 1 until sorted.size) {
-                    if (Duration.between(sorted[i - 1].time, sorted[i].time) > Duration.ofHours(6)) {
-                        val anchorDate = subGroup.first().time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate()
-                        put(FlightKey(flightId, anchorDate), subGroup)
-                        subGroup = mutableListOf()
-                    }
-                    subGroup.add(sorted[i])
-                }
-                val anchorDate = subGroup.first().time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate()
-                put(FlightKey(flightId, anchorDate), subGroup)
-            }
-        }
 
 
         // STITCH: convert each group into an ordered chain of stops

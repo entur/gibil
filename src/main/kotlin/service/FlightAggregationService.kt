@@ -51,9 +51,11 @@ class FlightAggregationService(
 
 
     /**
-     * Fetches flight data from all airports and stitches records into UnifiedFlight chains.
-     * Handles both direct (2 stops) and multi-leg (3+ stops) flights, including Svalbard routes.
-     * Used by the /siri endpoint.
+     * Orchestrates the pipeline to produce [UnifiedFlight] chains from Avinor data
+     * Fetches flight data from all airports, groups them by flightID and date. Stitches groups into ordered flight chain
+     * and filters these to allowed time window.
+     * Handles both direct (2 stops), multi-leg (3+ stops) and circular flights, including Svalbard routes.     *
+     * @return A list of [UnifiedFlight] objects representing all valid flight chains within allowed time window.
      */
     fun buildUnifiedFlights(): List<UnifiedFlight> = runBlocking {
         val airportCodes = AirportIATA.entries.map { it.name }
@@ -91,7 +93,12 @@ class FlightAggregationService(
     )
 
     /**
-     * FETCH: Collect all domestic (+ Svalbard) flights with their parsed schedule times
+     * Fetches all flights from [airportCodes] concurrently in batches, filters to domestic and Svalbard flights only.
+     * Wraps each result as [TaggedFlight] paring raw [Flight] record to parsed schedule time and source airport.
+     * Flights with no parsable/malformed schedule time are skipped with a warning.
+     *
+     * @param airportCodes The IATA codes of the airports to fetch flights from.
+     * @return All valid tagged flights across all airports.
      */
     private suspend fun fetchTaggedFlights(airportCodes: List<String>): List<TaggedFlight> {
         val result = mutableListOf<TaggedFlight>()
@@ -162,9 +169,14 @@ class FlightAggregationService(
         return sourceAirport == FlightCodes.SVALBARD_AIRPORTS || flight.airport == FlightCodes.SVALBARD_AIRPORTS
     }
 
-    /** GROUP: by flightId, then split on gaps > 6 hours to separate consecutive-day flights
-    with the same ID. Use the Oslo date of the first event in each sub-group as the anchor,
-    so legs that cross midnight Oslo (e.g. 23:50 dep → 00:10 arr) stay in the same group. */
+    /** Groups [TaggedFlight] by flightId, then split on time gaps greater than 6 hours.
+     * This separates flights sharing the same ID across consecutive days.
+     * The Oslo date of the first event in the sub-groups are used as the anchor keeping legs crossing midnight in same group.
+     * Avinor reuses flight IDs for the same route on different days, so grouping by flightId alone would mix together
+     *
+     * @param allTaggedFlights The list of all tagged flights to group.
+     * @return A map of [FlightKey] (flightID + anchorDate) to events belonging to the flight.
+     */
     private fun groupFlightsByIdAndDate(allTaggedFlights: List<TaggedFlight>): Map<FlightKey, List<TaggedFlight>> {
         val byFlightId = allTaggedFlights.groupBy { it.raw.flightId ?: "UNKNOWN" }
 

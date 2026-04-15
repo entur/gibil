@@ -90,7 +90,7 @@ class FlightAggregationServiceTest {
     }
 
     @Nested
-    inner class FetchUnifiedFlights {
+    inner class BuildUnifiedFlights {
 
         @Test
         fun `should stitch direct flight into 2 stops`() = runBlocking {
@@ -110,7 +110,7 @@ class FlightAggregationServiceTest {
             mockAirportData("OSL", listOf(oslDep))
             mockAirportData("BGO", listOf(bgoArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(1, result.size)
             val flight = result.first()
@@ -153,7 +153,7 @@ class FlightAggregationServiceTest {
             mockAirportData("BOO", listOf(booArr, booDep))
             mockAirportData("SVJ", listOf(svjArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(1, result.size)
             val flight = result.first()
@@ -204,7 +204,7 @@ class FlightAggregationServiceTest {
             mockAirportData("RET", listOf(retArr, retDep))
             mockAirportData("LKN", listOf(lknArr, lknDep))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(1, result.size)
             val flight = result.first()
@@ -236,7 +236,7 @@ class FlightAggregationServiceTest {
             mockAirportData("OSL", listOf(oslDep))
             mockAirportData("TRD", listOf(trdArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY999" })
         }
@@ -253,7 +253,7 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(oslDep))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY200" })
         }
@@ -270,7 +270,7 @@ class FlightAggregationServiceTest {
 
             mockAirportData("BGO", listOf(bgoArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY300" })
         }
@@ -301,7 +301,7 @@ class FlightAggregationServiceTest {
             mockAirportData("OSL", listOf(domesticFlight, internationalFlight))
             mockAirportData("BGO", listOf(domesticArrival))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertTrue(result.any { it.flightId == "DY123" })
             assertFalse(result.any { it.flightId == "DY456" })
@@ -327,7 +327,7 @@ class FlightAggregationServiceTest {
             mockAirportData("OSL", listOf(oslDep))
             mockAirportData("LYR", listOf(lyrArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertTrue(result.any { it.flightId == "DY660" })
         }
@@ -368,7 +368,7 @@ class FlightAggregationServiceTest {
             mockAirportData("OSL", listOf(tooOldDep, tooFarDep))
             mockAirportData("BGO", listOf(tooOldArr, tooFarArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY111" })
             assertFalse(result.any { it.flightId == "DY222" })
@@ -406,7 +406,7 @@ class FlightAggregationServiceTest {
             mockAirportData("OSL", listOf(dep))
             mockAirportData("BGO", listOf(arr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY333" })
         }
@@ -415,7 +415,7 @@ class FlightAggregationServiceTest {
         fun `should handle API errors gracefully`() = runBlocking {
             every { avinorXmlFeedApiHandler.fetchFlights(any()) } returns Result.failure(IOException("API unavailable"))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(0, result.size)
         }
@@ -424,7 +424,7 @@ class FlightAggregationServiceTest {
         fun `should handle exception thrown during airport data fetch`() = runBlocking {
             every { avinorXmlFeedApiHandler.fetchFlights(any()) } throws RuntimeException("Connection timeout")
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(0, result.size)
         }
@@ -443,7 +443,7 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(nullIdFlight))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(0, result.size)
         }
@@ -459,7 +459,7 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(shortIdFlight))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertEquals(0, result.size)
         }
@@ -483,7 +483,7 @@ class FlightAggregationServiceTest {
             mockAirportData("LYR", listOf(lyrDep))
             mockAirportData("OSL", listOf(oslArr))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertTrue(result.any { it.flightId == "DY661" })
         }
@@ -498,7 +498,7 @@ class FlightAggregationServiceTest {
 
             mockAirportData("OSL", listOf(nullTimeFlight))
 
-            val result = flightAggregationService.fetchUnifiedFlights()
+            val result = flightAggregationService.buildUnifiedFlights()
 
             assertFalse(result.any { it.flightId == "DY400" })
         }

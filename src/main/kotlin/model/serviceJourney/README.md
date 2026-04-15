@@ -1,195 +1,134 @@
-# JAXB Kotlin Classes for NeTEx ServiceJourney XML Parsing
+# ServiceJourney Model
 
-Parse NeTEx (Network Timetable Exchange) XML files to extract ServiceJourney data efficiently.
+A set of Kotlin data classes for representing **NeTEx** (Network Timetable Exchange) service journey data, using JAXB annotations for XML binding.
 
-## Files
+---
 
-- **ServiceJourney.kt** - Main data class with computed properties for easy access
-- **TimetabledPassingTime.kt** - Departure and arrival time data
-- **DayTypeRef.kt** - Day type references
-- **PassingTimesWrapper.kt** - Wrapper class for passing times (included in ServiceJourney.kt)
-- **ServiceJourneyParser.kt** - Streaming XML parser that efficiently extracts only ServiceJourney elements
+## Classes
 
-## Quick Start
+### `ServiceJourney`
+The root element representing a single service journey (a vehicle trip on a specific route).
+
+| Field | XML Mapping | Description |
+|---|---|---|
+| `serviceJourneyId` | `@id` attribute | Unique identifier for the journey |
+| `publicCode` | `<PublicCode>` element | Public-facing trip/line code |
+| `lineRefElement` | `<LineRef>` element | Reference to the line this journey belongs to |
+| `dayTypeRefs` | `<dayTypes><DayTypeRef>` elements | Which day types this journey operates on |
+| `passingTimesWrapper` | `<passingTimes>` element | Container for all passing times |
+
+**Computed properties:**
+
+| Property | Returns |
+|---|---|
+| `dayTypes` | `List<String>` — the `ref` values from all `DayTypeRef` entries |
+| `departureTime` | `List<String>` — departure times from all passing times (see note below) |
+| `arrivalTime` | `List<String>` — arrival times from all passing times (see note below) |
+| `lineRef` | `String?` — shortcut to the line reference string |
+
+---
+
+### `DayTypeRef`
+A reference to a day type (e.g. weekday, weekend), identified by a `ref` attribute.
 
 ```kotlin
-val parser = ServiceJourneyParser()
-
-// Parse all XML files in a folder
-val journeys = parser.parseFolder("path/to/xml/folder")
-
-// Access your data
-journeys.forEach { journey ->
-    val dayTypes: List<String> = journey.dayTypes
-    val publicCode: String = journey.publicCode
-    val departureTime: String = journey.departureTime
-    val arrivalTime: String = journey.arrivalTime
-    val serviceJourneyId: String = journey.serviceJourneyId
-    
-    println("$publicCode: $departureTime → $arrivalTime")
-}
+DayTypeRef(ref = "AVI:DayType:2023829901-Feb_Wed_04")
 ```
 
-## ServiceJourneyParser Methods
+---
 
-### Parse Single File
+### `LineRefWrapper`
+Wraps a `ref` attribute pointing to a line identifier.
+
 ```kotlin
-val file = File("data.xml")
-val journeys = parser.parseFile(file)
+LineRefWrapper(ref = "AVI:Line:DY_OSL-TRD")
 ```
 
-### Parse Folder (Non-Recursive), which is whats used by the system
-```kotlin
-// Parses all .xml files in the folder
-val journeys = parser.parseFolder("data/xml")
+---
+
+### `PassingTimesWrapper`
+Container holding a list of `TimetabledPassingTime` entries, mapped from the `<passingTimes>` XML element.
+
+---
+
+### `TimetabledPassingTime`
+Represents a single stop's scheduled times within a journey.
+
+| Field | XML Mapping | Description |
+|---|---|---|
+| `departureTime` | `<DepartureTime>` | Scheduled departure (nullable) |
+| `arrivalTime` | `<ArrivalTime>` | Scheduled arrival (nullable) |
+
+> Note: The first stop typically has only a `DepartureTime`, and the last stop typically has only an `ArrivalTime`. Both fields are therefore nullable.
+
+---
+
+## Why departure and arrival times are lists
+
+NeTEx models flights as if they were bus/rail **lines**, not individual dated trips. A flight like `DY770 OSL→TRD` is represented as a single `ServiceJourney` with all its operating dates listed as `DayTypeRef` entries — rather than a separate journey per date.
+
+However, a recurring flight with the same IATA code and airport pair does not always depart and arrive at the same time across its entire schedule. For example, `DY770` might depart at `20:40` for most of the year but at `20:25` during a seasonal schedule change. Since NeTEx groups all of these occurrences under one `ServiceJourney`, each schedule variant becomes a separate `TimetabledPassingTime` entry inside `<passingTimes>`.
+
+This is why `departureTime` and `arrivalTime` are exposed as `List<String>` rather than single values — one entry per distinct time variant found in the journey's passing times. When a flight has a consistent schedule year-round, the lists will contain only one element each.
+
+---
+
+## XML Structure
+
+The following is a real example from the **Norwegian NeTEx feed** for the Oslo–Trondheim route (operator: Norwegian Air / DY), which is the primary dataset this model is used with.
+
+The file is a `PublicationDelivery` document containing a `TimetableFrame` with many `ServiceJourney` elements. The model unmarshals each `<ServiceJourney>` block like this:
+
+```xml
+<ServiceJourney version="1" id="AVI:ServiceJourney:DY8404-01-523271305">
+  <dayTypes>
+    <DayTypeRef ref="AVI:DayType:2023829901-Mar_Sat_28"/>
+  </dayTypes>
+  <PublicCode>DY8404</PublicCode>
+  <LineRef ref="AVI:Line:DY_OSL-TRD" version="1"/>
+  <passingTimes>
+    <TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:...">
+      <DepartureTime>08:45:00</DepartureTime>
+    </TimetabledPassingTime>
+    <TimetabledPassingTime version="1" id="AVI:TimetabledPassingTime:...">
+      <ArrivalTime>09:40:00</ArrivalTime>
+    </TimetabledPassingTime>
+  </passingTimes>
+</ServiceJourney>
 ```
 
-### Parse Folder Recursively
-```kotlin
-// Parses all .xml files in folder and all subfolders
-val journeys = parser.parseFolderRecursive("data")
-```
-
-## Data Structure
-
-### ServiceJourney Properties
+**After unmarshalling, this produces:**
 
 ```kotlin
-data class ServiceJourney(
-    val serviceJourneyId: String        // Full journey ID
-    val publicCode: String              // e.g., "SK267"
-    val dayTypes: List<String>          // List of all DayTypeRef strings
-    val departureTime: String           // e.g., "13:40:00"
-    val arrivalTime: String             // e.g., "14:40:00"
+ServiceJourney(
+    serviceJourneyId = "AVI:ServiceJourney:DY8404-01-523271305",
+    publicCode      = "DY8404",
+    lineRef         = "AVI:Line:DY_OSL-TRD",
+    dayTypes        = listOf("AVI:DayType:2023829901-Mar_Sat_28"),
+    departureTime   = listOf("08:45:00"),
+    arrivalTime     = listOf("09:40:00")
 )
 ```
 
-## Usage Examples
+---
 
-### Basic Filtering
+## Dataset notes
 
-```kotlin
-val parser = ServiceJourneyParser()
-val journeys = parser.parseFolder("data/xml")
+The example feed (`AVI_AVI-Line-DY_OSL-TRD_Oslo-Trondheim.xml`) covers:
 
-// Filter by public code
-val sk267 = journeys.filter { it.publicCode == "SK267" }
+- **Route:** Oslo Gardermoen (OSL) ↔ Trondheim Værnes (TRD)
+- **Operator:** Norwegian Air (DY)
+- **Validity:** 2026-02-02 → 2027-02-04
+- **Timezone:** Europe/Oslo
+- **NeTEx namespace:** `http://www.netex.org.uk/netex`
+- **Total ServiceJourneys:** ~78 (mix of outbound OSL→TRD and inbound TRD→OSL)
+- **ID format:** `AVI:ServiceJourney:<FlightNumber>-<variant>-<JourneyPatternId>`
+- **DayTypeRef format:** `AVI:DayType:<scheduleId>-<Month>_<Weekday>_<Day>` — one ref per operating date, so a journey running on many dates will have a long list of `DayTypeRef` entries
+- **PublicCode examples:** `DY750`, `DY760`, `DY770`, `DY8404`, `DY9999`
 
-// Filter by departure time
-val morningFlights = journeys.filter { journey ->
-    val hour = journey.departureTime.split(":").firstOrNull()?.toIntOrNull() ?: 0
-    hour in 6..11
-}
+---
 
-// Group by public code
-val byCode = journeys.groupBy { it.publicCode }
-byCode.forEach { (code, list) ->
-    println("$code: ${list.size} journeys")
-}
-```
+## Dependencies
 
-### Export to CSV
-
-```kotlin
-fun exportToCsv(journeys: List<ServiceJourney>, filename: String) {
-    File(filename).bufferedWriter().use { writer ->
-        writer.write("ServiceJourneyId,PublicCode,DepartureTime,ArrivalTime,DayTypeCount,DayTypes\n")
-        
-        journeys.forEach { journey ->
-            val dayTypesStr = journey.dayTypes.joinToString(";")
-            writer.write("${journey.serviceJourneyId}," +
-                        "${journey.publicCode}," +
-                        "${journey.departureTime}," +
-                        "${journey.arrivalTime}," +
-                        "${journey.dayTypes.size}," +
-                        "\"$dayTypesStr\"\n")
-        }
-    }
-}
-
-// Usage
-val journeys = parser.parseFolder("data/xml")
-exportToCsv(journeys, "output.csv")
-```
-
-### Statistics
-
-```kotlin
-val journeys = parser.parseFolder("data/xml")
-
-println("Total journeys: ${journeys.size}")
-println("Unique public codes: ${journeys.map { it.publicCode }.distinct().size}")
-
-// Average day types per journey
-val avgDayTypes = journeys.map { it.dayTypes.size }.average()
-println("Average day types per journey: %.1f".format(avgDayTypes))
-
-// Find journeys with most day types
-val maxDayTypes = journeys.maxByOrNull { it.dayTypes.size }
-println("Most day types: ${maxDayTypes?.publicCode} with ${maxDayTypes?.dayTypes?.size} days")
-```
-
-### Working with Day Types
-
-```kotlin
-val journeys = parser.parseFolder("data/xml")
-
-// Get all unique day types across all journeys
-val allDayTypes = journeys.flatMap { it.dayTypes }.toSet()
-println("Unique day types: ${allDayTypes.size}")
-
-// Find journeys operating on specific day
-val saturdayJourneys = journeys.filter { journey ->
-    journey.dayTypes.any { it.contains("Sat") }
-}
-println("Saturday journeys: ${saturdayJourneys.size}")
-
-// Group by month
-val byMonth = journeys.groupBy { journey ->
-    journey.dayTypes.firstOrNull()?.let { dayType ->
-        dayType.split("-").getOrNull(1)?.take(3) // Extract "Feb", "Mar", etc.
-    } ?: "Unknown"
-}
-```
-
-## Key Features
-
-- **Efficient Streaming**: Uses XMLStreamReader to parse only ServiceJourney elements, ignoring the rest of the large XML structure
-- **Namespace Handling**: Properly handles NeTEx XML namespaces (http://www.netex.org.uk/netex)
-- **Computed Properties**: Easy access to departure/arrival times and day types
-- **Mutable Collections**: Uses `var` and `MutableList` as required by JAXB
-- **Error Handling**: Continues parsing even if individual files fail
-- **Progress Reporting**: Prints status while parsing folders
-
-## Troubleshooting
-
-### Empty departure/arrival times
-- Make sure you're using the latest version of all files (especially TimetabledPassingTime.kt with namespaces)
-- The namespace `http://www.netex.org.uk/netex` must be on all element annotations
-
-### "Operation not supported for read-only collection"
-- Use `var` instead of `val` for JAXB-annotated properties
-- Use `MutableList` instead of `List` for collections
-
-### No journeys found
-- Check that your XML files contain `<ServiceJourney>` elements
-- Verify the XML uses the NeTEx namespace
-- Check the parser output for error messages
-
-## How It Works
-
-The parser uses a streaming approach:
-1. Opens XML file with XMLStreamReader
-2. Scans for `<ServiceJourney>` start tags
-3. Unmarshals only those elements (ignoring routes, lines, frames, etc.)
-4. Extracts the 5 key fields you need
-5. Returns a clean list of ServiceJourney objects
-
-This is much more efficient than parsing the entire XML structure with nested classes for every element type.
-
-## Notes
-
-- Time fields are strings in "HH:MM:SS" format - convert to LocalTime if needed
-- DayType refs are kept as strings - parse them if you need structured date info
-- The parser handles both PublicationDelivery root elements and standalone ServiceJourney elements
-- Files are read with streaming to handle large XML files efficiently
+- `jakarta.xml.bind` — JAXB annotations for XML serialization/deserialization
+- `org.gibil.util.ServiceJourneyModel` — provides the `NETEX_NAMESPACE` constant (`http://www.netex.org.uk/netex`) used across all elements

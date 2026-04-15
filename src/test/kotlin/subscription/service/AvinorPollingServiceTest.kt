@@ -52,7 +52,7 @@ class AvinorPollingServiceTest {
         val flights = listOf(ServiceTestHelper.mockFlight("WF844", "2026-02-26"))
         val siriPayload = mockk<Siri>()
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns flights
+        every { flightAggregationService.buildUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns flights
         every { siriETMapper.mapUnifiedFlightsToSiri(flights) } returns siriPayload
         every { subscriptionManager.pushSiriToSubscribers(siriPayload) } just Runs
@@ -67,7 +67,7 @@ class AvinorPollingServiceTest {
     fun `should not push when no changes are detected`() {
         val flights = listOf(ServiceTestHelper.mockFlight("WF844", "2026-02-26"))
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns flights
+        every { flightAggregationService.buildUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns emptyList()
 
         service.pollAndPushUpdates()
@@ -80,7 +80,7 @@ class AvinorPollingServiceTest {
     fun `should clean cache before filtering`() {
         val flights = listOf(ServiceTestHelper.mockFlight("WF844", "2026-02-26"))
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns flights
+        every { flightAggregationService.buildUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns emptyList()
 
         service.pollAndPushUpdates()
@@ -96,7 +96,7 @@ class AvinorPollingServiceTest {
         val flight = ServiceTestHelper.mockFlight("WF844", "2026-02-26")
         val flights = listOf(flight)
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns flights
+        every { flightAggregationService.buildUnifiedFlights() } returns flights
         every { flightStateCache.filterChanged(flights) } returns emptyList()
 
         service.pollAndPushUpdates()
@@ -106,14 +106,14 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should not throw when fetchUnifiedFlights throws`() {
-        every { flightAggregationService.fetchUnifiedFlights() } throws RuntimeException("API down")
+        every { flightAggregationService.buildUnifiedFlights() } throws RuntimeException("API down")
 
         assertDoesNotThrow { service.pollAndPushUpdates() }
     }
 
     @Test
     fun `should not push when fetchUnifiedFlights throws`() {
-        every { flightAggregationService.fetchUnifiedFlights() } throws RuntimeException("API down")
+        every { flightAggregationService.buildUnifiedFlights() } throws RuntimeException("API down")
 
         service.pollAndPushUpdates()
 
@@ -122,7 +122,7 @@ class AvinorPollingServiceTest {
 
     @Test
     fun `should handle empty flight list without pushing`() {
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
+        every { flightAggregationService.buildUnifiedFlights() } returns emptyList()
         every { flightStateCache.filterChanged(emptyList()) } returns emptyList()
 
         service.pollAndPushUpdates()
@@ -138,7 +138,7 @@ class AvinorPollingServiceTest {
         val allFlights = listOf(unchanged, changed)
         val siriPayload = mockk<Siri>()
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns allFlights
+        every { flightAggregationService.buildUnifiedFlights() } returns allFlights
         every { flightStateCache.filterChanged(allFlights) } returns listOf(changed)
         every { siriETMapper.mapUnifiedFlightsToSiri(listOf(changed)) } returns siriPayload
         every { subscriptionManager.pushSiriToSubscribers(siriPayload) } just Runs

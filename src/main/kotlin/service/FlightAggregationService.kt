@@ -13,6 +13,7 @@ import model.UnifiedFlight
 import model.xmlFeedApi.Flight
 import org.gibil.util.Dates
 import org.gibil.util.FlightCodes
+import org.gibil.util.FlightWindowConfig
 import org.gibil.util.PollingConfig
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
@@ -20,9 +21,9 @@ import org.slf4j.LoggerFactory
 import org.gibil.model.AirportIATA
 import org.springframework.stereotype.Service
 import util.DateUtil.parseTime
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -42,10 +43,86 @@ class FlightAggregationService(
 ) {
 
 
-    companion object {
-        // Filter to only include flights within this time window
-        const val MAX_PAST_MINUTES = 20L      // At most 20 minutes in the past
-        const val MAX_FUTURE_HOURS = 24L       // Up to 7 hours in the future
+    /**
+     * Orchestrates the pipeline to produce [UnifiedFlight] chains from Avinor data
+     * Fetches flight data from all airports, groups them by flightID and date. Stitches groups into ordered flight chain
+     * and filters these to allowed time window.
+     * Handles both direct (2 stops), multi-leg (3+ stops) and circular flights, including Svalbard routes.     *
+     * @return A list of [UnifiedFlight] objects representing all valid flight chains within allowed time window.
+     */
+    fun buildUnifiedFlights(): List<UnifiedFlight> = runBlocking {
+        val airportCodes = AirportIATA.entries.map { it.name }
+
+        if (airportCodes.isEmpty()) {
+            LOG.error("Airport list is empty")
+            return@runBlocking emptyList()
+        }
+
+        LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
+
+        val taggedFlights = fetchTaggedFlights(airportCodes)
+        val groupedTaggedFlights = groupFlightsByIdAndDate(taggedFlights)
+
+
+        // STITCH: convert each group into an ordered chain of stops
+        val unifiedFlights = groupedTaggedFlights.mapNotNull { (key, events) ->
+            stitchFlightLegs(key.flightId, key.date, events)
+        }
+
+        val filteredChains = unifiedFlights.filter { isChainWithinTimeWindow(it, Dates.instantNowUtc()) }
+        LOG.info("Aggregated {} valid flight chains within time window from {} total.", filteredChains.size, unifiedFlights.size)
+        filteredChains
+    }
+
+    /**
+     * Wraps a raw Avinor [Flight] with the airport it was fetched from and its parsed schedule time.
+     * Used as an intermediate representation before stop stitching.
+     */
+    private data class TaggedFlight(
+        val sourceAirport: String,
+        val raw: Flight,
+        val time: Instant
+    )
+
+    /**
+     * Fetches all flights from [airportCodes] concurrently in batches, filters to domestic and Svalbard flights only.
+     * Wraps each result as [TaggedFlight] paring raw [Flight] record to parsed schedule time and source airport.
+     * Flights with no parsable/malformed schedule time are skipped with a warning.
+     *
+     * @param airportCodes The IATA codes of the airports to fetch flights from.
+     * @return All valid tagged flights across all airports.
+     */
+    private suspend fun fetchTaggedFlights(airportCodes: List<String>): List<TaggedFlight> {
+        val result = mutableListOf<TaggedFlight>()
+
+        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
+            coroutineScope {
+                batch.map { code ->
+                    async(ioDispatcher) {
+                        delay(PollingConfig.REQUEST_DELAY_MS.toLong())
+                        code to fetchFlightsForAirport(code)
+                    }
+                }.awaitAll()
+            }.forEach { (code, flights) ->
+                flights
+                    .filter { isDomesticOrSvalbard(code, it) }
+                    .forEach { flight ->
+                        try {
+                            parseTime(flight.scheduleTime)?.let { parsedTime ->
+                                result.add(TaggedFlight(code, flight, parsedTime))
+                            }
+                        } catch (e: Exception) {
+                            LOG.warn(
+                                "Malformed schedule time for flight {} at {}: {}",
+                                flight.flightId,
+                                code,
+                                e.message
+                            )
+                        }
+                    }
+            }
+        }
+        return result
     }
 
     /**
@@ -72,73 +149,6 @@ class FlightAggregationService(
     }
 
     /**
-     * Wraps a raw Avinor [Flight] with the airport it was fetched from and its parsed schedule time.
-     * Used as an intermediate representation before stop stitching.
-     */
-    private data class TaggedFlight(
-        val sourceAirport: String,
-        val raw: Flight,
-        val time: Instant
-    )
-
-    /**
-     * Fetches flight data from all airports and stitches records into UnifiedFlight chains.
-     * Handles both direct (2 stops) and multi-leg (3+ stops) flights, including Svalbard routes.
-     * Used by the /siri endpoint.
-     */
-    fun fetchUnifiedFlights(): List<UnifiedFlight> = runBlocking {
-        val airportCodes = AirportIATA.entries.map { it.name }
-
-        if (airportCodes.isEmpty()) {
-            LOG.error("Airport list is empty")
-            return@runBlocking emptyList()
-        }
-
-        val allTaggedFlights = mutableListOf<TaggedFlight>()
-
-        LOG.info("Starting unified flight fetch for {} airports...", airportCodes.size)
-
-        // FETCH: Collect all domestic (+ Svalbard) flights with their parsed schedule times
-        airportCodes.chunked(PollingConfig.BATCH_SIZE).forEach { batch ->
-            coroutineScope {
-                batch.map { code ->
-                    async(ioDispatcher) {
-                        delay(PollingConfig.REQUEST_DELAY_MS.toLong())
-                        code to fetchFlightsForAirport(code)
-                    }
-                }.awaitAll()
-            }.forEach { (code, flights) ->
-                flights
-                    .filter { isDomesticOrSvalbard(code, it) }
-                    .forEach { flight ->
-                        try {
-                            parseTime(flight.scheduleTime)?.let { parsedTime ->
-                                allTaggedFlights.add(TaggedFlight(code, flight, parsedTime))
-                            }
-                        } catch (e: Exception) {
-                            LOG.warn("Malformed schedule time for flight {} at {}: {}", flight.flightId, code, e.message)
-                        }
-                    }
-            }
-        }
-
-        // GROUP: by flightId + date to avoid mixing flights from different days
-        val grouped = allTaggedFlights.groupBy {
-            FlightKey(it.raw.flightId ?: "UNKNOWN", it.time.atZone(ZoneId.of("Europe/Oslo")).toLocalDate())
-        }
-
-        // STITCH: convert each group into an ordered chain of stops
-        val unifiedFlights = grouped.mapNotNull { (key, events) ->
-            if(key.flightId == "UNKNOWN") null
-            else stitchFlightLegs(key.flightId, key.date, events)
-        }
-
-        val filteredChains = unifiedFlights.filter { isChainWithinTimeWindow(it, Dates.instantNowUtc()) }
-        LOG.info("Aggregated {} valid flight chains within time window from {} total.", filteredChains.size, unifiedFlights.size)
-        filteredChains
-    }
-
-    /**
      * Returns true if the flight should be treated as domestic.
      * Svalbard ([FlightCodes.SVALBARD_AIRPORTS]) routes are classified as international by Avinor
      * but are included because they are operated as domestic flights.
@@ -149,6 +159,38 @@ class FlightAggregationService(
     private fun isDomesticOrSvalbard(sourceAirport: String, flight: Flight): Boolean {
         if (flight.domInt == FlightCodes.DOMESTIC_CODE) return true
         return sourceAirport == FlightCodes.SVALBARD_AIRPORTS || flight.airport == FlightCodes.SVALBARD_AIRPORTS
+    }
+
+    /** Groups [TaggedFlight] by flightId, then split on time gaps greater than 6 hours.
+     * This separates flights sharing the same ID across consecutive days.
+     * The Oslo date of the first event in the sub-groups are used as the anchor keeping legs crossing midnight in same group.
+     * Avinor reuses flight IDs for the same route on different days, so grouping by flightId alone would mix together
+     *
+     * @param allTaggedFlights The list of all tagged flights to group.
+     * @return A map of [FlightKey] (flightID + anchorDate) to events belonging to the flight.
+     */
+    private fun groupFlightsByIdAndDate(allTaggedFlights: List<TaggedFlight>): Map<FlightKey, List<TaggedFlight>> {
+        val byFlightId = allTaggedFlights
+            .filter { it.raw.flightId != null }
+            .groupBy { it.raw.flightId!! }
+
+        return buildMap {
+            for ((flightId, events) in byFlightId) {
+                val sorted = events.sortedBy { it.time }
+                var subGroup = mutableListOf(sorted.first())
+
+                for (i in 1 until sorted.size) {
+                    if (Duration.between(sorted[i - 1].time, sorted[i].time) > Duration.ofHours(FlightWindowConfig.SAME_FLIGHT_GAP_HOURS)) {
+                        val anchorDate = subGroup.first().time.atZone(Dates.OSLO_ZONE).toLocalDate()
+                        put(FlightKey(flightId, anchorDate), subGroup)
+                        subGroup = mutableListOf()
+                    }
+                    subGroup.add(sorted[i])
+                }
+                val anchorDate = subGroup.first().time.atZone(Dates.OSLO_ZONE).toLocalDate()
+                put(FlightKey(flightId, anchorDate), subGroup)
+            }
+        }
     }
 
     /**
@@ -264,12 +306,12 @@ class FlightAggregationService(
      * ongoing multi-leg flights (e.g. WF904 TOS→ALF→TOS) are retained even when their
      * first leg has already departed.
      *
-     * A chain is kept if its latest stop time is within [MAX_PAST_MINUTES] of now,
-     * and its earliest stop time is within [MAX_FUTURE_HOURS] of now.
+     * A chain is kept if its latest stop time is within [FlightWindowConfig.MAX_PAST_MINUTES] of now,
+     * and its earliest stop time is within [FlightWindowConfig.MAX_FUTURE_HOURS] of now.
      */
     private fun isChainWithinTimeWindow(flight: UnifiedFlight, now: ZonedDateTime): Boolean {
-        val minTime = now.minusMinutes(MAX_PAST_MINUTES)
-        val maxTime = now.plusHours(MAX_FUTURE_HOURS)
+        val minTime = now.minusMinutes(FlightWindowConfig.MAX_PAST_MINUTES)
+        val maxTime = now.plusHours(FlightWindowConfig.MAX_FUTURE_HOURS)
 
         val allTimes = flight.stops.flatMap { stop ->
             listOfNotNull(

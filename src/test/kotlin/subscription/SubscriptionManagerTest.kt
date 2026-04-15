@@ -36,7 +36,7 @@ class SubscriptionManagerTest {
         serviceJourneyResolver = mockk()
         subscriptionManager = SubscriptionManager(subscriptionHttpHelper, siriETMapper, flightAggregationService, flightStateCache, serviceJourneyResolver)
 
-        every { flightAggregationService.fetchUnifiedFlights() } returns emptyList()
+        every { flightAggregationService.buildUnifiedFlights() } returns emptyList()
         every { serviceJourneyResolver.resolve(any()) } returns emptyList()
         every { siriETMapper.mapUnifiedFlightsToSiri(any()) } returns createSiriWithET()
         coEvery { subscriptionHttpHelper.postData(any(), any()) } returns 200

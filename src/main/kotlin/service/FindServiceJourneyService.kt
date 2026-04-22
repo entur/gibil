@@ -12,6 +12,7 @@ import util.DateUtil.formatForServiceJourney
 import org.slf4j.LoggerFactory
 import org.gibil.util.FindServiceJourneyPaths
 import org.springframework.stereotype.Service
+import util.DateUtil.nanosToMs
 
 private val LOG = LoggerFactory.getLogger(FindServiceJourneyService::class.java)
 
@@ -35,6 +36,8 @@ class FindServiceJourneyService(
 
     @PostConstruct
     fun init() {
+        val totalStart = System.nanoTime()
+
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
         if (pathBase == FindServiceJourneyPaths.LOCAL_BASEPATH) {
             ZipUtil.downloadAndUnzip(netexDataUrl, FindServiceJourneyPaths.LOCAL_BASEPATH, apiService)
@@ -43,6 +46,9 @@ class FindServiceJourneyService(
         serviceJourneyList = findServiceJourney().also { journeys ->
             journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
         }
+
+        val totalResolveTimeMs = nanosToMs((System.nanoTime() - totalStart))
+        LOG.info("Extime download and servicejourneylist creation took $totalResolveTimeMs ms")
     }
 
 

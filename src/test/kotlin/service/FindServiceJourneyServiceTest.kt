@@ -33,9 +33,12 @@ class FindServiceJourneyServiceTest {
     // Wrong lineRef, valid flight code and date — tests that lineref matching works correctly
     val exampleWrongLineRef = listOf("OSL", "LAX")
 
-    // midnight edgecase, a fake flight i've manually made, since none existed around midnight
-    val exampleMidnight = listOf("2026-05-24T22:30:00Z", "DY9999")
-    val exampleLineRefMidnight = listOf("OSL", "TRD")
+    // midnight edgecase, two fake flights i've manually made, since none existed around midnight
+    val exampleMidnightSummertime = listOf("2026-05-24T22:30:00Z", "DY9999")
+    val exampleLineRefMidnightSummertime = listOf("OSL", "TRD")
+
+    val exampleMidnightWintertime = listOf("2026-02-24T23:30:00Z", "DY9999")
+    val exampleLineRefMidnightWintertime = listOf("OSL", "TRD")
 
     val today = Instant.now().atZone(ZoneOffset.UTC)
 
@@ -102,10 +105,19 @@ class FindServiceJourneyServiceTest {
     }
 
     @Test
-    fun `FindServiceJourney should find ID when flight is around midnight`() {
+    fun `FindServiceJourney should find ID when flight is around midnight during summertime`() {
         val workingMap = service.buildWorkingMap()
 
-        val foundMatch = service.matchServiceJourney(workingMap, exampleMidnight[0], exampleMidnight[1], exampleLineRefMidnight)
+        val foundMatch = service.matchServiceJourney(workingMap, exampleMidnightSummertime[0], exampleMidnightSummertime[1], exampleLineRefMidnightSummertime)
+
+        Assertions.assertTrue { "DY9999-01-123456789" in foundMatch.serviceJourneyId }
+    }
+
+    @Test
+    fun `FindServiceJourney should find ID when flight is around midnight during winter time`() {
+        val workingMap = service.buildWorkingMap()
+
+        val foundMatch = service.matchServiceJourney(workingMap, exampleMidnightWintertime[0], exampleMidnightWintertime[1], exampleLineRefMidnightWintertime)
 
         Assertions.assertTrue { "DY9999-01-123456789" in foundMatch.serviceJourneyId }
     }

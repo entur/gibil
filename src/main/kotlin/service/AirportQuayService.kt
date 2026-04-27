@@ -8,6 +8,7 @@ import util.ZipUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import util.DateUtil.nanosToMs
 import java.io.File
 
 private val LOG = LoggerFactory.getLogger(AirportQuayService::class.java)
@@ -40,6 +41,7 @@ class AirportQuayService(
      * preserved and the error is logged.
      */
     fun refreshQuayMapping() {
+        val totalStart = System.nanoTime()
         try {
             val file = File(basePath).listFiles { f -> f.extension.lowercase() == "xml" }?.firstOrNull()
                 ?: throw RuntimeException("No XML file found in $basePath")
@@ -60,6 +62,8 @@ class AirportQuayService(
         } catch (e: Exception) {
             LOG.error("Failed to refresh quay mapping: {}", e.message)
         }
+        val totalResolveTimeMs = nanosToMs((System.nanoTime() - totalStart))
+        LOG.info("Quay download and map creation took $totalResolveTimeMs ms")
     }
 
     /**

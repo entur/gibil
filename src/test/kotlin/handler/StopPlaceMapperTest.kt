@@ -1,20 +1,17 @@
 package handler
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
-import jakarta.xml.bind.Unmarshaller
 import org.gibil.handler.StopPlaceMapper
-import org.gibil.model.stopPlacesApi.StopPlaces
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
+import org.gibil.util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.assertThrows
-import util.SharedJaxbContext
-import java.io.StringReader
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class StopPlaceMapperTest {
 
@@ -25,46 +22,134 @@ class StopPlaceMapperTest {
         stopPlaceMapper = StopPlaceMapper()
     }
 
+    private fun defaultQuayXml(quayId: String, iata: String) = """
+        <Quay id="$quayId">
+            <keyList><KeyValue><Key>imported-id</Key><Value>AVI:Quay:$iata</Value></KeyValue></keyList>
+        </Quay>"""
+
+    private fun gateQuayXml(quayId: String, publicCode: String) = """
+        <Quay id="$quayId">
+            <keyList><KeyValue><Key>imported-id</Key><Value></Value></KeyValue></keyList>
+            <PublicCode>$publicCode</PublicCode>
+        </Quay>"""
+
+    private fun blankPublicCodeQuayXml(quayId: String) = """
+        <Quay id="$quayId">
+            <keyList><KeyValue><Key>imported-id</Key><Value></Value></KeyValue></keyList>
+            <PublicCode></PublicCode>
+        </Quay>"""
+
+    private fun buildXml(vararg quayXmls: String) = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <PublicationDelivery xmlns="http://www.netex.org.uk/netex">
+            <stopPlaces>
+                <StopPlace>
+                    <quays>
+                        ${quayXmls.joinToString("\n")}
+                    </quays>
+                </StopPlace>
+            </stopPlaces>
+        </PublicationDelivery>""".trimIndent()
+
     @Nested
-    inner class UnmarshallStopPlaceXml {
+    inner class ParseStopPlaceFromFile {
 
-        @BeforeEach
-        fun setUp() {
-            mockkObject(SharedJaxbContext)
-        }
+        @Test
+        fun `returns StopPlaces when file contains stopPlaces element`(@TempDir tempDir: Path) {
+            val xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <PublicationDelivery xmlns="http://www.netex.org.uk/netex">
+                    <stopPlaces>
+                        <StopPlace>
+                            <StopPlaceType>airport</StopPlaceType>
+                        </StopPlace>
+                    </stopPlaces>
+                </PublicationDelivery>
+            """.trimIndent()
+            val file = tempDir.resolve("test.xml").toFile().also { it.writeText(xml) }
 
-        @AfterEach
-        fun tearDown() {
-            unmockkObject(SharedJaxbContext)
+            val result = stopPlaceMapper.parseStopPlaceFromFile(file)
+            Assertions.assertEquals(1, result.stopPlace.size)
         }
 
         @Test
-        fun `unmarshallStopPlaceXml returns StopPlaces when airport `() {
-            val validXml = "<xml>stopPlaces</xml>"
-            val expectedStopPlaces = mockk<StopPlaces>()
-            val unmarshaller = mockk<Unmarshaller>()
-
-            every { SharedJaxbContext.createUnmarshaller() } returns unmarshaller
-            every { unmarshaller.unmarshal(any<StringReader>()) } returns expectedStopPlaces
-
-            val result = stopPlaceMapper.unmarshallStopPlaceXml(validXml)
-            Assertions.assertEquals(expectedStopPlaces, result)
-        }
-
-        @Test
-        fun `unmarshallStopPlaceXml throws exception when xml is invalid`() {
-            val invalidXml = "<xml>stopPlaces<"
-            val unmarshaller = mockk<Unmarshaller>()
-
-            every { SharedJaxbContext.createUnmarshaller() } returns unmarshaller
-            every { unmarshaller.unmarshal(any<StringReader>()) } throws Exception("Parse error")
+        fun `throws RuntimeException when stopPlaces element is missing`(@TempDir tempDir: Path) {
+            val xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <PublicationDelivery xmlns="http://www.netex.org.uk/netex">
+                </PublicationDelivery>
+            """.trimIndent()
+            val file = tempDir.resolve("test.xml").toFile().also { it.writeText(xml) }
 
             val exception = assertThrows<RuntimeException> {
-                stopPlaceMapper.unmarshallStopPlaceXml(invalidXml)
+                stopPlaceMapper.parseStopPlaceFromFile(file)
+            }
+            Assertions.assertEquals("No <stopPlaces> found in ${file.name}", exception.message)
+        }
+
+        @Test
+        fun `throws exception when file does not exist`(@TempDir tempDir: Path) {
+            val file = tempDir.resolve("nonexistent.xml").toFile()
+
+            assertThrows<Exception> {
+                stopPlaceMapper.parseStopPlaceFromFile(file)
+            }
+        }
+    }
+
+    @Nested
+    inner class MakeIataToQuayMap {
+
+        @Test
+        fun `maps default quay by IATA code`(@TempDir tempDir: Path) {
+            val file = tempDir.resolve("test.xml").toFile()
+                .also { it.writeText(buildXml(defaultQuayXml("NSR:Quay:1213", "BGO"))) }
+
+            val result = stopPlaceMapper.makeIataToQuayMap(stopPlaceMapper.parseStopPlaceFromFile(file))
+
+            assertEquals("NSR:Quay:1213", result["BGO"]?.get(QuayCodes.DEFAULT_KEY))
+        }
+
+        @Test
+        fun `maps gate quays by PublicCode alongside default`(@TempDir tempDir: Path) {
+            val file = tempDir.resolve("test.xml").toFile().also {
+                it.writeText(buildXml(
+                    defaultQuayXml("NSR:Quay:1213", "BGO"),
+                    gateQuayXml("NSR:Quay:111610", "B16"),
+                    gateQuayXml("NSR:Quay:111584", "C35")
+                ))
             }
 
-            Assertions.assertEquals("Error parsing StopPlaces", exception.message)
-            Assertions.assertTrue(exception.cause is Exception)
+            val result = stopPlaceMapper.makeIataToQuayMap(stopPlaceMapper.parseStopPlaceFromFile(file))
+
+            assertEquals("NSR:Quay:1213", result["BGO"]?.get(QuayCodes.DEFAULT_KEY))
+            assertEquals("NSR:Quay:111610", result["BGO"]?.get("B16"))
+            assertEquals("NSR:Quay:111584", result["BGO"]?.get("C35"))
+        }
+
+        @Test
+        fun `skips stop place with no default quay`(@TempDir tempDir: Path) {
+            val file = tempDir.resolve("test.xml").toFile()
+                .also { it.writeText(buildXml(gateQuayXml("NSR:Quay:111610", "B16"))) }
+
+            val result = stopPlaceMapper.makeIataToQuayMap(stopPlaceMapper.parseStopPlaceFromFile(file))
+
+            assertTrue(result.isEmpty())
+        }
+
+        @Test
+        fun `skips gate quay with blank PublicCode`(@TempDir tempDir: Path) {
+            val file = tempDir.resolve("test.xml").toFile().also {
+                it.writeText(buildXml(
+                    defaultQuayXml("NSR:Quay:1213", "BGO"),
+                    blankPublicCodeQuayXml("NSR:Quay:99999")
+                ))
+            }
+
+            val result = stopPlaceMapper.makeIataToQuayMap(stopPlaceMapper.parseStopPlaceFromFile(file))
+
+            assertEquals(1, result["BGO"]?.size)
+            assertNull(result["BGO"]?.get(""))
         }
     }
 }

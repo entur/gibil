@@ -20,6 +20,12 @@ object PollingConfig {
     const val REQUEST_DELAY_MS = 50
 }
 
+object FlightWindowConfig {
+    const val MAX_PAST_MINUTES = 20L     // At most 20 minutes in the past
+    const val MAX_FUTURE_HOURS = 24L     // Up to 24 hours in the future
+    const val SAME_FLIGHT_GAP_HOURS = 6L // Gap threshold for splitting same-ID flights across days
+}
+
 object FlightCodes {
     //[Direction] from Avinor
     const val DEPARTURE_CODE = "D"
@@ -41,15 +47,23 @@ object FlightCodes {
     const val SVALBARD_AIRPORTS = "LYR"
 }
 
+object QuayCodes {
+    const val DEFAULT_KEY = "DEFAULT"
+}
+
 object SiriConfig {
     const val SIRI_VERSION_DELIVERY = "2.1"
 }
 
-object FindServiceJourneyConstants {
+object FindServiceJourneyPaths {
     //base path when running on a local computer, and not in cloud
     val LOCAL_BASEPATH = "src/main/resources/extimeData"
-
     val CLOUD_BASEPATH = "/tmp/netex_data"
+}
+
+object TiamatImportPaths {
+    val LOCAL_BASEPATH = "src/main/resources/stopPlaceData"
+    val CLOUD_BASEPATH = "/tmp/stop_place_data"
 }
 
 object AvinorApiConfig {
@@ -69,6 +83,7 @@ object ServiceJourneyModel {
 
 object Dates {
     val LOCALE = Locale.ENGLISH
+    val OSLO_ZONE: ZoneId = ZoneId.of("Europe/Oslo")
 
     val formats = mapOf<String, DateTimeFormatter>(
         "MMMM_dd_yyyy" to DateTimeFormatter.ofPattern("MMMM dd, yyyy", LOCALE),
@@ -77,11 +92,11 @@ object Dates {
 
     fun currentDateMMMddyyyy() = LocalDate.now().format(formats["MMMM_dd_yyyy"])
     fun instantNowUtc(): ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
-    fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(ZoneId.of("Europe/Oslo"))
+    fun instantNowSystemDefault(): ZonedDateTime = Instant.now().atZone(OSLO_ZONE)
 
 
     fun daytypeBuilder(zoneDateTime: ZonedDateTime): String{
-        val norwayZone = ZoneId.of("Europe/Oslo")
+        val norwayZone = OSLO_ZONE
 
         val norwayDateTimeDeparture = zoneDateTime .withZoneSameInstant(norwayZone)
 

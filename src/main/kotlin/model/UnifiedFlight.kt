@@ -22,7 +22,8 @@ data class FlightStop(
     val departureStatusTime: Instant? = null,
     val arrivalStatusCode: String? = null,
     val arrivalStatusTime: Instant? = null,
-    val targetAirport: String? = null // Next airport in the chain (used for gap detection)
+    val targetAirport: String? = null, // Next airport in the chain (used for gap detection)
+    val gate: String? = null           // Departure gate from Avinor (used for quay resolution when Entur provides gate-level quays)
 )
 
 /**

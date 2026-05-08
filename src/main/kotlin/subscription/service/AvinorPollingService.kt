@@ -36,7 +36,7 @@ class AvinorPollingService(
         LOG.info("Starting poll cycle. Cache size: {}", flightStateCache.getCacheSize())
 
         try {
-            val allFlights = flightAggregationService.fetchUnifiedFlights()
+            val allFlights = flightAggregationService.buildUnifiedFlights()
             LOG.info("Fetched {} flights", allFlights.size)
             // Cleaning cache before filtering to avoid removing entries that were just added.
             flightStateCache.cleanCache(allFlights.map { flightStateCache.cacheKey(it) }.toSet())

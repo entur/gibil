@@ -23,7 +23,7 @@ class SiriEtDebugController(
      */
     @GetMapping("/siri", produces = [MediaType.APPLICATION_XML_VALUE])
     fun siriAllAirportsEndpoint(): String {
-        val unifiedFlights = flightAggregationService.fetchUnifiedFlights()
+        val unifiedFlights = flightAggregationService.buildUnifiedFlights()
         val resolved = serviceJourneyResolver.resolve(unifiedFlights)
         val siri = siriETMapper.mapUnifiedFlightsToSiri(resolved)
         return siriETPublisher.toXml(siri)

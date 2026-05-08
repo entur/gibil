@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjre-alpine:26-37 AS builder
+FROM bellsoft/liberica-openjre-alpine:21.0.11 AS builder
 WORKDIR /builder
 COPY target/*-SNAPSHOT.jar application.jar
 RUN java -Djarmode=tools  -jar application.jar extract --layers --destination extracted

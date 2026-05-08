@@ -3,45 +3,47 @@ package service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.io.IOException
-import org.gibil.StopPlaceMapper
-import org.gibil.model.stopPlacesApi.StopPlaces
-import org.gibil.routes.entur.StopPlaceApiHandler
+import org.gibil.handler.StopPlaceMapper
+import org.gibil.model.stopPlaces.StopPlaces
+import org.gibil.service.ApiService
 import org.gibil.service.AirportQuayService
+import org.gibil.util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertEquals
 
 class AirportQuayServiceTest {
 
-    private lateinit var handler: StopPlaceApiHandler
+    @TempDir
+    lateinit var tempDir: Path
+
     private lateinit var mapper: StopPlaceMapper
+    private lateinit var apiService: ApiService
     private lateinit var airportQuayService: AirportQuayService
 
     @BeforeEach
     fun init() {
-        handler = mockk()
         mapper = mockk()
-
-        airportQuayService = AirportQuayService(handler, mapper)
+        apiService = mockk()
+        airportQuayService = AirportQuayService(mapper, apiService, "https://dummy-url", tempDir.toString())
     }
 
     @Nested
     inner class RefreshQuayMapping {
 
-       @Test
-        fun `refreshQuayMapping populates map when API returns valid XML`() {
-
-            val validXml = "<xml>stopPlaces</xml>"
+        @Test
+        fun `refreshQuayMapping populates map when file is parsed successfully`() {
+            tempDir.resolve("test.xml").toFile().createNewFile()
             val stopPlaces = StopPlaces()
             val expectedMap = mapOf(
-                "OSL" to listOf("NSR:Quay:1173"),
-                "BGO" to listOf("NSR:Quay:1213")
+                "OSL" to mapOf(QuayCodes.DEFAULT_KEY to "NSR:Quay:1173"),
+                "BGO" to mapOf(QuayCodes.DEFAULT_KEY to "NSR:Quay:1213")
             )
-            every { handler.fetchAirportStopPlaces() } returns Result.success(validXml)
-            every { mapper.unmarshallStopPlaceXml(validXml)} returns stopPlaces
+            every { mapper.parseStopPlaceFromFile(any()) } returns stopPlaces
             every { mapper.makeIataToQuayMap(stopPlaces) } returns expectedMap
 
             airportQuayService.refreshQuayMapping()
@@ -51,45 +53,37 @@ class AirportQuayServiceTest {
         }
 
         @Test
-        fun `refreshQuayMapping does not populate map when API call fails`() {
-            every { handler.fetchAirportStopPlaces() } returns Result.failure(IOException("API error"))
+        fun `refreshQuayMapping does not update map when parsing fails`() {
+            tempDir.resolve("test.xml").toFile().createNewFile()
+            every { mapper.parseStopPlaceFromFile(any()) } throws RuntimeException("Parse error")
 
             airportQuayService.refreshQuayMapping()
-            verify(exactly = 0) { mapper.unmarshallStopPlaceXml(any()) }
+
             verify(exactly = 0) { mapper.makeIataToQuayMap(any()) }
         }
 
         @Test
-        fun `refreshQuayMapping should replace old quay on refresh`() {
-            val initialValidXml = "<xml>stopPlaces</xml>"
-            val initialStopPlaces = StopPlaces()
-            val initialExpectedMap = mapOf(
-                "OSL" to listOf("NSR:Quay:1173"),
-                "BGO" to listOf("NSR:Quay:1213")
-            )
-            every { handler.fetchAirportStopPlaces() } returns Result.success(initialValidXml)
-            every { mapper.unmarshallStopPlaceXml(initialValidXml)} returns initialStopPlaces
-            every { mapper.makeIataToQuayMap(initialStopPlaces) } returns initialExpectedMap
-
+        fun `refreshQuayMapping does not update map when no XML file found`() {
             airportQuayService.refreshQuayMapping()
 
+            verify(exactly = 0) { mapper.parseStopPlaceFromFile(any()) }
+            verify(exactly = 0) { mapper.makeIataToQuayMap(any()) }
+        }
+
+        @Test
+        fun `refreshQuayMapping should replace old quay data on refresh`() {
+            tempDir.resolve("test.xml").toFile().createNewFile()
+            val initialMap = mapOf("OSL" to mapOf(QuayCodes.DEFAULT_KEY to "NSR:Quay:1173"))
+            val newMap = mapOf("OSL" to mapOf(QuayCodes.DEFAULT_KEY to "NSR:Quay:9373"))
+
+            every { mapper.parseStopPlaceFromFile(any()) } returns StopPlaces()
+            every { mapper.makeIataToQuayMap(any()) } returnsMany listOf(initialMap, newMap)
+
+            airportQuayService.refreshQuayMapping()
             assertEquals("NSR:Quay:1173", airportQuayService.getQuayId("OSL"))
-            assertEquals("NSR:Quay:1213", airportQuayService.getQuayId("BGO"))
-
-            val newValidXml = "<xml>stopPlaces</xml>"
-            val newStopPlaces = StopPlaces()
-            val newExpectedMap = mapOf(
-                "OSL" to listOf("NSR:Quay:9373"),
-                "BGO" to listOf("NSR:Quay:9713")
-            )
-            every { handler.fetchAirportStopPlaces() } returns Result.success(newValidXml)
-            every { mapper.unmarshallStopPlaceXml(newValidXml)} returns newStopPlaces
-            every { mapper.makeIataToQuayMap(newStopPlaces) } returns newExpectedMap
 
             airportQuayService.refreshQuayMapping()
-
             assertEquals("NSR:Quay:9373", airportQuayService.getQuayId("OSL"))
-            assertEquals("NSR:Quay:9713", airportQuayService.getQuayId("BGO"))
         }
     }
 
@@ -98,36 +92,46 @@ class AirportQuayServiceTest {
 
         @BeforeEach
         fun setUp() {
-            val validXml = "<xml>stopPlaces</xml>"
-            val stopPlaces = StopPlaces()
+            tempDir.resolve("test.xml").toFile().createNewFile()
             val expectedMap = mapOf(
-                "OSL" to listOf("NSR:Quay:1173"),
-                "BGO" to listOf("NSR:Quay:1213")
+                "OSL" to mapOf(QuayCodes.DEFAULT_KEY to "NSR:Quay:1173"),
+                "BGO" to mapOf(
+                    QuayCodes.DEFAULT_KEY to "NSR:Quay:1213",
+                    "B16" to "NSR:Quay:111610",
+                    "C35" to "NSR:Quay:111584"
+                )
             )
-            every { handler.fetchAirportStopPlaces() } returns Result.success(validXml)
-            every { mapper.unmarshallStopPlaceXml(validXml)} returns stopPlaces
-            every { mapper.makeIataToQuayMap(stopPlaces) } returns expectedMap
+            every { mapper.parseStopPlaceFromFile(any()) } returns StopPlaces()
+            every { mapper.makeIataToQuayMap(any()) } returns expectedMap
 
             airportQuayService.refreshQuayMapping()
         }
 
         @Test
-        fun `getQuayId returns expected value`() {
-            val resultOSL = airportQuayService.getQuayId("OSL")
-            val resultBGO = airportQuayService.getQuayId("BGO")
+        fun `getQuayId returns default quay when no gate is provided`() {
+            assertEquals("NSR:Quay:1173", airportQuayService.getQuayId("OSL"))
+            assertEquals("NSR:Quay:1213", airportQuayService.getQuayId("BGO"))
+        }
 
-            assertEquals("NSR:Quay:1173", resultOSL)
-            assertEquals("NSR:Quay:1213", resultBGO)
+        @Test
+        fun `getQuayId returns gate quay when gate matches`() {
+            assertEquals("NSR:Quay:111610", airportQuayService.getQuayId("BGO", "B16"))
+            assertEquals("NSR:Quay:111584", airportQuayService.getQuayId("BGO", "C35"))
+        }
+
+        @Test
+        fun `getQuayId falls back to default when gate is unknown`() {
+            assertEquals("NSR:Quay:1213", airportQuayService.getQuayId("BGO", "Z99"))
+        }
+
+        @Test
+        fun `getQuayId falls back to default when gate is null`() {
+            assertEquals("NSR:Quay:1213", airportQuayService.getQuayId("BGO", null))
         }
 
         @Test
         fun `getQuayId returns null when airport does not have a quay`() {
-            val result = airportQuayService.getQuayId("KRS")
-
-            assertNull(result)
+            assertNull(airportQuayService.getQuayId("KRS"))
         }
-
-
     }
-
 }

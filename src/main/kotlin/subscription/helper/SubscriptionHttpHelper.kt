@@ -8,7 +8,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import siri.SiriETPublisher
+import siri.SiriEtPublisher
 
 private val LOG = LoggerFactory.getLogger(SubscriptionHttpHelper::class.java)
 
@@ -19,7 +19,7 @@ private val LOG = LoggerFactory.getLogger(SubscriptionHttpHelper::class.java)
 @Component
 class SubscriptionHttpHelper(
     @Qualifier("subscriberClient") private val httpClient: OkHttpClient,
-    private val publisher: SiriETPublisher
+    private val publisher: SiriEtPublisher
 ) {
 
     companion object {

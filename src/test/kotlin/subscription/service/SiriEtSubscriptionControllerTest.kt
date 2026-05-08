@@ -6,7 +6,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.xml.bind.JAXBContext
-import org.gibil.subscription.service.SiriEndpoint
+import org.gibil.subscription.controller.SiriEtSubscriptionController
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,15 +15,15 @@ import subscription.SubscriptionManager
 import uk.org.siri.siri21.Siri
 import java.io.StringReader
 
-class SiriEndpointTest {
-    private lateinit var endpoint: SiriEndpoint
+class SiriEtSubscriptionControllerTest {
+    private lateinit var endpoint: SiriEtSubscriptionController
     private lateinit var subscriptionManager: SubscriptionManager
     private val jaxbContext = JAXBContext.newInstance(Siri::class.java)
 
     @BeforeEach
     fun setup(){
         subscriptionManager = mockk(relaxed = false)
-        endpoint = SiriEndpoint(subscriptionManager)
+        endpoint = SiriEtSubscriptionController(subscriptionManager)
     }
 
     @Test

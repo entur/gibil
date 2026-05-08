@@ -13,7 +13,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-class SiriETPublisherTest {
+class SiriEtPublisherTest {
 
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
@@ -21,7 +21,7 @@ class SiriETPublisherTest {
 
     @Test
     fun `should convert SIRI to XML string`() {
-        val publisher = SiriETPublisher()
+        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
@@ -34,7 +34,7 @@ class SiriETPublisherTest {
 
     @Test
     fun `should format XML with indentation`() {
-        val publisher = SiriETPublisher()
+        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
@@ -47,7 +47,7 @@ class SiriETPublisherTest {
 
     @Test
     fun `should write SIRI to file`(@TempDir tempDir: File) {
-        val publisher = SiriETPublisher()
+        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
         val outputFile = File(tempDir, "output.xml")
@@ -60,7 +60,7 @@ class SiriETPublisherTest {
 
     @Test
     fun `should handle multiple flights`() {
-        val publisher = SiriETPublisher()
+        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val flights = listOf(
             createFlight("SK4321", "SK"),

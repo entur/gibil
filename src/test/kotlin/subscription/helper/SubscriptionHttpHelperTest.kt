@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import siri.SiriETPublisher
+import siri.SiriEtPublisher
 
 class SubscriptionHttpHelperTest {
 
     private lateinit var httpClient: OkHttpClient
-    private lateinit var publisher: SiriETPublisher
+    private lateinit var publisher: SiriEtPublisher
     private lateinit var SubscriptionHttpHelper: SubscriptionHttpHelper
     private lateinit var call: Call
     private lateinit var response: Response

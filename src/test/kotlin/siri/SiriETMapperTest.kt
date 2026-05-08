@@ -16,7 +16,7 @@ import uk.org.siri.siri21.CallStatusEnumeration
 class SiriETMapperTest {
 
     private val airportQuayService = mockk<AirportQuayService> {
-        every { getQuayId(any()) } answers { "NSR:Quay:${firstArg<String>()}" }
+        every { getQuayId(any(), null) } answers { "NSR:Quay:${firstArg<String>()}" }
     }
     private val mapper = SiriETMapper(airportQuayService)
 
@@ -92,7 +92,7 @@ class SiriETMapperTest {
 
     @Test
     fun `should drop flight when any stop has no quay`() {
-        every { airportQuayService.getQuayId("BGO") } returns null
+        every { airportQuayService.getQuayId("BGO", null) } returns null
 
         val result = mapper.mapUnifiedFlightsToSiri(listOf(createFlight(origin = "OSL", destination = "BGO")))
 

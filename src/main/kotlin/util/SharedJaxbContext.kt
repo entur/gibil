@@ -6,7 +6,7 @@ import jakarta.xml.bind.Unmarshaller
 import model.airportNames.AirportNames
 import model.serviceJourney.ServiceJourney
 import model.xmlFeedApi.Airport
-import org.gibil.model.stopPlacesApi.StopPlaces
+import org.gibil.model.stopPlaces.StopPlaces
 import uk.org.siri.siri21.Siri
 
 /**

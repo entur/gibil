@@ -3,9 +3,8 @@ package util
 import org.junit.jupiter.api.*
 import kotlin.test.Test
 import util.DateUtil.formatForServiceJourney
-import util.DateUtil.parseTimestamp
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import util.DateUtil.parseTime
+import java.time.Instant
 
 class DateUtilTest {
     //example good inputs
@@ -16,7 +15,7 @@ class DateUtilTest {
     val exampleNanDate = "imorgen klokka 12"
 
     //example expected result
-    val parseTimestampExpectedResponse = ZonedDateTime.parse(dateTimeZoneExample, DateTimeFormatter.ISO_DATE_TIME)
+    val parseTimestampExpectedResponse = Instant.parse(dateTimeZoneExample)
 
     @Test
     fun `FormatDateTimeZoneToTime should return correct formats`() {
@@ -38,7 +37,7 @@ class DateUtilTest {
 
     @Test
     fun `ParseTimestamp should return correct timestamp`() {
-        val response = parseTimestamp(dateTimeZoneExample)
+        val response = parseTime(dateTimeZoneExample)
 
         Assertions.assertNotNull(response)
         Assertions.assertEquals(parseTimestampExpectedResponse, response, "ParseTimestamp should return a datetimezone object when param is good")
@@ -47,22 +46,20 @@ class DateUtilTest {
     @Test
     fun `ParseTimestamp should throw exception when parsing fails`() {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
-            parseTimestamp(exampleNanDate)
+            parseTime(exampleNanDate)
         }
     }
 
     @Test
-    fun `ParseTimestamp should return correct timestamp when a datetime object is given`() {
-        val response = parseTimestamp(dateTimeExample)
+    fun `parseTime should correctly parse timestamp without timezone and default to UTC`() {
+        val result = parseTime("2024-01-15T10:30:00")
 
-        Assertions.assertNotNull(response)
-        //check if response was given the default timezone
-        Assertions.assertTrue(response?.zone?.id == "Z")
+        Assertions.assertEquals(Instant.parse("2024-01-15T10:30:00Z"), result)
     }
 
     @Test
     fun `ParseTimestamp should return null when input is null`() {
-        val response = parseTimestamp(null)
+        val response = parseTime(null)
 
         Assertions.assertNull(response)
     }

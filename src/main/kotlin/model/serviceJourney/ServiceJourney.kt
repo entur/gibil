@@ -1,7 +1,7 @@
 package model.serviceJourney
 
 import jakarta.xml.bind.annotation.*
-import org.gibil.ServiceJourneyModel
+import org.gibil.util.ServiceJourneyModel
 
 @XmlRootElement(name = "ServiceJourney", namespace = ServiceJourneyModel.NETEX_NAMESPACE)
 @XmlAccessorType(XmlAccessType.FIELD)

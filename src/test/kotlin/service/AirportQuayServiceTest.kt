@@ -29,7 +29,7 @@ class AirportQuayServiceTest {
     fun init() {
         mapper = mockk()
         apiService = mockk()
-        airportQuayService = AirportQuayService(mapper, apiService, "https://dummy-url", tempDir.toString())
+        airportQuayService = AirportQuayService(mapper, apiService, "https://dummy-url", tempDir.toString(), true)
     }
 
     @Nested
@@ -90,6 +90,8 @@ class AirportQuayServiceTest {
     @Nested
     inner class GetQuayId {
 
+        private lateinit var serviceWithoutGateMapping: AirportQuayService
+
         @BeforeEach
         fun setUp() {
             tempDir.resolve("test.xml").toFile().createNewFile()
@@ -105,6 +107,8 @@ class AirportQuayServiceTest {
             every { mapper.makeIataToQuayMap(any()) } returns expectedMap
 
             airportQuayService.refreshQuayMapping()
+            serviceWithoutGateMapping = AirportQuayService(mapper, apiService, "https://dummy-url", tempDir.toString(), false)
+            serviceWithoutGateMapping.refreshQuayMapping()
         }
 
         @Test
@@ -132,6 +136,11 @@ class AirportQuayServiceTest {
         @Test
         fun `getQuayId returns null when airport does not have a quay`() {
             assertNull(airportQuayService.getQuayId("KRS"))
+        }
+
+        @Test
+        fun `getQuayId returns default quay when gate mapping is disabled`() {
+            assertEquals("NSR:Quay:1213", serviceWithoutGateMapping.getQuayId("BGO", "B16"))
         }
     }
 }

@@ -96,8 +96,8 @@ class FlightStateCache (
      * @return Integer hash representing the current status state of the flight.
      */
     private fun computeFlightHash(flight: UnifiedFlight): Int {
-        if (useGateMapping) {
-            return flight.stops.flatMap { stop ->
+        val hashedValues = if (useGateMapping) {
+            flight.stops.flatMap { stop ->
                 listOf(
                     stop.departureStatusCode,
                     stop.departureStatusTime,
@@ -105,16 +105,17 @@ class FlightStateCache (
                     stop.arrivalStatusTime,
                     stop.gate
                 )
-            }.hashCode()
+            }
         } else {
-            return flight.stops.flatMap { stop ->
+            flight.stops.flatMap { stop ->
                 listOf(
                     stop.departureStatusCode,
                     stop.departureStatusTime,
                     stop.arrivalStatusCode,
                     stop.arrivalStatusTime
                 )
-            }.hashCode()
+            }
         }
+        return hashedValues.hashCode()
     }
 }

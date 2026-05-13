@@ -17,7 +17,8 @@ class AirportQuayService(
     private val mapper: StopPlaceMapper,
     private val apiService: ApiService,
     @Value("\${stop.place.data.url}") private val stopPlaceDataUrl: String,
-    @Value("\${org.gibil.stopPlace.data-file:#{null}}") private val configuredPath: String?
+    @Value("\${org.gibil.stopPlace.data-file:#{null}}") private val configuredPath: String?,
+    @Value("\${use.gate.mapping.enabled:false}") private val useGateMapping: Boolean
 ) {
     private val basePath = configuredPath
         ?: if (File(TiamatImportPaths.CLOUD_BASEPATH).exists()) TiamatImportPaths.CLOUD_BASEPATH
@@ -63,12 +64,19 @@ class AirportQuayService(
     }
 
     /**
-     * Gets quayID of the first quay belonging to airport, must be reworked when gates get mapped to quays
-     * @param iataCode String, used as key for map to fetch quayID belonging to airport.
-     * @return String?, quayID
+     * Returns the quayId for the given airport and optional gate.
+     *
+     * When [useGateMapping] is true, returns the quayId for [gate] if mapping exists.
+     * Falls back to airport-level default quay when [useGateMapping] is disabled,
+     * or if gate is not included in the map.
+     *
+     * @param iataCode String, IATA airport code to look up the quay map.
+     * @param gate String, gate code (example B11) to return a gate-specific quay.
+     * @return String?, quayID or null if [iataCode] is not in the map
      */
     fun getQuayId(iataCode: String, gate: String? = null): String? {
         val quayMap = iataToQuayMap[iataCode] ?: return null
-        return quayMap[gate] ?: quayMap[QuayCodes.DEFAULT_KEY]
+        return if (useGateMapping) quayMap[gate] ?: quayMap[QuayCodes.DEFAULT_KEY]
+            else quayMap[QuayCodes.DEFAULT_KEY]
     }
 }

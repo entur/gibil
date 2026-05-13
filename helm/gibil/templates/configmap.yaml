@@ -14,7 +14,10 @@ data:
 
     # Netex data file path 
     org.gibil.extime.data-file=/tmp/netex_data
-    
+
+    # Gate-quay toggle
+    use.gate.mapping.enabled=false
+
     # Actuator
     management.server.port=8080
     management.endpoints.access.default=none

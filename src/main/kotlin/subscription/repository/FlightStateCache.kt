@@ -98,7 +98,8 @@ class FlightStateCache {
                 stop.departureStatusCode,
                 stop.departureStatusTime,
                 stop.arrivalStatusCode,
-                stop.arrivalStatusTime
+                stop.arrivalStatusTime,
+                stop.gate
             )
         }.hashCode()
     }

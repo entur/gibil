@@ -13,7 +13,7 @@ class FlightStateCacheTest {
 
     @BeforeEach
     fun setup(){
-        cache = FlightStateCache()
+        cache = FlightStateCache(true)
     }
 
     @Nested
@@ -209,6 +209,29 @@ class FlightStateCacheTest {
             val result = cache.hasChanged(flight2)
 
             Assertions.assertTrue(result)
+        }
+
+        @Test
+        fun `computeFlightHash should cache gate when useGateMapping is true`(){
+            val flight1 = ServiceTestHelper.mockFlight("WF921", "2026-03-24", stops = listOf(ServiceTestHelper.defaultStop(departureStatusCode = "E", gate = "A1")))
+            cache.hasChanged(flight1)
+
+            val flight2 = ServiceTestHelper.mockFlight("WF921", "2026-03-24", stops = listOf(ServiceTestHelper.defaultStop(departureStatusCode = "E", gate = "A2")))
+            val result = cache.hasChanged(flight2)
+
+            Assertions.assertTrue(result)
+        }
+
+        @Test
+        fun `computeFlightHash should not consider gate when useGateMapping is false`(){
+            val cacheWithoutGate = FlightStateCache(false)
+            val flight1 = ServiceTestHelper.mockFlight("WF921", "2026-03-24", stops = listOf(ServiceTestHelper.defaultStop(departureStatusCode = "E", gate = "A1")))
+            cacheWithoutGate.hasChanged(flight1)
+
+            val flight2 = ServiceTestHelper.mockFlight("WF921", "2026-03-24", stops = listOf(ServiceTestHelper.defaultStop(departureStatusCode = "E", gate = "A2")))
+            val result = cacheWithoutGate.hasChanged(flight2)
+
+            Assertions.assertFalse(result)
         }
     }
 }

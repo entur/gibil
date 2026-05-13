@@ -2,6 +2,7 @@ package org.gibil.subscription.repository
 
 import model.UnifiedFlight
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
@@ -14,8 +15,9 @@ private val LOG = LoggerFactory.getLogger(FlightStateCache::class.java)
  * will produce a different hash, triggering a push to subscribers.
  */
 @Component
-class FlightStateCache {
-
+class FlightStateCache (
+    @Value("\${use.gate.mapping.enabled:false}") private val useGateMapping: Boolean
+    ){
     private val flightStateMap = ConcurrentHashMap<String, Int>()
 
     /**
@@ -93,14 +95,26 @@ class FlightStateCache {
      * @return Integer hash representing the current status state of the flight.
      */
     private fun computeFlightHash(flight: UnifiedFlight): Int {
-        return flight.stops.flatMap { stop ->
-            listOf(
-                stop.departureStatusCode,
-                stop.departureStatusTime,
-                stop.arrivalStatusCode,
-                stop.arrivalStatusTime,
-                stop.gate
-            )
-        }.hashCode()
+        val hashedValues = if (useGateMapping) {
+            flight.stops.flatMap { stop ->
+                listOf(
+                    stop.departureStatusCode,
+                    stop.departureStatusTime,
+                    stop.arrivalStatusCode,
+                    stop.arrivalStatusTime,
+                    stop.gate
+                )
+            }
+        } else {
+            flight.stops.flatMap { stop ->
+                listOf(
+                    stop.departureStatusCode,
+                    stop.departureStatusTime,
+                    stop.arrivalStatusCode,
+                    stop.arrivalStatusTime
+                )
+            }
+        }
+        return hashedValues.hashCode()
     }
 }

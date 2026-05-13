@@ -23,7 +23,8 @@ object ServiceTestHelper {
     fun defaultStop(
         airportCode: String = "OSL",
         departureStatusCode: String? = "N",
-        arrivalStatusCode: String? = "N"
+        arrivalStatusCode: String? = "N",
+        gate: String? = "A12"
     ): FlightStop {
         return FlightStop(
             airportCode = airportCode,
@@ -32,7 +33,8 @@ object ServiceTestHelper {
             departureStatusCode = departureStatusCode,
             departureStatusTime = null,
             arrivalStatusCode = arrivalStatusCode,
-            arrivalStatusTime = null
+            arrivalStatusTime = null,
+            gate = gate
         )
     }
 }

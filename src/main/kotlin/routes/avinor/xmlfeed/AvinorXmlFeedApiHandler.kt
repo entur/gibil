@@ -1,6 +1,6 @@
-package org.gibil.routes.avinor.xmlfeed
+package routes.avinor.xmlfeed
 
-import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
+import routes.avinor.airportname.AvinorAirportNamesApiHandler
 import util.HttpClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

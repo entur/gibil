@@ -1,4 +1,4 @@
-package org.gibil.routes.avinor.xmlfeed
+package routes.avinor.xmlfeed
 
 import util.AvinorApiConfig
 

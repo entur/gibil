@@ -1,12 +1,12 @@
-package org.gibil.subscription
+package subscription.service
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import subscriptiontest.service.ServiceTestHelper
 import model.UnifiedFlight
-import org.gibil.subscription.repository.FlightStateCache
-import org.gibil.subscription.service.AvinorPollingService
+import subscription.repository.FlightStateCache
+import subscription.service.AvinorPollingService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

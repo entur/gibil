@@ -6,7 +6,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.xml.bind.JAXBContext
-import org.gibil.subscription.controller.SiriEtSubscriptionController
+import subscription.controller.SiriEtSubscriptionController
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
 
-@SpringBootApplication(scanBasePackages = ["org.gibil", "routes", "config", "siri", "handler", "service", "subscription", "util"])
+@SpringBootApplication(scanBasePackages = ["org.gibil", "routes", "config", "siri", "handler", "service", "subscription", "util", "controller"])
 @EnableScheduling
 class Application
 

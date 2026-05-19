@@ -1,4 +1,4 @@
-package org.gibil.subscription.model
+package subscription.model
 
 import uk.org.siri.siri21.RequestorRef
 import java.time.Duration

@@ -16,8 +16,8 @@ import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.*
 import util.Dates
 import util.FlightWindowConfig
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.junit.jupiter.api.*
 
 class FlightAggregationServiceTest {

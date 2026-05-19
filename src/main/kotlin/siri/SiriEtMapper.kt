@@ -5,7 +5,7 @@ import model.UnifiedFlight
 import util.Dates
 import util.FlightCodes
 import util.SiriConfig
-import org.gibil.service.AirportQuayService
+import service.AirportQuayService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.org.siri.siri21.*

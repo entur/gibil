@@ -1,7 +1,7 @@
-package org.gibil.subscription.controller
+package subscription.controller
 
-import org.gibil.subscription.helper.SiriHelper
-import org.gibil.subscription.model.Subscription
+import subscription.helper.SiriHelper
+import subscription.model.Subscription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

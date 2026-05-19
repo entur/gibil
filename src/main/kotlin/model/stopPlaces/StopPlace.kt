@@ -1,4 +1,4 @@
-package org.gibil.model.stopPlaces
+package model.stopPlaces
 
 import jakarta.xml.bind.annotation.XmlAccessType
 import jakarta.xml.bind.annotation.XmlAccessorType

@@ -1,6 +1,6 @@
-package org.gibil.subscription.helper
+package subscription.helper
 
-import org.gibil.subscription.model.SiriDataType
+import subscription.model.SiriDataType
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure

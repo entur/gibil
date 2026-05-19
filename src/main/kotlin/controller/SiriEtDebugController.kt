@@ -1,4 +1,4 @@
-package org.gibil.controller
+package controller
 
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping

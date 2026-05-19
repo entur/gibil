@@ -3,10 +3,10 @@ package service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.gibil.handler.StopPlaceMapper
-import org.gibil.model.stopPlaces.StopPlaces
+import handler.StopPlaceMapper
+import model.stopPlaces.StopPlaces
 import util.HttpClient
-import org.gibil.service.AirportQuayService
+import service.AirportQuayService
 import util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested

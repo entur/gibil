@@ -1,4 +1,4 @@
-package org.gibil.subscription.helper
+package subscription.helper
 
 import io.mockk.every
 import io.mockk.mockk

@@ -3,9 +3,9 @@ package routes.avinor.xmlfeed
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
-import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
+import routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import routes.avinor.airportname.AvinorAirportNamesApiHandler
 import util.HttpClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

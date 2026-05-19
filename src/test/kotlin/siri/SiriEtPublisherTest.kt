@@ -2,7 +2,7 @@ package siri
 
 import model.FlightStop
 import model.UnifiedFlight
-import org.gibil.service.AirportQuayService
+import service.AirportQuayService
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test

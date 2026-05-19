@@ -5,10 +5,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import uk.org.siri.siri21.Siri
 import kotlinx.coroutines.runBlocking
-import org.gibil.subscription.helper.SubscriptionHttpHelper
-import org.gibil.subscription.model.SiriDataType
-import org.gibil.subscription.model.Subscription
-import org.gibil.subscription.repository.FlightStateCache
+import subscription.helper.SubscriptionHttpHelper
+import subscription.model.SiriDataType
+import subscription.model.Subscription
+import subscription.repository.FlightStateCache
 import org.springframework.stereotype.Component
 import service.FlightAggregationService
 import service.serviceJourney.ServiceJourneyResolver

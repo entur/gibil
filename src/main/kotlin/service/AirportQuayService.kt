@@ -1,7 +1,7 @@
-package org.gibil.service
+package service
 
 import jakarta.annotation.PostConstruct
-import org.gibil.handler.StopPlaceMapper
+import handler.StopPlaceMapper
 import util.TiamatImportPaths
 import util.QuayCodes
 import util.ZipUtil

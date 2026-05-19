@@ -1,4 +1,4 @@
-package org.gibil.subscription.helper
+package subscription.helper
 
 import jakarta.annotation.PreDestroy
 import okhttp3.MediaType.Companion.toMediaType

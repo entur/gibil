@@ -15,8 +15,8 @@ import util.Dates
 import util.FlightCodes
 import util.FlightWindowConfig
 import util.PollingConfig
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.slf4j.LoggerFactory
 import model.AirportIATA
 import org.springframework.stereotype.Service

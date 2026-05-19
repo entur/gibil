@@ -1,6 +1,6 @@
-package org.gibil.subscription.service
+package subscription.service
 
-import org.gibil.subscription.repository.FlightStateCache
+import subscription.repository.FlightStateCache
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service

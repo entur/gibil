@@ -1,4 +1,4 @@
-package org.gibil.routes.avinor.airportname
+package routes.avinor.airportname
 
 import jakarta.annotation.PostConstruct
 import model.airportNames.AirportNames

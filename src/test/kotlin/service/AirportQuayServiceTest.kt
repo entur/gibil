@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.gibil.handler.StopPlaceMapper
 import org.gibil.model.stopPlaces.StopPlaces
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.gibil.service.AirportQuayService
 import org.gibil.util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
@@ -22,14 +22,14 @@ class AirportQuayServiceTest {
     lateinit var tempDir: Path
 
     private lateinit var mapper: StopPlaceMapper
-    private lateinit var apiService: ApiService
+    private lateinit var httpClient: HttpClient
     private lateinit var airportQuayService: AirportQuayService
 
     @BeforeEach
     fun init() {
         mapper = mockk()
-        apiService = mockk()
-        airportQuayService = AirportQuayService(mapper, apiService, "https://dummy-url", tempDir.toString(), true)
+        httpClient = mockk()
+        airportQuayService = AirportQuayService(mapper, httpClient, "https://dummy-url", tempDir.toString(), true)
     }
 
     @Nested
@@ -107,7 +107,7 @@ class AirportQuayServiceTest {
             every { mapper.makeIataToQuayMap(any()) } returns expectedMap
 
             airportQuayService.refreshQuayMapping()
-            serviceWithoutGateMapping = AirportQuayService(mapper, apiService, "https://dummy-url", tempDir.toString(), false)
+            serviceWithoutGateMapping = AirportQuayService(mapper, httpClient, "https://dummy-url", tempDir.toString(), false)
             serviceWithoutGateMapping.refreshQuayMapping()
         }
 

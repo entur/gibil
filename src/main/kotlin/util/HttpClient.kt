@@ -1,14 +1,14 @@
-package org.gibil.service
+package util
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.io.File
 import java.io.IOException
 
-@Service
-class ApiService(
+@Component
+class HttpClient(
     @Qualifier("avinorClient") private val client: OkHttpClient
 ) {
 

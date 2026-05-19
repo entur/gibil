@@ -1,6 +1,6 @@
 package util
 
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.slf4j.LoggerFactory
 import java.io.*
 import java.util.zip.ZipInputStream
@@ -63,13 +63,13 @@ object ZipUtil {
      *
      * @param url URL of the ZIP archive to download.
      * @param outputDir target directory for the unzipped contents. Created if absent.
-     * @param apiService the [ApiService] used to perform the HTTP download.
+     * @param httpClient the [HttpClient] used to perform the HTTP download.
      * @throws IOException if the download or extraction fails.
      */
-    fun downloadAndUnzip(url: String, outputDir: String, apiService: ApiService) {
+    fun downloadAndUnzip(url: String, outputDir: String, httpClient: HttpClient) {
         val tempFile = File.createTempFile("netex", ".zip")
         try {
-            apiService.apiCallToFile(url, tempFile)
+            httpClient.apiCallToFile(url, tempFile)
             unzipFile(tempFile.path, outputDir)
         } finally {
             if(!tempFile.delete()) {

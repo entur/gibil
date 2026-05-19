@@ -8,19 +8,19 @@ import okhttp3.Call
 import okhttp3.Response
 import okhttp3.Request
 import okhttp3.ResponseBody
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
 import java.io.File
 import java.io.IOException
 
-class ApiServiceTest {
+class HttpClientTest {
     private val mockClient = mockk<OkHttpClient>()
     private val mockCall = mockk<Call>()
     private val mockResponse = mockk<Response>()
     private val mockBody = mockk<ResponseBody>()
 
-    private val apiService = ApiService(mockClient)
+    private val httpClient = HttpClient(mockClient)
 
     val fileContent = "<xml>data</xml>"
     val inputStream = fileContent.byteInputStream()
@@ -34,7 +34,7 @@ class ApiServiceTest {
         every { mockBody.string() } returns "<xml>data</xml>"
         every { mockResponse.close() } returns Unit
 
-        val result = apiService.apiCall("https://example.com")
+        val result = httpClient.apiCall("https://example.com")
 
         Assertions.assertEquals(Result.success("<xml>data</xml>"), result)
     }
@@ -47,7 +47,7 @@ class ApiServiceTest {
         every { mockResponse.body } returns null
         every { mockResponse.close() } returns Unit
 
-        val result = apiService.apiCall("https://example.com")
+        val result = httpClient.apiCall("https://example.com")
 
         Assertions.assertTrue(result.isFailure)
         Assertions.assertInstanceOf(IOException::class.java, result.exceptionOrNull())
@@ -61,7 +61,7 @@ class ApiServiceTest {
         every { mockResponse.code } returns 404
         every { mockResponse.close() } returns Unit
 
-        val result = apiService.apiCall("https://example.com")
+        val result = httpClient.apiCall("https://example.com")
 
         Assertions.assertTrue(result.isFailure)
         Assertions.assertInstanceOf(IOException::class.java, result.exceptionOrNull())
@@ -79,7 +79,7 @@ class ApiServiceTest {
         every { mockBody.string() } returns "<xml>data</xml>"
         every { mockResponse.close() } returns Unit
 
-        apiService.apiCall("https://example.com", acceptHeader = "application/xml")
+        httpClient.apiCall("https://example.com", acceptHeader = "application/xml")
 
         Assertions.assertEquals("application/xml", requestSlot.captured.header("Accept"))
     }
@@ -96,7 +96,7 @@ class ApiServiceTest {
         every { mockBody.string() } returns "<xml>data</xml>"
         every { mockResponse.close() } returns Unit
 
-        apiService.apiCall("https://example.com")
+        httpClient.apiCall("https://example.com")
 
         Assertions.assertEquals(null, requestSlot.captured.header("Accept"))
     }
@@ -112,7 +112,7 @@ class ApiServiceTest {
         every { mockBody.byteStream() } returns inputStream
         every { mockResponse.close() } returns Unit
 
-        apiService.apiCallToFile("https://example.com", targetFile)
+        httpClient.apiCallToFile("https://example.com", targetFile)
 
         Assertions.assertEquals(fileContent, targetFile.readText())
         targetFile.deleteOnExit()
@@ -128,7 +128,7 @@ class ApiServiceTest {
         every { mockResponse.body } returns null
         every { mockResponse.close() } returns Unit
 
-        apiService.apiCallToFile("https://example.com", targetFile)
+        httpClient.apiCallToFile("https://example.com", targetFile)
 
         Assertions.assertEquals("", targetFile.readText())
         targetFile.deleteOnExit()
@@ -145,7 +145,7 @@ class ApiServiceTest {
         every { mockResponse.close() } returns Unit
 
         Assertions.assertThrows(IOException::class.java) {
-            apiService.apiCallToFile("https://example.com", targetFile)
+            httpClient.apiCallToFile("https://example.com", targetFile)
         }
 
         targetFile.deleteOnExit()
@@ -165,7 +165,7 @@ class ApiServiceTest {
         every { mockBody.byteStream() } returns inputStream
         every { mockResponse.close() } returns Unit
 
-        apiService.apiCallToFile("https://example.com", targetFile, acceptHeader = "application/xml")
+        httpClient.apiCallToFile("https://example.com", targetFile, acceptHeader = "application/xml")
 
         Assertions.assertEquals("application/xml", requestSlot.captured.header("Accept"))
 
@@ -186,7 +186,7 @@ class ApiServiceTest {
         every { mockBody.byteStream() } returns inputStream
         every { mockResponse.close() } returns Unit
 
-        apiService.apiCallToFile("https://example.com", targetFile)
+        httpClient.apiCallToFile("https://example.com", targetFile)
 
         Assertions.assertEquals(null, requestSlot.captured.header("Accept"))
 

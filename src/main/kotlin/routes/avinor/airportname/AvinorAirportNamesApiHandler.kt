@@ -2,7 +2,7 @@ package org.gibil.routes.avinor.airportname
 
 import jakarta.annotation.PostConstruct
 import model.airportNames.AirportNames
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -14,7 +14,7 @@ private val LOG = LoggerFactory.getLogger(AvinorAirportNamesApiHandler::class.ja
 
 @Service
 class AvinorAirportNamesApiHandler(
-    private val apiService: ApiService,
+    private val httpClient: HttpClient,
     @Value("\${avinor.api.base-url-airport-names}") private val baseUrlAirportNames: String
 ) {
 
@@ -30,7 +30,7 @@ class AvinorAirportNamesApiHandler(
      * Makes set of IATAS in the [airportIATASet]
      */
     private fun refreshAirportNameSet() {
-        val xml = apiService.apiCall(baseUrlAirportNames).getOrElse { e ->
+        val xml = httpClient.apiCall(baseUrlAirportNames).getOrElse { e ->
             LOG.error("Failed to fetch airport names: {}", e.message)
             return
         }

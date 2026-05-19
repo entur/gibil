@@ -3,19 +3,19 @@ package routes.avinor.airportname
 import io.mockk.every
 import io.mockk.mockk
 import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class AvinorAirportNamesApiHandlerTest {
 
-    private lateinit var apiService: ApiService
+    private lateinit var httpClient: HttpClient
     private lateinit var apiHandler: AvinorAirportNamesApiHandler
 
     @BeforeEach
     fun setUp() {
-        apiService = mockk {
+        httpClient = mockk {
             every { apiCall(any()) } returns Result.success(
                 """
                 <airportNames>
@@ -24,7 +24,7 @@ class AvinorAirportNamesApiHandlerTest {
                 </airportNames>""".trimIndent()
             )
         }
-        apiHandler = AvinorAirportNamesApiHandler(apiService, "http://example.com")
+        apiHandler = AvinorAirportNamesApiHandler(httpClient, "http://example.com")
         apiHandler.init()
     }
 

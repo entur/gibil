@@ -5,7 +5,7 @@ import java.io.File
 import model.serviceJourney.ServiceJourney
 import handler.ServiceJourneyParser
 import org.gibil.util.Dates.tomorrowDaytype
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
 import util.DateUtil.formatForServiceJourney
@@ -19,12 +19,12 @@ private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
 /**
- * @param apiService used to download NeTEx data when running locally
+ * @param httpClient used to download NeTEx data when running locally
  * @param configuredPath optional override for the NeTEx data directory, set via `gibil.extime.path`
  */
 @Service
 class FindServiceJourney(
-    private val apiService: ApiService,
+    private val httpClient: HttpClient,
     @Value("\${netex.data.url}") private val netexDataUrl: String,
     @Value("\${org.gibil.extime.data-file:#{null}}") private val configuredPath: String?
 ) {
@@ -40,7 +40,7 @@ class FindServiceJourney(
 
         //if the pathbase is a local pc, and not in k8s in GCP, then download and unzip extime data
         if (pathBase == FindServiceJourneyPaths.LOCAL_BASEPATH) {
-            ZipUtil.downloadAndUnzip(netexDataUrl, FindServiceJourneyPaths.LOCAL_BASEPATH, apiService)
+            ZipUtil.downloadAndUnzip(netexDataUrl, FindServiceJourneyPaths.LOCAL_BASEPATH, httpClient)
         }
         //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
         serviceJourneyList = findServiceJourney().also { journeys ->

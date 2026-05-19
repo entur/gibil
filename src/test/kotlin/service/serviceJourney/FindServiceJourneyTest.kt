@@ -1,13 +1,11 @@
 package service.serviceJourney
 
 import io.mockk.mockk
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.gibil.util.Dates
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import service.serviceJourney.FindServiceJourney
-import service.serviceJourney.ServiceJourneyNotFoundException
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -57,7 +55,7 @@ class FindServiceJourneyTest {
         File("src/test/resources/extimeData/test-dynamic.xml").writeText(buildDynamicXml())
 
         // then init service so it picks up the new file
-        service = FindServiceJourney(mockk<ApiService>(), "https://mock-url", "src/test/resources/extimeData")
+        service = FindServiceJourney(mockk<HttpClient>(), "https://mock-url", "src/test/resources/extimeData")
             .also { it.init() }
     }
 

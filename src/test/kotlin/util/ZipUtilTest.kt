@@ -2,7 +2,7 @@ package util
 
 import io.mockk.every
 import io.mockk.mockk
-import org.gibil.service.ApiService
+import util.HttpClient
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.io.TempDir
 import java.io.*
@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
  */
 class ZipUtilTest {
 
-    private val apiService = mockk<ApiService>()
+    private val httpClient = mockk<HttpClient>()
 
     @Test
     fun `downloadAndUnzip should download and extract files successfully`(@TempDir tempDir: Path) {
@@ -29,12 +29,12 @@ class ZipUtilTest {
 
         val outputDir = tempDir.resolve("output").toString()
 
-        every { apiService.apiCallToFile(any(), any(), any()) } answers {
+        every { httpClient.apiCallToFile(any(), any(), any()) } answers {
             val targetFile = secondArg<File>()
             zipPath.toFile().copyTo(targetFile, overwrite = true)
         }
 
-        ZipUtil.downloadAndUnzip("https://example.com/test.zip", outputDir, apiService)
+        ZipUtil.downloadAndUnzip("https://example.com/test.zip", outputDir, httpClient)
 
         assertTrue(Files.exists(Paths.get(outputDir, "test-file.txt")))
     }
@@ -46,12 +46,12 @@ class ZipUtilTest {
 
         val outputDir = tempDir.resolve("output").toString()
 
-        every { apiService.apiCallToFile(any(), any(), any()) } answers {
+        every { httpClient.apiCallToFile(any(), any(), any()) } answers {
             val targetFile = secondArg<File>()
             zipPath.toFile().copyTo(targetFile, overwrite = true)
         }
 
-        ZipUtil.downloadAndUnzip("https://example.com/nested.zip", outputDir, apiService)
+        ZipUtil.downloadAndUnzip("https://example.com/nested.zip", outputDir, httpClient)
 
         assertTrue(Files.exists(Paths.get(outputDir, "folder1", "folder2", "nested.txt")))
     }
@@ -60,10 +60,10 @@ class ZipUtilTest {
     fun `downloadAndUnzip should handle download failure gracefully`(@TempDir tempDir: Path) {
         val outputDir = tempDir.resolve("output").toString()
 
-        every { apiService.apiCallToFile(any(), any(), any()) } throws IOException("Download failed")
+        every { httpClient.apiCallToFile(any(), any(), any()) } throws IOException("Download failed")
 
         assertThrows<IOException> {
-            ZipUtil.downloadAndUnzip("https://example.com/bad.zip", outputDir, apiService)
+            ZipUtil.downloadAndUnzip("https://example.com/bad.zip", outputDir, httpClient)
         }
     }
 
@@ -74,13 +74,13 @@ class ZipUtilTest {
 
         val outputDir = tempDir.resolve("output").toString()
 
-        every { apiService.apiCallToFile(any(), any(), any()) } answers {
+        every { httpClient.apiCallToFile(any(), any(), any()) } answers {
             val targetFile = secondArg<File>()
             corruptedZip.toFile().copyTo(targetFile, overwrite = true)
         }
 
         // ZipInputStream silently returns null entries for non-zip data rather than throwing
-        ZipUtil.downloadAndUnzip("https://example.com/corrupted.zip", outputDir, apiService)
+        ZipUtil.downloadAndUnzip("https://example.com/corrupted.zip", outputDir, httpClient)
 
         // Output directory is created but should contain no files
         val outputDirFile = File(outputDir)
@@ -96,13 +96,13 @@ class ZipUtilTest {
 
         val outputDir = tempDir.resolve("output").toString()
 
-        every { apiService.apiCallToFile(any(), any(), any()) } answers {
+        every { httpClient.apiCallToFile(any(), any(), any()) } answers {
             val targetFile = secondArg<File>()
             maliciousZip.toFile().copyTo(targetFile, overwrite = true)
         }
 
         val exception = assertThrows<IOException> {
-            ZipUtil.downloadAndUnzip("https://example.com/malicious.zip", outputDir, apiService)
+            ZipUtil.downloadAndUnzip("https://example.com/malicious.zip", outputDir, httpClient)
         }
         assertContains(exception.message!!, "Zip entry outside target dir")
     }

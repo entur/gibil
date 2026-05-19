@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import service.FlightAggregationService
-import service.ServiceJourneyResolver
+import service.serviceJourney.ServiceJourneyResolver
 import siri.SiriETMapper
 import subscription.SubscriptionManager
 import uk.org.siri.siri21.Siri

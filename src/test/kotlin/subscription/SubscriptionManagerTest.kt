@@ -8,7 +8,7 @@ import org.gibil.subscription.repository.FlightStateCache
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import service.FlightAggregationService
-import service.ServiceJourneyResolver
+import service.serviceJourney.ServiceJourneyResolver
 import siri.SiriETMapper
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure
 import uk.org.siri.siri21.ServiceDelivery

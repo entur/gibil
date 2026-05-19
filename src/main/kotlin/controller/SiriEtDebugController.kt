@@ -4,7 +4,7 @@ import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
-import service.ServiceJourneyResolver
+import service.serviceJourney.ServiceJourneyResolver
 import siri.SiriETMapper
 import siri.SiriEtPublisher
 

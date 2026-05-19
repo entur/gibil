@@ -1,4 +1,4 @@
-package service
+package service.serviceJourney
 
 import model.UnifiedFlight
 import org.slf4j.LoggerFactory
@@ -9,7 +9,7 @@ private val LOG = LoggerFactory.getLogger(ServiceJourneyResolver::class.java)
 
 /**
  * Resolves NeTEx service journey references for [UnifiedFlight] chains
- * by matching against the ExTime timetable via [FindServiceJourneyService].
+ * by matching against the ExTime timetable via [FindServiceJourney].
  *
  * Runs after stitching and before SIRI mapping, so that [siri.SiriETMapper]
  * can act as a pure transformer without performing service lookups.
@@ -19,7 +19,7 @@ private val LOG = LoggerFactory.getLogger(ServiceJourneyResolver::class.java)
  */
 @Service
 class ServiceJourneyResolver(
-    private val findServiceJourneyService: FindServiceJourneyService
+    private val findServiceJourney: FindServiceJourney
 ) {
 
     fun resolve(flights: List<UnifiedFlight>): List<UnifiedFlight> {
@@ -32,7 +32,7 @@ class ServiceJourneyResolver(
         //Build a working map and capture a time-measurement
         val resetStart = System.nanoTime()
 
-        val workingMap = findServiceJourneyService.buildWorkingMap()
+        val workingMap = findServiceJourney.buildWorkingMap()
 
         val resetMs = nanosToMs((System.nanoTime() - resetStart))
         LOG.info("resetMutableServiceJourneyList took {} ms", resetMs)
@@ -50,7 +50,7 @@ class ServiceJourneyResolver(
 
             val resolved = try {
                 val lineRefInfo = listOf(flight.origin, flight.destination)
-                val match = findServiceJourneyService.matchServiceJourney(workingMap, departureTimeStr, flight.flightId, lineRefInfo)
+                val match = findServiceJourney.matchServiceJourney(workingMap, departureTimeStr, flight.flightId, lineRefInfo)
                 matched++
                 flight.copy(serviceJourneyRef = match.serviceJourneyId, lineRef = match.lineRef)
             } catch (e: ServiceJourneyNotFoundException) {

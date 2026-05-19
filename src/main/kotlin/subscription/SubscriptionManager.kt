@@ -11,7 +11,7 @@ import org.gibil.subscription.model.Subscription
 import org.gibil.subscription.repository.FlightStateCache
 import org.springframework.stereotype.Component
 import service.FlightAggregationService
-import service.ServiceJourneyResolver
+import service.serviceJourney.ServiceJourneyResolver
 import siri.SiriETMapper
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors

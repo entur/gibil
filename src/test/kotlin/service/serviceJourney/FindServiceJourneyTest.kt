@@ -1,12 +1,13 @@
-package service
+package service.serviceJourney
 
 import io.mockk.mockk
-import org.gibil.util.Dates.daytypeBuilder
-import org.gibil.util.Dates.tomorrowDaytype
 import org.gibil.service.ApiService
+import org.gibil.util.Dates
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import service.serviceJourney.FindServiceJourney
+import service.serviceJourney.ServiceJourneyNotFoundException
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -14,8 +15,8 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import kotlin.test.Test
 
-class FindServiceJourneyServiceTest {
-    lateinit var service: FindServiceJourneyService
+class FindServiceJourneyTest {
+    lateinit var service: FindServiceJourney
 
     //correct information
     val exampleFlightSasSVG = listOf("2026-03-23T19:30:00Z", "SK4055")
@@ -43,8 +44,8 @@ class FindServiceJourneyServiceTest {
     val today = Instant.now().atZone(ZoneOffset.UTC)
 
     // format matching what formatForServiceJourney produces, e.g. "Mar_Tue_24"
-    val todayFormatted = daytypeBuilder(today)
-    val tomorrowFormatted = tomorrowDaytype()
+    val todayFormatted = Dates.daytypeBuilder(today)
+    val tomorrowFormatted = Dates.tomorrowDaytype()
 
     val norwayTime = today
         .withZoneSameInstant(ZoneId.of("Europe/Oslo"))
@@ -56,7 +57,7 @@ class FindServiceJourneyServiceTest {
         File("src/test/resources/extimeData/test-dynamic.xml").writeText(buildDynamicXml())
 
         // then init service so it picks up the new file
-        service = FindServiceJourneyService(mockk<ApiService>(), "https://mock-url", "src/test/resources/extimeData")
+        service = FindServiceJourney(mockk<ApiService>(), "https://mock-url", "src/test/resources/extimeData")
             .also { it.init() }
     }
 

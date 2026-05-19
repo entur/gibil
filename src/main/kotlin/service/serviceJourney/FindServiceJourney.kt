@@ -1,4 +1,4 @@
-package service
+package service.serviceJourney
 
 import jakarta.annotation.PostConstruct
 import java.io.File
@@ -14,7 +14,7 @@ import org.gibil.util.FindServiceJourneyPaths
 import org.springframework.stereotype.Service
 import util.DateUtil.nanosToMs
 
-private val LOG = LoggerFactory.getLogger(FindServiceJourneyService::class.java)
+private val LOG = LoggerFactory.getLogger(FindServiceJourney::class.java)
 
 class ServiceJourneyNotFoundException(message: String) : Exception(message)
 
@@ -23,7 +23,7 @@ class ServiceJourneyNotFoundException(message: String) : Exception(message)
  * @param configuredPath optional override for the NeTEx data directory, set via `gibil.extime.path`
  */
 @Service
-class FindServiceJourneyService(
+class FindServiceJourney(
     private val apiService: ApiService,
     @Value("\${netex.data.url}") private val netexDataUrl: String,
     @Value("\${org.gibil.extime.data-file:#{null}}") private val configuredPath: String?

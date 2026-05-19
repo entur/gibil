@@ -1,7 +1,7 @@
 package org.gibil.subscription.helper
 
-import org.gibil.util.Dates
-import org.gibil.util.SiriConfig
+import util.Dates
+import util.SiriConfig
 import org.gibil.subscription.model.SiriDataType
 import uk.org.siri.siri21.HeartbeatNotificationStructure
 import uk.org.siri.siri21.MessageRefStructure

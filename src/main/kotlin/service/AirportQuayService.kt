@@ -2,8 +2,8 @@ package org.gibil.service
 
 import jakarta.annotation.PostConstruct
 import org.gibil.handler.StopPlaceMapper
-import org.gibil.util.TiamatImportPaths
-import org.gibil.util.QuayCodes
+import util.TiamatImportPaths
+import util.QuayCodes
 import util.ZipUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

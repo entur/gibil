@@ -14,8 +14,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.*
-import org.gibil.util.Dates
-import org.gibil.util.FlightWindowConfig
+import util.Dates
+import util.FlightWindowConfig
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
 import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.junit.jupiter.api.*

@@ -1,7 +1,7 @@
 package handler
 
 import org.gibil.handler.StopPlaceMapper
-import org.gibil.util.QuayCodes
+import util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

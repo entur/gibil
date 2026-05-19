@@ -7,7 +7,7 @@ import org.gibil.handler.StopPlaceMapper
 import org.gibil.model.stopPlaces.StopPlaces
 import util.HttpClient
 import org.gibil.service.AirportQuayService
-import org.gibil.util.QuayCodes
+import util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

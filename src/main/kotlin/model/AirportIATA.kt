@@ -1,4 +1,4 @@
-package org.gibil.model
+package model
 
 enum class AirportIATA {
     AES, ALF, ANX, BDU, BGO,

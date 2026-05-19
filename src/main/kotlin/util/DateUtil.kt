@@ -5,8 +5,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import org.gibil.util.Dates
-import org.gibil.util.Dates.daytypeBuilder
 import org.slf4j.LoggerFactory
 import siri.SiriETMapper
 import java.time.LocalDateTime
@@ -67,7 +65,7 @@ object DateUtil {
             // Convert to Norwegian timezone
             val norwayDateTimeDeparture = dateTimeDepartureWithZone .withZoneSameInstant(norwayZone)
 
-            val dayType = daytypeBuilder(norwayDateTimeDeparture)
+            val dayType = Dates.daytypeBuilder(norwayDateTimeDeparture)
 
             // different formats needed, with locale to ensure month and day names are in English, as the day type references in the service journeys are in English
             val formatFull = DateTimeFormatter.ofPattern("HH:mm:ss", Dates.LOCALE)

@@ -4,13 +4,13 @@ import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
 import handler.ServiceJourneyParser
-import org.gibil.util.Dates.tomorrowDaytype
+import util.Dates.tomorrowDaytype
 import util.HttpClient
 import org.springframework.beans.factory.annotation.Value
 import util.ZipUtil
 import util.DateUtil.formatForServiceJourney
 import org.slf4j.LoggerFactory
-import org.gibil.util.FindServiceJourneyPaths
+import util.FindServiceJourneyPaths
 import org.springframework.stereotype.Service
 import util.DateUtil.nanosToMs
 

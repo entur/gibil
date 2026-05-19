@@ -2,7 +2,7 @@ package service.serviceJourney
 
 import io.mockk.mockk
 import util.HttpClient
-import org.gibil.util.Dates
+import util.Dates
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

@@ -1,6 +1,6 @@
 package service
 
-import handler.AvinorScheduleXmlHandler
+import handler.avinor.AvinorScheduleXmlHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

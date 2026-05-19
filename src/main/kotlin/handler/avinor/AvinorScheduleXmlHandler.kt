@@ -1,4 +1,4 @@
-package handler
+package handler.avinor
 
 import model.xmlFeedApi.Airport
 import org.springframework.stereotype.Component

@@ -1,8 +1,6 @@
-package handler
+package handler.avinor
 
 import model.xmlFeedApi.Airport
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertAll
@@ -44,24 +42,24 @@ class AvinorScheduleXmlHandlerTest {
         val flight = airport.flightsContainer?.flight?.firstOrNull()
 
         assertAll(
-            { assertEquals("OSL", airport.name) },
+            { Assertions.assertEquals("OSL", airport.name) },
             { assertNotNull(airport.flightsContainer) },
-            { assertEquals(1, airport.flightsContainer?.flight?.size) }
+            { Assertions.assertEquals(1, airport.flightsContainer?.flight?.size) }
         )
 
         assertNotNull(flight)
         assertAll(
-            { assertEquals("1494483548", flight.uniqueID) },
-            { assertEquals("BT", flight.airline) },
-            { assertEquals("BT152", flight.flightId) },
-            { assertEquals("S", flight.domInt) },
-            { assertEquals("2026-01-07T07:30:00Z", flight.scheduleTime) },
-            { assertEquals("D", flight.arrDep) },
-            { assertEquals("RIX", flight.airport) },
-            { assertEquals("E8", flight.gate) },
-            { assertEquals("D", flight.status?.code) },
-            { assertEquals("2026-01-07T08:18:23Z", flight.status?.time) },
-            { assertEquals("Y", flight.delayed) }
+            { Assertions.assertEquals("1494483548", flight.uniqueID) },
+            { Assertions.assertEquals("BT", flight.airline) },
+            { Assertions.assertEquals("BT152", flight.flightId) },
+            { Assertions.assertEquals("S", flight.domInt) },
+            { Assertions.assertEquals("2026-01-07T07:30:00Z", flight.scheduleTime) },
+            { Assertions.assertEquals("D", flight.arrDep) },
+            { Assertions.assertEquals("RIX", flight.airport) },
+            { Assertions.assertEquals("E8", flight.gate) },
+            { Assertions.assertEquals("D", flight.status?.code) },
+            { Assertions.assertEquals("2026-01-07T08:18:23Z", flight.status?.time) },
+            { Assertions.assertEquals("Y", flight.delayed) }
         )
     }
 
@@ -96,8 +94,8 @@ class AvinorScheduleXmlHandlerTest {
         val xml = handler.marshallAirport(airport)
 
         assertAll(
-            { assertTrue(xml.contains("<?xml")) },
-            { assertTrue(xml.contains("""name="OSL"""")) }
+            { Assertions.assertTrue(xml.contains("<?xml")) },
+            { Assertions.assertTrue(xml.contains("""name="OSL"""")) }
         )
     }
 
@@ -107,7 +105,7 @@ class AvinorScheduleXmlHandlerTest {
         val airport = Airport().apply { name = "OSL" }
         val xml = handler.marshallAirport(airport)
 
-        assertTrue(xml.lines().size > 1, "Expected formatted XML with multiple lines")
+        Assertions.assertTrue(xml.lines().size > 1, "Expected formatted XML with multiple lines")
     }
 
 

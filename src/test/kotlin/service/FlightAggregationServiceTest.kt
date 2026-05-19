@@ -1,6 +1,6 @@
 package service
 
-import handler.AvinorScheduleXmlHandler
+import handler.avinor.AvinorScheduleXmlHandler
 import io.mockk.*
 import java.io.IOException
 import java.time.ZoneOffset

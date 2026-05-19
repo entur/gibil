@@ -1,6 +1,5 @@
 package util
 
-import util.HttpClient
 import org.slf4j.LoggerFactory
 import java.io.*
 import java.util.zip.ZipInputStream

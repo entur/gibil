@@ -2,7 +2,6 @@ package util
 
 import io.mockk.every
 import io.mockk.mockk
-import util.HttpClient
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.io.TempDir
 import java.io.*

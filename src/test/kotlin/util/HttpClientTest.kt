@@ -1,16 +1,15 @@
-package service
+package util
 
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import okhttp3.OkHttpClient
 import okhttp3.Call
-import okhttp3.Response
+import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.ResponseBody
-import util.HttpClient
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.IOException
 

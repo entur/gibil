@@ -1,7 +1,7 @@
 package service
 
 import jakarta.annotation.PostConstruct
-import handler.StopPlaceMapper
+import handler.netex.StopPlaceMapper
 import util.TiamatImportPaths
 import util.QuayCodes
 import util.ZipUtil

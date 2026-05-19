@@ -1,4 +1,4 @@
-package handler
+package handler.netex
 
 import model.serviceJourney.ServiceJourney
 import javax.xml.stream.XMLInputFactory

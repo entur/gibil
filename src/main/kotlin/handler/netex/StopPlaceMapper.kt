@@ -1,4 +1,4 @@
-package handler
+package handler.netex
 
 import model.stopPlaces.Quay
 import model.stopPlaces.StopPlaces

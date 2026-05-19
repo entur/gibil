@@ -1,6 +1,6 @@
 package handler
 
-import handler.StopPlaceMapper
+import handler.netex.StopPlaceMapper
 import util.QuayCodes
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested

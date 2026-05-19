@@ -3,7 +3,7 @@ package service.serviceJourney
 import jakarta.annotation.PostConstruct
 import java.io.File
 import model.serviceJourney.ServiceJourney
-import handler.ServiceJourneyParser
+import handler.netex.ServiceJourneyParser
 import util.Dates.tomorrowDaytype
 import util.HttpClient
 import org.springframework.beans.factory.annotation.Value

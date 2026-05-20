@@ -3,19 +3,21 @@ package subscription.helper
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import siri.SiriEtPublisher
+import util.XmlUtil
 
 class SubscriptionHttpHelperTest {
 
     private lateinit var httpClient: OkHttpClient
-    private lateinit var publisher: SiriEtPublisher
     private lateinit var SubscriptionHttpHelper: SubscriptionHttpHelper
     private lateinit var call: Call
     private lateinit var response: Response
@@ -23,8 +25,8 @@ class SubscriptionHttpHelperTest {
     @BeforeEach
     fun setup() {
         httpClient = mockk()
-        publisher = mockk()
-        SubscriptionHttpHelper = SubscriptionHttpHelper(httpClient, publisher)
+        mockkObject(XmlUtil)
+        SubscriptionHttpHelper = SubscriptionHttpHelper(httpClient)
 
         call = mockk()
         response = mockk(relaxed = true)
@@ -33,18 +35,23 @@ class SubscriptionHttpHelperTest {
         every { call.execute() } returns response
     }
 
+    @AfterEach
+    fun teardown() {
+        unmockkObject(XmlUtil)
+    }
+
     @Nested
     inner class PostHeartbeat {
         @Test
         fun `postHeartbeat returns response code from server`() {
             every { response.isSuccessful } returns true
             every { response.code } returns 200
-            every { publisher.toXml(any()) } returns "<heartbeat/>"
+            every { XmlUtil.toXml(any(), any()) } returns "<heartbeat/>"
 
             val result = SubscriptionHttpHelper.postHeartbeat("http://localhost/heartbeat", "ENTUR_DEV")
 
             Assertions.assertEquals(200, result)
-            verify(exactly = 1) { publisher.toXml(any()) }
+            verify(exactly = 1) { XmlUtil.toXml(any(), any()) }
             verify(exactly = 1) { httpClient.newCall(any()) }
         }
     }

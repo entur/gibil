@@ -1,31 +1,29 @@
-package siri
+package util
 
-import model.FlightStop
-import model.UnifiedFlight
-import service.AirportQuayService
 import io.mockk.every
 import io.mockk.mockk
+import model.FlightStop
+import model.UnifiedFlight
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.io.TempDir
-import java.io.File
+import service.AirportQuayService
+import siri.SiriETMapper
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-class SiriEtPublisherTest {
-
+class XmlUtilTest {
     private val airportQuayService = mockk<AirportQuayService> {
         every { getQuayId(any()) } returns null
     }
 
     @Test
     fun `should convert SIRI to XML string`() {
-        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
-        val xml = publisher.toXml(siri)
+        val xml = XmlUtil.toXml(siri)
 
         assertNotNull(xml)
         assertTrue(xml.isNotEmpty())
@@ -34,33 +32,18 @@ class SiriEtPublisherTest {
 
     @Test
     fun `should format XML with indentation`() {
-        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
 
-        val formattedXml = publisher.toXml(siri, formatOutput = true)
-        val unformattedXml = publisher.toXml(siri, formatOutput = false)
+        val formattedXml = XmlUtil.toXml(siri, formatOutput = true)
+        val unformattedXml = XmlUtil.toXml(siri, formatOutput = false)
 
         assertTrue(formattedXml.contains("\n"))
         assertTrue(formattedXml.length > unformattedXml.length)
     }
 
     @Test
-    fun `should write SIRI to file`(@TempDir tempDir: File) {
-        val publisher = SiriEtPublisher()
-        val mapper = SiriETMapper(airportQuayService)
-        val siri = mapper.mapUnifiedFlightsToSiri(listOf(createFlight()))
-        val outputFile = File(tempDir, "output.xml")
-
-        publisher.toFile(siri, outputFile, formatOutput = true)
-
-        assertTrue(outputFile.exists())
-        assertTrue(outputFile.length() > 0)
-    }
-
-    @Test
     fun `should handle multiple flights`() {
-        val publisher = SiriEtPublisher()
         val mapper = SiriETMapper(airportQuayService)
         val flights = listOf(
             createFlight("SK4321", "SK"),
@@ -69,7 +52,7 @@ class SiriEtPublisherTest {
         )
         val siri = mapper.mapUnifiedFlightsToSiri(flights)
 
-        val xml = publisher.toXml(siri)
+        val xml = XmlUtil.toXml(siri)
 
         assertNotNull(xml)
         assertTrue(xml.isNotEmpty())

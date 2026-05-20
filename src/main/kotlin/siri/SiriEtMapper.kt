@@ -174,6 +174,7 @@ class SiriETMapper(
                 call.departureStatus = CallStatusEnumeration.MISSED
                 call.expectedDepartureTime = statusTime ?: scheduledZdt
             }
+            //Unlike the arrivalStatus, EARLY is not a valid value for departureStatus, therefore there is no specific handling for early departures.
             FlightCodes.NEW_TIME_CODE -> {
                 if (statusTime != null && statusTime == scheduledZdt) {
                     call.departureStatus = CallStatusEnumeration.ON_TIME

@@ -9,9 +9,6 @@ import model.serviceJourney.ServiceJourney
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import service.serviceJourney.FindServiceJourney
-import service.serviceJourney.ServiceJourneyNotFoundException
-import service.serviceJourney.ServiceJourneyResolver
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -28,7 +25,14 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should attach serviceJourneyRef when match is found`() {
-        every { findServiceJourney.matchServiceJourney(any(), any(), any(), any()) } returns ServiceJourney(
+        every {
+            findServiceJourney.matchServiceJourney(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns ServiceJourney(
             serviceJourneyId = "AVI:ServiceJourney:SK123_hash"
         )
 
@@ -40,7 +44,14 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should attach lineRef when match contains one`() {
-        every { findServiceJourney.matchServiceJourney(any(), any(), any(), any()) } returns ServiceJourney(
+        every {
+            findServiceJourney.matchServiceJourney(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns ServiceJourney(
             serviceJourneyId = "AVI:ServiceJourney:SK123_hash",
             lineRefElement = LineRefWrapper(ref = "AVI:LineRef:SK_OSL-BGO")
         )
@@ -69,7 +80,14 @@ class ServiceJourneyResolverTest {
 
     @Test
     fun `should return flight with null ref when lookup throws unexpected exception`() {
-        every { findServiceJourney.matchServiceJourney(any(), any(), any(), any()) } throws RuntimeException("ExTime unavailable")
+        every {
+            findServiceJourney.matchServiceJourney(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } throws RuntimeException("ExTime unavailable")
 
         val result = resolver.resolve(listOf(createFlight()))
 
@@ -95,7 +113,14 @@ class ServiceJourneyResolverTest {
                 any()
             )
         } throws ServiceJourneyNotFoundException("no match")
-        every { findServiceJourney.matchServiceJourney(any(), any(), "DY456", any()) } returns ServiceJourney(
+        every {
+            findServiceJourney.matchServiceJourney(
+                any(),
+                any(),
+                "DY456",
+                any()
+            )
+        } returns ServiceJourney(
             serviceJourneyId = "AVI:ServiceJourney:DY456_hash",
             lineRefElement = LineRefWrapper(ref = "AVI:LineRef:SK_OSL-BGO")
         )

@@ -1,4 +1,4 @@
-package org.gibil.util
+package util
 
 import java.time.Duration
 import java.time.Instant

@@ -1,13 +1,12 @@
-package handler
+package handler.netex
 
-import org.gibil.handler.StopPlaceMapper
-import org.gibil.util.QuayCodes
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
+import util.QuayCodes
 import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

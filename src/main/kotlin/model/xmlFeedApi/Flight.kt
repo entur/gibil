@@ -5,7 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlAttribute
 import jakarta.xml.bind.annotation.XmlElement
 import jakarta.xml.bind.annotation.XmlTransient
-import org.gibil.util.FlightCodes
+import util.FlightCodes
 
 @XmlAccessorType(XmlAccessType.FIELD)
 class Flight {

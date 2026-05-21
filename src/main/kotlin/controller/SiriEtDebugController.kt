@@ -1,19 +1,18 @@
-package org.gibil.controller
+package controller
 
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import service.FlightAggregationService
-import service.ServiceJourneyResolver
+import service.serviceJourney.ServiceJourneyResolver
 import siri.SiriETMapper
-import siri.SiriEtPublisher
+import util.XmlUtil
 
 @RestController
 class SiriEtDebugController(
     private val flightAggregationService: FlightAggregationService,
     private val serviceJourneyResolver: ServiceJourneyResolver,
     private val siriETMapper: SiriETMapper,
-    private val siriETPublisher: SiriEtPublisher
 ) {
 
     /**
@@ -26,6 +25,6 @@ class SiriEtDebugController(
         val unifiedFlights = flightAggregationService.buildUnifiedFlights()
         val resolved = serviceJourneyResolver.resolve(unifiedFlights)
         val siri = siriETMapper.mapUnifiedFlightsToSiri(resolved)
-        return siriETPublisher.toXml(siri)
+        return XmlUtil.toXml(siri)
     }
 }

@@ -1,8 +1,8 @@
-package org.gibil.handler
+package handler.netex
 
-import org.gibil.model.stopPlaces.Quay
-import org.gibil.model.stopPlaces.StopPlaces
-import org.gibil.util.QuayCodes
+import model.stopPlaces.Quay
+import model.stopPlaces.StopPlaces
+import util.QuayCodes
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import util.SharedJaxbContext

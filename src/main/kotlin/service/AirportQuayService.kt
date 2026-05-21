@@ -1,14 +1,15 @@
-package org.gibil.service
+package service
 
 import jakarta.annotation.PostConstruct
-import org.gibil.handler.StopPlaceMapper
-import org.gibil.util.TiamatImportPaths
-import org.gibil.util.QuayCodes
+import handler.netex.StopPlaceMapper
+import util.TiamatImportPaths
+import util.QuayCodes
 import util.ZipUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import util.DateUtil.nanosToMs
+import util.HttpClient
 import java.io.File
 
 private val LOG = LoggerFactory.getLogger(AirportQuayService::class.java)
@@ -16,7 +17,7 @@ private val LOG = LoggerFactory.getLogger(AirportQuayService::class.java)
 @Service
 class AirportQuayService(
     private val mapper: StopPlaceMapper,
-    private val apiService: ApiService,
+    private val httpClient: HttpClient,
     @Value("\${stop.place.data.url}") private val stopPlaceDataUrl: String,
     @Value("\${org.gibil.stopPlace.data-file:#{null}}") private val configuredPath: String?,
     @Value("\${use.gate.mapping.enabled:false}") private val useGateMapping: Boolean
@@ -30,7 +31,7 @@ class AirportQuayService(
     @PostConstruct
     internal fun init() {
         if (basePath == TiamatImportPaths.LOCAL_BASEPATH) {
-            ZipUtil.downloadAndUnzip(stopPlaceDataUrl, basePath, apiService)
+            ZipUtil.downloadAndUnzip(stopPlaceDataUrl, basePath, httpClient)
         }
         refreshQuayMapping()
     }

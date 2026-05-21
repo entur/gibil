@@ -1,5 +1,9 @@
-package org.gibil.model
+package model
 
+/**
+ * This enum class is the list of valid airports Gibil fetches from.
+ * Can be expanded in the future if more airports are added to the API and Extime
+ */
 enum class AirportIATA {
     AES, ALF, ANX, BDU, BGO,
     BJF, BNN, BOO, BVG, DLD,

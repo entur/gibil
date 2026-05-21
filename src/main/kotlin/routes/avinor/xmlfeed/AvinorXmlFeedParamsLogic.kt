@@ -1,6 +1,6 @@
-package org.gibil.routes.avinor.xmlfeed
+package routes.avinor.xmlfeed
 
-import org.gibil.util.AvinorApiConfig
+import util.AvinorApiConfig
 
 data class AvinorXmlFeedParamsLogic(
     val airportCode: String,

@@ -1,6 +1,6 @@
 package service
 
-import handler.AvinorScheduleXmlHandler
+import handler.avinor.AvinorScheduleXmlHandler
 import io.mockk.*
 import java.io.IOException
 import java.time.ZoneOffset
@@ -14,10 +14,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import model.xmlFeedApi.*
-import org.gibil.util.Dates
-import org.gibil.util.FlightWindowConfig
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
-import org.gibil.routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
+import util.Dates
+import util.FlightWindowConfig
+import routes.avinor.xmlfeed.AvinorXmlFeedApiHandler
+import routes.avinor.xmlfeed.AvinorXmlFeedParamsLogic
 import org.junit.jupiter.api.*
 
 class FlightAggregationServiceTest {

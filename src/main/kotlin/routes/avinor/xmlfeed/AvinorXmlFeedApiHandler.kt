@@ -1,7 +1,7 @@
-package org.gibil.routes.avinor.xmlfeed
+package routes.avinor.xmlfeed
 
-import org.gibil.routes.avinor.airportname.AvinorAirportNamesApiHandler
-import org.gibil.service.ApiService
+import routes.avinor.airportname.AvinorAirportNamesApiHandler
+import util.HttpClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder
@@ -12,7 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder
 @Component
 class AvinorXmlFeedApiHandler(
     private val airportNameHandler: AvinorAirportNamesApiHandler,
-    private val apiService: ApiService,
+    private val httpClient: HttpClient,
     @Value("\${avinor.api.base-url-xmlfeed}") private val baseUrlXmlFeed: String
 ) {
 
@@ -44,6 +44,6 @@ class AvinorXmlFeedApiHandler(
      */
     fun fetchFlights(params: AvinorXmlFeedParamsLogic): Result<String> {
         val url = avinorXmlFeedUrlBuilder(params)
-        return apiService.apiCall(url)
+        return httpClient.apiCall(url)
     }
 }

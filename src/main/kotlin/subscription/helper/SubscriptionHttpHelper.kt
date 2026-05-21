@@ -1,4 +1,4 @@
-package org.gibil.subscription.helper
+package subscription.helper
 
 import jakarta.annotation.PreDestroy
 import okhttp3.MediaType.Companion.toMediaType
@@ -8,7 +8,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import siri.SiriEtPublisher
+import util.XmlUtil
 
 private val LOG = LoggerFactory.getLogger(SubscriptionHttpHelper::class.java)
 
@@ -19,7 +19,6 @@ private val LOG = LoggerFactory.getLogger(SubscriptionHttpHelper::class.java)
 @Component
 class SubscriptionHttpHelper(
     @Qualifier("subscriberClient") private val httpClient: OkHttpClient,
-    private val publisher: SiriEtPublisher
 ) {
 
     companion object {
@@ -35,7 +34,7 @@ class SubscriptionHttpHelper(
      */
     fun postHeartbeat(address: String, requestorRef: String): Int {
         val siri = SiriHelper.createHeartbeatNotification(requestorRef)
-        return postData(address, publisher.toXml(siri))
+        return postData(address, XmlUtil.toXml(siri))
     }
 
     /**

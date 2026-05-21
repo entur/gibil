@@ -1,14 +1,14 @@
 package subscription
 
 import io.mockk.*
-import org.gibil.subscription.helper.SubscriptionHttpHelper
-import org.gibil.subscription.model.SiriDataType
-import org.gibil.subscription.model.Subscription
-import org.gibil.subscription.repository.FlightStateCache
+import subscription.helper.SubscriptionHttpHelper
+import subscription.model.SiriDataType
+import subscription.model.Subscription
+import subscription.repository.FlightStateCache
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import service.FlightAggregationService
-import service.ServiceJourneyResolver
+import service.serviceJourney.ServiceJourneyResolver
 import siri.SiriETMapper
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure
 import uk.org.siri.siri21.ServiceDelivery

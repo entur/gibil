@@ -2,10 +2,10 @@ package siri
 
 import model.FlightStop
 import model.UnifiedFlight
-import org.gibil.util.Dates
-import org.gibil.util.FlightCodes
-import org.gibil.util.SiriConfig
-import org.gibil.service.AirportQuayService
+import util.Dates
+import util.FlightCodes
+import util.SiriConfig
+import service.AirportQuayService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.org.siri.siri21.*
@@ -174,6 +174,7 @@ class SiriETMapper(
                 call.departureStatus = CallStatusEnumeration.MISSED
                 call.expectedDepartureTime = statusTime ?: scheduledZdt
             }
+            //Unlike the arrivalStatus, EARLY is not a valid value for departureStatus, therefore there is no specific handling for early departures.
             FlightCodes.NEW_TIME_CODE -> {
                 if (statusTime != null && statusTime == scheduledZdt) {
                     call.departureStatus = CallStatusEnumeration.ON_TIME

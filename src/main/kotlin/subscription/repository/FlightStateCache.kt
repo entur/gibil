@@ -1,4 +1,4 @@
-package org.gibil.subscription.repository
+package subscription.repository
 
 import model.UnifiedFlight
 import org.slf4j.LoggerFactory

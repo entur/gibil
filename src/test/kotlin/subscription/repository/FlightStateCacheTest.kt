@@ -1,6 +1,6 @@
 package subscription.repository
 
-import org.gibil.subscription.repository.FlightStateCache
+import subscription.repository.FlightStateCache
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

@@ -44,11 +44,11 @@ class FindServiceJourney(
         }
         //Makes debug lines for each journey if debug logging is enabled, to give insight into what journeys are being parsed and stored in the serviceJourneyList
         serviceJourneyList = findServiceJourney().also { journeys ->
-            journeys.forEach { journey -> LOG.debug("ServiceJourney: {}", journey) }
+            journeys.forEach { journey -> LOG.trace("ServiceJourney: {}", journey) }
         }
 
         val totalResolveTimeMs = nanosToMs((System.nanoTime() - totalStart))
-        LOG.info("Extime download and servicejourneylist creation took $totalResolveTimeMs ms")
+        LOG.debug("Extime download and servicejourneylist creation took $totalResolveTimeMs ms")
     }
 
 

@@ -35,7 +35,7 @@ class ServiceJourneyResolver(
         val workingMap = findServiceJourney.buildWorkingMap()
 
         val resetMs = nanosToMs((System.nanoTime() - resetStart))
-        LOG.info("resetMutableServiceJourneyList took {} ms", resetMs)
+        LOG.debug("resetMutableServiceJourneyList took {} ms", resetMs)
 
         val result = flights.map { flight ->
             val departureTimeStr = flight.stops.first().departureTime?.toString()

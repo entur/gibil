@@ -10,7 +10,7 @@ common:
   replicas: 1
 
 configMap:
-  LOG_LEVEL: DEBUG
+  LOG_LEVEL: INFO
 
 cronJob:
   gcpProject: entur-dev-gcp2

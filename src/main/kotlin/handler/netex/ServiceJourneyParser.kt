@@ -60,12 +60,12 @@ class ServiceJourneyParser {
 
         // Get all XML files in the folder
         folder.listFiles { file -> file.extension.lowercase() == "xml" }?.forEach { xmlFile ->
-            LOG.info("Parsing: {}", xmlFile.name)
+            LOG.debug("Parsing: {}", xmlFile.name)
             try {
                 //parse the file and add the found service journeys to the allJourneys list
                 val journeys = parseFile(xmlFile)
                 allJourneys.addAll(journeys)
-                LOG.info("Found {} service journeys in {}", journeys.size, xmlFile.name)
+                LOG.debug("Found {} service journeys in {}", journeys.size, xmlFile.name)
             } catch (e: Exception) {
                 LOG.error("Error parsing file {}: {}", xmlFile.name, e.message)
             }

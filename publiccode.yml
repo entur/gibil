@@ -1,0 +1,66 @@
+# publiccode.yml metadata, see https://yml.publiccode.tools/
+publiccodeYmlVersion: "0.7.0"
+
+name: Gibil
+url: https://github.com/entur/gibil
+
+platforms:
+  - web
+  - linux
+
+categories:
+  - data-collection
+  - communications
+
+developmentStatus: stable
+softwareType: standalone/backend
+
+organisation:
+  name: Entur AS
+  uri: https://entur.no
+
+usedBy:
+  - Norway (nationwide), Entur AS
+
+intendedAudience:
+  scope:
+    - transportation
+  countries:
+    - "NO"
+
+description:
+  en:
+    localisedName: Gibil
+    shortDescription: Converts Avinor real-time flight data into SIRI-ET and pushes it to subscribers.
+    longDescription: >
+      Gibil is a real-time adapter for flight data. It polls Avinor's XML feed for the Norwegian domestic airports
+      that Avinor tracks, stitches arrival and departure events into unified flight chains, and detects what has
+      actually changed since the last poll. Changed flights are matched against NeTEx timetable data to resolve
+      the corresponding service journey and line, mapped to SIRI EstimatedVehicleJourneys with airport quay
+      identifiers, and pushed as SIRI-ET to registered subscribers, primarily Anshar.
+      This gives the Norwegian national journey planner live flight status alongside the planned flight timetables
+      produced by Extime. Airports are polled in batches, and subscriptions that keep failing are terminated
+      automatically.
+    documentation: https://github.com/entur/gibil/blob/main/README.md
+    features:
+      - Polls the Avinor real-time flight feed
+      - Stitches arrival and departure events into unified flights
+      - Hash-based change detection between polls
+      - Resolves NeTEx service journey and line references
+      - Maps flights to SIRI-ET EstimatedVehicleJourneys
+      - Push delivery to subscribers with automatic termination on repeated failure
+
+legal:
+  license: EUPL-1.2
+  mainCopyrightOwner: Entur AS
+
+maintenance:
+  type: internal
+  contacts:
+    - name: Entur ROR (Open Data and Journey Planning)
+      email: kollektivdata@entur.org
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en

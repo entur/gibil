@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.entur.ror</groupId>
             <artifactId>netex-tools-lib</artifactId>
-            <version>0.0.37</version>
+            <version>0.0.46</version>
         </dependency>
         <dependency>
             <groupId>org.entur.ror</groupId>

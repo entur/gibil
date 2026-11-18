@@ -38,7 +38,7 @@ common:
   configmap:
     data:
       JDK_JAVA_OPTIONS: -server -Xmx512m -XX:ActiveProcessorCount=1 -Dspring.config.additional-location=/etc/application-config/application.properties
-        -Dfile.encoding=UTF-8
+        -Dfile.encoding=UTF-8 -XX:-UseBASE64Intrinsics
       TZ: Europe/Oslo
     enabled: true
     toEnv: true
